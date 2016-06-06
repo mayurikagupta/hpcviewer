@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="ASCII"?>
+<application:Application xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:advanced="http://www.eclipse.org/ui/2010/UIModel/application/ui/advanced" xmlns:application="http://www.eclipse.org/ui/2010/UIModel/application" xmlns:basic="http://www.eclipse.org/ui/2010/UIModel/application/ui/basic" xmi:id="_U_H-kCwhEeaVbcoFs6t9ag" elementId="edu.rice.cs.hpc.viewer.e4.application">
+  <children xsi:type="basic:TrimmedWindow" xmi:id="_aniYkCwhEeaVbcoFs6t9ag" elementId="edu.rice.cs.hpc.viewer.e4.trimmedwindow.main" label="hpcviewer main">
+    <children xsi:type="advanced:PerspectiveStack" xmi:id="_8OuKkCwhEeaVbcoFs6t9ag" elementId="edu.rice.cs.hpc.viewer.e4.perspectivestack.main">
+      <children xsi:type="advanced:Perspective" xmi:id="_-z7SQCwhEeaVbcoFs6t9ag" elementId="edu.rice.cs.hpc.viewer.e4.perspective.main" label="Main">
+        <children xsi:type="basic:PartSashContainer" xmi:id="_Fcru8CwiEeaVbcoFs6t9ag" elementId="edu.rice.cs.hpc.viewer.e4.partsashcontainer.main">
+          <children xsi:type="basic:PartStack" xmi:id="_L5NtgCwiEeaVbcoFs6t9ag" elementId="edu.rice.cs.hpc.viewer.e4.partstack.editor"/>
+          <children xsi:type="basic:PartSashContainer" xmi:id="_Ndj1ICwiEeaVbcoFs6t9ag" elementId="edu.rice.cs.hpc.viewer.e4.partsashcontainer.view">
+            <children xsi:type="basic:PartStack" xmi:id="_RaHxUCwiEeaVbcoFs6t9ag" elementId="edu.rice.cs.hpc.viewer.e4.partstack.view">
+              <children xsi:type="basic:Part" xmi:id="_cAGKICwlEeaVbcoFs6t9ag" elementId="edu.rice.cs.hpc.viewer.e4.part.topdown" contributionURI="bundleclass://edu.rice.cs.hpc.viewer.e4/edu.rice.cs.hpc.viewer.parts.CallingContextPart" label="Calling context view" iconURI="platform:/plugin/edu.rice.cs.hpc.viewer.e4/icon/view-cct.png" tooltip="Top-down calling context view" closeable="true"/>
+              <children xsi:type="basic:Part" xmi:id="_3fpPgCwlEeaVbcoFs6t9ag" elementId="edu.rice.cs.hpc.viewer.e4.part.bottomup" contributionURI="bundleclass://edu.rice.cs.hpc.viewer.e4/edu.rice.cs.hpc.viewer.parts.CallersPart" label="Callers view" iconURI="platform:/plugin/edu.rice.cs.hpc.viewer.e4/icon/view-caller.png" tooltip="Bottom-up callers view" closeable="true"/>
+              <children xsi:type="basic:Part" xmi:id="_OsGIACwmEeaVbcoFs6t9ag" elementId="edu.rice.cs.hpc.viewer.e4.part.flat" contributionURI="bundleclass://edu.rice.cs.hpc.viewer.e4/edu.rice.cs.hpc.viewer.parts.FlatPart" label="Flat view" iconURI="platform:/plugin/edu.rice.cs.hpc.viewer.e4/icon/view-flat.png" tooltip="Static flat view" closeable="true"/>
+            </children>
+          </children>
+        </children>
+      </children>
+    </children>
+  </children>
+  <addons xmi:id="_U_H-kSwhEeaVbcoFs6t9ag" elementId="org.eclipse.e4.core.commands.service" contributionURI="bundleclass://org.eclipse.e4.core.commands/org.eclipse.e4.core.commands.CommandServiceAddon"/>
+  <addons xmi:id="_U_H-kiwhEeaVbcoFs6t9ag" elementId="org.eclipse.e4.ui.contexts.service" contributionURI="bundleclass://org.eclipse.e4.ui.services/org.eclipse.e4.ui.services.ContextServiceAddon"/>
+  <addons xmi:id="_U_H-kywhEeaVbcoFs6t9ag" elementId="org.eclipse.e4.ui.bindings.service" contributionURI="bundleclass://org.eclipse.e4.ui.bindings/org.eclipse.e4.ui.bindings.BindingServiceAddon"/>
+  <addons xmi:id="_U_H-lCwhEeaVbcoFs6t9ag" elementId="org.eclipse.e4.ui.workbench.commands.model" contributionURI="bundleclass://org.eclipse.e4.ui.workbench/org.eclipse.e4.ui.internal.workbench.addons.CommandProcessingAddon"/>
+  <addons xmi:id="_U_H-lSwhEeaVbcoFs6t9ag" elementId="org.eclipse.e4.ui.workbench.contexts.model" contributionURI="bundleclass://org.eclipse.e4.ui.workbench/org.eclipse.e4.ui.internal.workbench.addons.ContextProcessingAddon"/>
+  <addons xmi:id="_U_H-liwhEeaVbcoFs6t9ag" elementId="org.eclipse.e4.ui.workbench.bindings.model" contributionURI="bundleclass://org.eclipse.e4.ui.workbench.swt/org.eclipse.e4.ui.workbench.swt.util.BindingProcessingAddon"/>
+  <addons xmi:id="_U_H-lywhEeaVbcoFs6t9ag" elementId="org.eclipse.e4.ui.workbench.handler.model" contributionURI="bundleclass://org.eclipse.e4.ui.workbench/org.eclipse.e4.ui.internal.workbench.addons.HandlerProcessingAddon"/>
+</application:Application>
