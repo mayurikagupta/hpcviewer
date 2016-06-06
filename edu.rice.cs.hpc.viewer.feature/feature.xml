@@ -2,7 +2,7 @@
 <feature
       id="edu.rice.cs.hpc.viewer.feature"
       label="hpcviewer"
-      version="5.4.0.qualifier"
+      version="5.5.0.qualifier"
       provider-name="Rice University">
 
    <description url="http://hpctoolkit.org">
