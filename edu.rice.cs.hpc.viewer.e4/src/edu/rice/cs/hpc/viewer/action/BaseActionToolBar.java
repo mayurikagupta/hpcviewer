@@ -3,6 +3,7 @@ package edu.rice.cs.hpc.viewer.action;
 import java.util.HashMap;
 
 import org.eclipse.jface.layout.GridDataFactory;
+import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -10,6 +11,7 @@ import org.eclipse.swt.widgets.CoolBar;
 import org.eclipse.swt.widgets.CoolItem;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
+
 import edu.rice.cs.hpc.viewer.resources.ResourceConstant;
 import edu.rice.cs.hpc.viewer.resources.ResourceProvider;
 
@@ -21,8 +23,13 @@ abstract public class BaseActionToolBar
 
 	private HashMap<ActionID, ToolItem> titmItems = new HashMap<>(8);
 
-	public Composite create(Composite parent) {
+	public Composite create(Composite aParent) {
 		
+		Composite parent = new Composite(aParent, SWT.NONE);
+		
+		GridDataFactory.fillDefaults().align(SWT.FILL, SWT.FILL).grab(true, false).applyTo(parent);
+		GridLayoutFactory.fillDefaults().numColumns(2).applyTo(parent);
+
 		CoolBar coolBar = new CoolBar(parent, SWT.FLAT);
 		GridDataFactory.fillDefaults().grab(true, false).align(SWT.LEFT, SWT.CENTER).applyTo(coolBar);
 
@@ -64,6 +71,10 @@ abstract public class BaseActionToolBar
     	addActionEnd(res, toolBar);
 
     	createCoolItem(coolBar, toolBar);
+
+    	MessageLabel lbl = new MessageLabel(parent);
+
+    	lbl.postConstruct(parent);
     	
     	return coolBar;
 	}
