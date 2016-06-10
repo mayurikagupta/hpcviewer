@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ASCII"?>
-<application:Application xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:advanced="http://www.eclipse.org/ui/2010/UIModel/application/ui/advanced" xmlns:application="http://www.eclipse.org/ui/2010/UIModel/application" xmlns:basic="http://www.eclipse.org/ui/2010/UIModel/application/ui/basic" xmi:id="_U_H-kCwhEeaVbcoFs6t9ag" elementId="edu.rice.cs.hpc.viewer.e4.application">
+<application:Application xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:advanced="http://www.eclipse.org/ui/2010/UIModel/application/ui/advanced" xmlns:application="http://www.eclipse.org/ui/2010/UIModel/application" xmlns:basic="http://www.eclipse.org/ui/2010/UIModel/application/ui/basic" xmlns:menu="http://www.eclipse.org/ui/2010/UIModel/application/ui/menu" xmi:id="_U_H-kCwhEeaVbcoFs6t9ag" elementId="edu.rice.cs.hpc.viewer.e4.application">
   <children xsi:type="basic:TrimmedWindow" xmi:id="_aniYkCwhEeaVbcoFs6t9ag" elementId="edu.rice.cs.hpc.viewer.e4.trimmedwindow.main" label="hpcviewer main">
     <children xsi:type="advanced:PerspectiveStack" xmi:id="_8OuKkCwhEeaVbcoFs6t9ag" elementId="edu.rice.cs.hpc.viewer.e4.perspectivestack.main">
       <children xsi:type="advanced:Perspective" xmi:id="_-z7SQCwhEeaVbcoFs6t9ag" elementId="edu.rice.cs.hpc.viewer.e4.perspective.main" label="Main">
@@ -15,7 +15,19 @@
         </children>
       </children>
     </children>
+    <mainMenu xmi:id="_OrttcC9bEeaiLJJ4kb3Uhw" elementId="edu.rice.cs.hpc.viewer.e4.menu.main">
+      <children xsi:type="menu:Menu" xmi:id="_TCECoC9bEeaiLJJ4kb3Uhw" elementId="edu.rice.cs.hpc.viewer.e4.menu.file" label="File" mnemonics="F">
+        <children xsi:type="menu:HandledMenuItem" xmi:id="_ZlsHsC9bEeaiLJJ4kb3Uhw" elementId="edu.rice.cs.hpc.viewer.e4.handledmenuitem.OpenDatabase" label="Open a database" tooltip="Select a directory to open a database" mnemonics="O" command="_9RFYsC9REeaiLJJ4kb3Uhw"/>
+        <children xsi:type="menu:HandledMenuItem" xmi:id="_jQwe0C9bEeaiLJJ4kb3Uhw" elementId="edu.rice.cs.hpc.viewer.e4.handledmenuitem.Exit" label="Exit" tooltip="Exit the application" mnemonics="E"/>
+      </children>
+    </mainMenu>
   </children>
+  <handlers xmi:id="_FnzBcC9REeaiLJJ4kb3Uhw" elementId="edu.rice.cs.hpc.viewer.handler.treeZoomin" contributionURI="bundleclass://edu.rice.cs.hpc.viewer.e4/edu.rice.cs.hpc.viewer.action.ZoomIn" command="_JljbAC9SEeaiLJJ4kb3Uhw"/>
+  <handlers xmi:id="_Dy9KQC9SEeaiLJJ4kb3Uhw" elementId="edu.rice.cs.hpc.viewer.handler.OpenDatabase" contributionURI="bundleclass://edu.rice.cs.hpc.viewer.e4/edu.rice.cs.hpc.viewer.action.DatabaseOpen" command="_9RFYsC9REeaiLJJ4kb3Uhw"/>
+  <handlers xmi:id="_vIhXAC9bEeaiLJJ4kb3Uhw" elementId="edu.rice.cs.hpc.viewer.e4.handler.Exit" contributionURI="bundleclass://edu.rice.cs.hpc.viewer.e4/edu.rice.cs.hpc.viewer.action.Exit" command="_n38sYC9bEeaiLJJ4kb3Uhw"/>
+  <commands xmi:id="_9RFYsC9REeaiLJJ4kb3Uhw" elementId="edu.rice.cs.hpc.viewer.command.OpenDatabase" commandName="Open database" description="Opening an experiment database"/>
+  <commands xmi:id="_JljbAC9SEeaiLJJ4kb3Uhw" elementId="edu.rice.cs.hpc.viewer.command.ZoomIn" commandName="Zoom in" description="Zoom in to the selected node to be the tree root"/>
+  <commands xmi:id="_n38sYC9bEeaiLJJ4kb3Uhw" elementId="edu.rice.cs.hpc.viewer.e4.command.Exit" commandName="Exit" description="Exit the application"/>
   <addons xmi:id="_U_H-kSwhEeaVbcoFs6t9ag" elementId="org.eclipse.e4.core.commands.service" contributionURI="bundleclass://org.eclipse.e4.core.commands/org.eclipse.e4.core.commands.CommandServiceAddon"/>
   <addons xmi:id="_U_H-kiwhEeaVbcoFs6t9ag" elementId="org.eclipse.e4.ui.contexts.service" contributionURI="bundleclass://org.eclipse.e4.ui.services/org.eclipse.e4.ui.services.ContextServiceAddon"/>
   <addons xmi:id="_U_H-kywhEeaVbcoFs6t9ag" elementId="org.eclipse.e4.ui.bindings.service" contributionURI="bundleclass://org.eclipse.e4.ui.bindings/org.eclipse.e4.ui.bindings.BindingServiceAddon"/>
