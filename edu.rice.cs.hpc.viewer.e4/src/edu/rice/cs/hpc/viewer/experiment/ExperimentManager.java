@@ -3,16 +3,15 @@
  */
 package edu.rice.cs.hpc.viewer.experiment;
 
-import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.widgets.DirectoryDialog;
-import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.swt.widgets.Shell;
 
 import java.io.File;
 
+import edu.rice.cs.hpc.data.experiment.Experiment;
 import edu.rice.cs.hpc.data.util.Constants;
 import edu.rice.cs.hpc.data.util.Util.FileXMLFilter;
 
@@ -38,18 +37,19 @@ public class ExperimentManager {
 	/**
 	 * pointer to the current active workbench window (supposed to be only one)
 	 */
-	private IWorkbenchWindow window;
+	final private Shell shell;
 	/**
 	 * flag to indicate if a caller view needs to display or not
 	 */
 	private boolean flagCallerView = true;
+	private Experiment experiment;
 	
 	/**
 	 * Constructor to instantiate experiment file
 	 * @param win: the current workbench window
 	 */
-	public ExperimentManager(IWorkbenchWindow win) {
-		this.window = win;
+	public ExperimentManager(Shell shell) {
+		this.shell = shell;
 		IEclipsePreferences preference = InstanceScope.INSTANCE.getNode(PreferenceConstants.P_NODE);
 		if(ExperimentManager.sLastPath == null)
 			ExperimentManager.sLastPath = preference.get(PreferenceConstants.P_PATH, null);
@@ -99,11 +99,20 @@ public class ExperimentManager {
 	 * @return true if everything is OK. false otherwise
 	 */
 	public boolean openFileExperiment(int flag) {
-		File []fileXML = this.getDatabaseFileList(this.window.getShell(), 
+		File []fileXML = this.getDatabaseFileList(shell, 
 				"Select a directory containing a profiling database.");
 		if(fileXML != null)
 			return this.openFileExperimentFromFiles(fileXML, flag);
 		return false;
+	}
+	
+	/**
+	 * return the current opened database
+	 * @return
+	 */
+	public Experiment getExperiment()
+	{
+		return experiment;
 	}
 
 	//==================================================================
@@ -116,11 +125,11 @@ public class ExperimentManager {
 	 */
 	private boolean openFileExperimentFromFiles(File []filesXML, int flag) {
 		if((filesXML != null) && (filesXML.length>0)) {
-			boolean bContinue = true;
+
 			// let's make it complicated: assuming there are more than 1 XML file in this directory,
 			// we need to test one by one if it is a valid database file.
 			// Problem: if in the directory it has two XML files, then the second one will NEVER be opened !
-			for(int i=0;i<(filesXML.length) && (bContinue);i++) 
+			for(int i=0;i<(filesXML.length);i++) 
 			{
 				File objFile = filesXML[i];
 				String sFile=objFile.getAbsolutePath();
@@ -135,15 +144,13 @@ public class ExperimentManager {
 					// until we fine the good one.
 					// ------------------------------------------------------------------
 					
-					
-					bContinue = (!setExperiment(sFile, flag));
+					experiment = setExperiment(sFile, flag);
+					if (experiment != null)
+						return true;
 				}
 			}
-	   		if(bContinue) {
-	   		} else
-	   			return true;
 		}
-		MessageDialog.openError(window.getShell(), "Failed to open a database", 
+		MessageDialog.openError(shell, "Failed to open a database", 
 			"Either the selected directory is not a database or the max number of databases allowed per window are already opened.\n"+
 			"A database directory must contain at least one XML file which contains profiling information.");
 		return false;
@@ -154,22 +161,22 @@ public class ExperimentManager {
 	 * @param sFilename
 	 * @return
 	 */
-	private boolean setExperiment(String sFilename, int flag) {
-		IWorkbenchPage objPage = this.window.getActivePage();
-		ExperimentView expViewer = new ExperimentView(objPage);
+	private Experiment setExperiment(String sFilename, int flag) {
+
+		ExperimentView expViewer = new ExperimentView(shell);
 
 		// data looks OK
-		boolean bResult;
+		Experiment experiment;
 		if (flag == FLAG_WITHOUT_CALLER_VIEW)  {
 			flagCallerView = false;
-			bResult = expViewer.loadExperimentAndProcess(sFilename, flagCallerView);
+			experiment = expViewer.loadExperimentAndProcess(sFilename, flagCallerView);
 		} else if (flag == FLAG_DEFAULT && !flagCallerView )
 			// use the initial flag (set by command line or preference page)
-			bResult = expViewer.loadExperimentAndProcess(sFilename, flagCallerView );
+			experiment = expViewer.loadExperimentAndProcess(sFilename, flagCallerView );
 		else
-			bResult = expViewer.loadExperimentAndProcess(sFilename);
+			experiment = expViewer.loadExperimentAndProcess(sFilename);
 
-		return bResult; 
+		return experiment; 
 	}
 	
 	/**

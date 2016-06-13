@@ -8,7 +8,6 @@ Bundle-Vendor: Rice University
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
  edu.rice.cs.hpc.common;bundle-version="5.3.2"
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy
 Export-Package: edu.rice.cs.hpc.filter,
  edu.rice.cs.hpc.filter.service,

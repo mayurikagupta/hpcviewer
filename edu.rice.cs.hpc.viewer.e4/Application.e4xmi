@@ -7,9 +7,8 @@
           <children xsi:type="basic:PartStack" xmi:id="_L5NtgCwiEeaVbcoFs6t9ag" elementId="edu.rice.cs.hpc.viewer.e4.partstack.editor"/>
           <children xsi:type="basic:PartSashContainer" xmi:id="_Ndj1ICwiEeaVbcoFs6t9ag" elementId="edu.rice.cs.hpc.viewer.e4.partsashcontainer.view">
             <children xsi:type="basic:PartStack" xmi:id="_RaHxUCwiEeaVbcoFs6t9ag" elementId="edu.rice.cs.hpc.viewer.e4.partstack.view">
-              <children xsi:type="basic:Part" xmi:id="_cAGKICwlEeaVbcoFs6t9ag" elementId="edu.rice.cs.hpc.viewer.e4.part.topdown" contributionURI="bundleclass://edu.rice.cs.hpc.viewer.e4/edu.rice.cs.hpc.viewer.parts.CallingContextPart" label="Calling context view" iconURI="platform:/plugin/edu.rice.cs.hpc.viewer.e4/icons/view-cct.png" tooltip="Top-down calling context view" closeable="true"/>
-              <children xsi:type="basic:Part" xmi:id="_3fpPgCwlEeaVbcoFs6t9ag" elementId="edu.rice.cs.hpc.viewer.e4.part.bottomup" contributionURI="bundleclass://edu.rice.cs.hpc.viewer.e4/edu.rice.cs.hpc.viewer.parts.CallersPart" label="Callers view" iconURI="platform:/plugin/edu.rice.cs.hpc.viewer.e4/icons/view-caller.png" tooltip="Bottom-up callers view" closeable="true"/>
-              <children xsi:type="basic:Part" xmi:id="_OsGIACwmEeaVbcoFs6t9ag" elementId="edu.rice.cs.hpc.viewer.e4.part.flat" contributionURI="bundleclass://edu.rice.cs.hpc.viewer.e4/edu.rice.cs.hpc.viewer.parts.FlatPart" label="Flat view" iconURI="platform:/plugin/edu.rice.cs.hpc.viewer.e4/icons/view-flat.png" tooltip="Static flat view" closeable="true"/>
+              <children xsi:type="basic:Part" xmi:id="_3fpPgCwlEeaVbcoFs6t9ag" elementId="edu.rice.cs.hpc.viewer.part.bottomup" visible="false" contributionURI="bundleclass://edu.rice.cs.hpc.viewer.e4/edu.rice.cs.hpc.viewer.parts.CallersPart" label="Callers view" iconURI="platform:/plugin/edu.rice.cs.hpc.viewer.e4/icons/view-caller.png" tooltip="Bottom-up callers view" closeable="true"/>
+              <children xsi:type="basic:Part" xmi:id="_OsGIACwmEeaVbcoFs6t9ag" elementId="edu.rice.cs.hpc.viewer.part.flat" visible="false" contributionURI="bundleclass://edu.rice.cs.hpc.viewer.e4/edu.rice.cs.hpc.viewer.parts.FlatPart" label="Flat view" iconURI="platform:/plugin/edu.rice.cs.hpc.viewer.e4/icons/view-flat.png" tooltip="Static flat view" closeable="true"/>
             </children>
           </children>
         </children>
@@ -18,13 +17,14 @@
     <mainMenu xmi:id="_OrttcC9bEeaiLJJ4kb3Uhw" elementId="edu.rice.cs.hpc.viewer.e4.menu.main">
       <children xsi:type="menu:Menu" xmi:id="_TCECoC9bEeaiLJJ4kb3Uhw" elementId="edu.rice.cs.hpc.viewer.e4.menu.file" label="File" mnemonics="F">
         <children xsi:type="menu:HandledMenuItem" xmi:id="_ZlsHsC9bEeaiLJJ4kb3Uhw" elementId="edu.rice.cs.hpc.viewer.e4.handledmenuitem.OpenDatabase" label="Open a database" tooltip="Select a directory to open a database" mnemonics="O" command="_9RFYsC9REeaiLJJ4kb3Uhw"/>
-        <children xsi:type="menu:HandledMenuItem" xmi:id="_jQwe0C9bEeaiLJJ4kb3Uhw" elementId="edu.rice.cs.hpc.viewer.e4.handledmenuitem.Exit" label="Exit" tooltip="Exit the application" mnemonics="E"/>
+        <children xsi:type="menu:HandledMenuItem" xmi:id="_jQwe0C9bEeaiLJJ4kb3Uhw" elementId="edu.rice.cs.hpc.viewer.e4.handledmenuitem.Exit" label="Exit" tooltip="Exit the application" mnemonics="E" command="_n38sYC9bEeaiLJJ4kb3Uhw"/>
       </children>
     </mainMenu>
   </children>
   <handlers xmi:id="_FnzBcC9REeaiLJJ4kb3Uhw" elementId="edu.rice.cs.hpc.viewer.handler.treeZoomin" contributionURI="bundleclass://edu.rice.cs.hpc.viewer.e4/edu.rice.cs.hpc.viewer.action.ZoomIn" command="_JljbAC9SEeaiLJJ4kb3Uhw"/>
   <handlers xmi:id="_Dy9KQC9SEeaiLJJ4kb3Uhw" elementId="edu.rice.cs.hpc.viewer.handler.OpenDatabase" contributionURI="bundleclass://edu.rice.cs.hpc.viewer.e4/edu.rice.cs.hpc.viewer.action.DatabaseOpen" command="_9RFYsC9REeaiLJJ4kb3Uhw"/>
   <handlers xmi:id="_vIhXAC9bEeaiLJJ4kb3Uhw" elementId="edu.rice.cs.hpc.viewer.e4.handler.Exit" contributionURI="bundleclass://edu.rice.cs.hpc.viewer.e4/edu.rice.cs.hpc.viewer.action.Exit" command="_n38sYC9bEeaiLJJ4kb3Uhw"/>
+  <descriptors xmi:id="_ApdH4DGxEeaFoL_GQ_rcmA" elementId="edu.rice.cs.hpc.viewer.partdescriptor.scopeview" label="Scope view" allowMultiple="true" contributionURI="bundleclass://edu.rice.cs.hpc.viewer.e4/edu.rice.cs.hpc.viewer.parts.TopDownView"/>
   <commands xmi:id="_9RFYsC9REeaiLJJ4kb3Uhw" elementId="edu.rice.cs.hpc.viewer.command.OpenDatabase" commandName="Open database" description="Opening an experiment database"/>
   <commands xmi:id="_JljbAC9SEeaiLJJ4kb3Uhw" elementId="edu.rice.cs.hpc.viewer.command.ZoomIn" commandName="Zoom in" description="Zoom in to the selected node to be the tree root"/>
   <commands xmi:id="_n38sYC9bEeaiLJJ4kb3Uhw" elementId="edu.rice.cs.hpc.viewer.e4.command.Exit" commandName="Exit" description="Exit the application"/>
