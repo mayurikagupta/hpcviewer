@@ -10,10 +10,23 @@ public class ResourceProvider
 {
 	private ImageRegistry reg;
 	
+	/***
+	 * get a local image 
+	 * @param key : image constant id
+	 * @return
+	 */
 	public Image getImage(String key)
 	{
 		final ImageRegistry reg = getLocalImageRegistry();
 		return reg.get(key);
+	}
+	
+	/**
+	 * dispose allocated resources
+	 */
+	public void dispose()
+	{
+		reg.dispose();
 	}
 	
 	private ImageRegistry getLocalImageRegistry()
