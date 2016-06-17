@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+
+   <extension
+         id="product"
+         point="org.eclipse.core.runtime.products">
+      <product
+            name="edu.rice.cs.hpc.traceviewer.e4"
+            application="org.eclipse.e4.ui.workbench.swt.E4Application">
+         <property
+               name="lifeCycleURI"
+               value="bundleclass://edu.rice.cs.hpc.traceviewer.e4/edu.rice.cs.hpc.traceviewer.framework.E4LifeCycle">
+         </property>
+         <property
+               name="applicationCSS"
+               value="platform:/plugin/edu.rice.cs.hpc.traceviewer.e4/css/default.css">
+         </property>
+         <property
+               name="appName"
+               value="edu.rice.cs.hpc.traceviewer.e4">
+         </property>
+      </product>
+   </extension>
+
+</plugin>

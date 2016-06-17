@@ -5,8 +5,10 @@ import org.eclipse.jface.viewers.StyledCellLabelProvider;
 import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.jface.viewers.StyledString.Styler;
 import org.eclipse.jface.viewers.ViewerCell;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.swt.widgets.Display;
 
 import edu.rice.cs.hpc.data.experiment.scope.CallSiteScope;
 import edu.rice.cs.hpc.data.experiment.scope.Scope;
@@ -77,6 +79,11 @@ public class StyledScopeLabelProvider extends StyledCellLabelProvider {
 			}
 			if(Utilities.isFileReadable(node)) {
 				styledString.append( text, STYLE_ACTIVE_LINK );
+				StyleRange myStyledRange = 
+				        new StyleRange(0, 5, null, 
+				            Display.getCurrent().getSystemColor(SWT.COLOR_YELLOW));
+				    StyleRange[] range = { myStyledRange };
+				    cell.setStyleRanges(range);
 			} else {
 				styledString.append( text );
 			}

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<application:Application xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:advanced="http://www.eclipse.org/ui/2010/UIModel/application/ui/advanced" xmlns:application="http://www.eclipse.org/ui/2010/UIModel/application" xmlns:basic="http://www.eclipse.org/ui/2010/UIModel/application/ui/basic" xmlns:menu="http://www.eclipse.org/ui/2010/UIModel/application/ui/menu" xmi:id="_pkUgwDNPEeauQeRzw6wAig" elementId="org.eclipse.e4.ide.application" bindingContexts="_pkUgyTNPEeauQeRzw6wAig">
+  <children xsi:type="basic:TrimmedWindow" xmi:id="_pkUgwTNPEeauQeRzw6wAig" elementId="edu.rice.cs.hpc.traceviewer.e4" selectedElement="_pkVH4jNPEeauQeRzw6wAig" label="hpctraceviewer" iconURI="platform:/plugin/edu.rice.cs.hpc.traceviewer.e4/icons/hpctraceviewer016.png" width="800" height="600">
+    <children xsi:type="advanced:PerspectiveStack" xmi:id="_pkVH4jNPEeauQeRzw6wAig">
+      <children xsi:type="advanced:Perspective" xmi:id="_pkVH4zNPEeauQeRzw6wAig">
+        <children xsi:type="basic:PartSashContainer" xmi:id="_Sg9PYDPqEea5YNUlYAAk0w" elementId="edu.rice.cs.hpc.traceviewer.partsashcontainer.all" horizontal="true">
+          <children xsi:type="basic:PartSashContainer" xmi:id="_pkVH5DNPEeauQeRzw6wAig" elementId="edu.rice.cs.hpc.traceviewer.partsashcontainer.main" containerData="80">
+            <children xsi:type="basic:PartStack" xmi:id="_pkVH5TNPEeauQeRzw6wAig" containerData="80">
+              <children xsi:type="basic:Part" xmi:id="_pkVH5jNPEeauQeRzw6wAig" elementId="edu.rice.cs.hpc.traceviewer.part.trace" contributionURI="bundleclass://edu.rice.cs.hpc.traceviewer.e4/edu.rice.cs.hpc.traceviewer.parts.SamplePart" label="Trace view" iconURI="platform:/plugin/edu.rice.cs.hpc.traceviewer.e4/icons/trace-detail.png" tooltip="Main trace view">
+                <toolbar xmi:id="_-VFv0DPlEea5YNUlYAAk0w" elementId="edu.rice.cs.hpc.traceviewer.e4.toolbar.0"/>
+              </children>
+            </children>
+            <children xsi:type="basic:PartStack" xmi:id="_hE_S0DPlEea5YNUlYAAk0w" elementId="edu.rice.cs.hpc.traceviewer.e4.partstack.0" containerData="20">
+              <children xsi:type="basic:Part" xmi:id="_vBOkMDPlEea5YNUlYAAk0w" elementId="edu.rice.cs.hpc.traceviewer.part.depth" contributionURI="bundleclass://edu.rice.cs.hpc.traceviewer.e4/edu.rice.cs.hpc.traceviewer.parts.DepthView" label="Depth view" iconURI="platform:/plugin/edu.rice.cs.hpc.traceviewer.e4/icons/trace-depth.png">
+                <toolbar xmi:id="_AJeekDPmEea5YNUlYAAk0w" elementId="edu.rice.cs.hpc.traceviewer.e4.toolbar.1"/>
+              </children>
+              <children xsi:type="basic:Part" xmi:id="_5LEiADPlEea5YNUlYAAk0w" elementId="edu.rice.cs.hpc.traceviewer.part.summary" label="Summary view" iconURI="platform:/plugin/edu.rice.cs.hpc.traceviewer.e4/icons/trace-summary.png"/>
+            </children>
+          </children>
+          <children xsi:type="basic:PartSashContainer" xmi:id="_eAEeYDPnEea5YNUlYAAk0w" elementId="edu.rice.cs.hpc.traceviewer.partsashcontainer.right" containerData="20">
+            <children xsi:type="basic:PartStack" xmi:id="_h7MQIDPnEea5YNUlYAAk0w" elementId="edu.rice.cs.hpc.traceviewer.e4.partstack.right">
+              <children xsi:type="basic:Part" xmi:id="_kSEA4DPnEea5YNUlYAAk0w" elementId="edu.rice.cs.hpc.traceviewer.part.right" contributionURI="bundleclass://edu.rice.cs.hpc.traceviewer.e4/edu.rice.cs.hpc.traceviewer.parts.CallStackView" label="Call-stack view" iconURI="platform:/plugin/edu.rice.cs.hpc.traceviewer.e4/icons/trace-callpath.png"/>
+            </children>
+          </children>
+        </children>
+      </children>
+    </children>
+    <mainMenu xmi:id="_pkVH2zNPEeauQeRzw6wAig" elementId="menu:org.eclipse.ui.main.menu">
+      <children xsi:type="menu:Menu" xmi:id="_pkVH3DNPEeauQeRzw6wAig" elementId="edu.rice.cs.hpc.traceviewer.menu.File" label="File" mnemonics="F">
+        <children xsi:type="menu:HandledMenuItem" xmi:id="_pkVH3TNPEeauQeRzw6wAig" elementId="edu.rice.cs.hpc.traceviewer.handledmenuitem.open" label="Open" iconURI="" tooltip="Open an experiment database" mnemonics="O" command="_pkVH0jNPEeauQeRzw6wAig"/>
+        <children xsi:type="menu:HandledMenuItem" xmi:id="_pkVH3zNPEeauQeRzw6wAig" elementId="edu.rice.cs.hpc.traceviewer.handledmenuitem.quit" label="Quit" tooltip="Exit the application" mnemonics="Q" command="_pkUgzDNPEeauQeRzw6wAig"/>
+      </children>
+      <children xsi:type="menu:Menu" xmi:id="_JzSiUDSzEealYu1fU68Adw" elementId="edu.rice.cs.hpc.traceviewer.menu.view" label="View" mnemonics="V">
+        <children xsi:type="menu:HandledMenuItem" xmi:id="_SpzQADSzEealYu1fU68Adw" elementId="edu.rice.cs.hpc.traceviewer.handledmenuitem.midpoint" label="Use midpoint renderer" tooltip="Using midpoint to render trace between two samples" selected="true" type="Check" mnemonics="m" command="_1qXvcDS2EealYu1fU68Adw"/>
+      </children>
+      <children xsi:type="menu:Menu" xmi:id="_pkVH4DNPEeauQeRzw6wAig" elementId="edu.rice.cs.hpc.traceviewer.menu.help" label="Help" mnemonics="H">
+        <children xsi:type="menu:HandledMenuItem" xmi:id="_pkVH4TNPEeauQeRzw6wAig" label="About" command="_pkVH2DNPEeauQeRzw6wAig"/>
+      </children>
+    </mainMenu>
+  </children>
+  <handlers xmi:id="_pkUgzTNPEeauQeRzw6wAig" elementId="edu.rice.cs.hpc.traceviewer.e4.handler.quitCommand" contributionURI="bundleclass://edu.rice.cs.hpc.traceviewer.e4/edu.rice.cs.hpc.traceviewer.handlers.QuitHandler" command="_pkUgzDNPEeauQeRzw6wAig"/>
+  <handlers xmi:id="_pkVH0zNPEeauQeRzw6wAig" elementId="edu.rice.cs.hpc.traceviewer.e4.handler.openCommand" contributionURI="bundleclass://edu.rice.cs.hpc.traceviewer.e4/edu.rice.cs.hpc.traceviewer.handlers.OpenHandler" command="_pkVH0jNPEeauQeRzw6wAig"/>
+  <handlers xmi:id="_pkVH2TNPEeauQeRzw6wAig" elementId="edu.rice.cs.hpc.traceviewer.e4.handler.aboutCommand" contributionURI="bundleclass://edu.rice.cs.hpc.traceviewer.e4/edu.rice.cs.hpc.traceviewer.handlers.AboutHandler" command="_pkVH2DNPEeauQeRzw6wAig"/>
+  <handlers xmi:id="_7u6EwDS2EealYu1fU68Adw" elementId="edu.rice.cs.hpc.traceviewer.handler.midpoint" contributionURI="bundleclass://edu.rice.cs.hpc.traceviewer.e4/edu.rice.cs.hpc.traceviewer.handlers.UseMidpoint" command="_1qXvcDS2EealYu1fU68Adw"/>
+  <bindingTables xmi:id="_pkVH0DNPEeauQeRzw6wAig" bindingContext="_pkUgyTNPEeauQeRzw6wAig">
+    <bindings xmi:id="_pkVH0TNPEeauQeRzw6wAig" keySequence="M1+Q" command="_pkUgzDNPEeauQeRzw6wAig"/>
+    <bindings xmi:id="_pkVH1DNPEeauQeRzw6wAig" keySequence="M1+O" command="_pkVH0jNPEeauQeRzw6wAig"/>
+    <bindings xmi:id="_pkVH1zNPEeauQeRzw6wAig" keySequence="M1+S"/>
+    <bindings xmi:id="_pkVH2jNPEeauQeRzw6wAig" keySequence="M1+A" command="_pkVH2DNPEeauQeRzw6wAig"/>
+  </bindingTables>
+  <rootContext xmi:id="_pkUgyTNPEeauQeRzw6wAig" elementId="org.eclipse.ui.contexts.dialogAndWindow" name="In Dialog and Windows">
+    <children xmi:id="_pkUgyjNPEeauQeRzw6wAig" elementId="org.eclipse.ui.contexts.window" name="In Windows"/>
+    <children xmi:id="_pkUgyzNPEeauQeRzw6wAig" elementId="org.eclipse.ui.contexts.dialog" name="In Dialogs"/>
+  </rootContext>
+  <commands xmi:id="_pkUgzDNPEeauQeRzw6wAig" elementId="org.eclipse.ui.file.exit" commandName="quitCommand"/>
+  <commands xmi:id="_pkVH0jNPEeauQeRzw6wAig" elementId="edu.rice.cs.hpc.traceviewer.e4.open" commandName="openCommand"/>
+  <commands xmi:id="_pkVH2DNPEeauQeRzw6wAig" elementId="org.eclipse.ui.help.aboutAction" commandName="aboutCommand"/>
+  <commands xmi:id="_1qXvcDS2EealYu1fU68Adw" elementId="edu.rice.cs.hpc.traceviewer.command.midpoint" commandName="useMidpoint" description="Option whether to use a midpoint renderer or not"/>
+  <addons xmi:id="_pkUgwjNPEeauQeRzw6wAig" elementId="org.eclipse.e4.core.commands.service" contributionURI="bundleclass://org.eclipse.e4.core.commands/org.eclipse.e4.core.commands.CommandServiceAddon"/>
+  <addons xmi:id="_pkUgwzNPEeauQeRzw6wAig" elementId="org.eclipse.e4.ui.contexts.service" contributionURI="bundleclass://org.eclipse.e4.ui.services/org.eclipse.e4.ui.services.ContextServiceAddon"/>
+  <addons xmi:id="_pkUgxDNPEeauQeRzw6wAig" elementId="org.eclipse.e4.ui.bindings.service" contributionURI="bundleclass://org.eclipse.e4.ui.bindings/org.eclipse.e4.ui.bindings.BindingServiceAddon"/>
+  <addons xmi:id="_pkUgxTNPEeauQeRzw6wAig" elementId="org.eclipse.e4.ui.workbench.commands.model" contributionURI="bundleclass://org.eclipse.e4.ui.workbench/org.eclipse.e4.ui.internal.workbench.addons.CommandProcessingAddon"/>
+  <addons xmi:id="_pkUgxjNPEeauQeRzw6wAig" elementId="org.eclipse.e4.ui.workbench.handler.model" contributionURI="bundleclass://org.eclipse.e4.ui.workbench/org.eclipse.e4.ui.internal.workbench.addons.HandlerProcessingAddon"/>
+  <addons xmi:id="_pkUgxzNPEeauQeRzw6wAig" elementId="org.eclipse.e4.ui.workbench.contexts.model" contributionURI="bundleclass://org.eclipse.e4.ui.workbench/org.eclipse.e4.ui.internal.workbench.addons.ContextProcessingAddon"/>
+  <addons xmi:id="_pkUgyDNPEeauQeRzw6wAig" elementId="org.eclipse.e4.ui.workbench.bindings.model" contributionURI="bundleclass://org.eclipse.e4.ui.workbench.swt/org.eclipse.e4.ui.workbench.swt.util.BindingProcessingAddon"/>
+</application:Application>

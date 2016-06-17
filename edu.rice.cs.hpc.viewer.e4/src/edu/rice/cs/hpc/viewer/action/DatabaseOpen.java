@@ -18,7 +18,11 @@ import java.util.List;
 import org.eclipse.e4.core.di.annotations.CanExecute;
 import org.eclipse.e4.ui.model.application.ui.basic.MPartStack;
 
-public class DatabaseOpen {
+public class DatabaseOpen 
+{
+	public static final String ID_HANDLER = "edu.rice.cs.hpc.viewer.handler.OpenDatabase";
+	public static final String ID_COMMAND = "edu.rice.cs.hpc.viewer.command.OpenDatabase";
+	
 	@Execute
 	public void execute(Shell shell, MApplication application, EPartService partService, EModelService modelService) {
 		final ExperimentManager manager = new ExperimentManager(shell);

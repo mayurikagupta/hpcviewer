@@ -405,11 +405,6 @@ abstract public class AbstractBaseScopeView  extends ViewPart
 		        }
 		      }
 		}); 
-
-		// Eclipse indigo bug on Linux: no tooltip is displayed. 
-		//	we need to force Eclipse to display tooltip even if the cell item 
-		//	is clearly visible.
-		ColumnViewerToolTipSupport.enableFor(treeViewer, ToolTip.NO_RECREATE);
 		
 		// ---------------------------------------------------------------
 		// register listener to capture debugging mode

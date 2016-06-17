@@ -12,6 +12,10 @@
                name="appName"
                value="hpcviewer.e4">
          </property>
+         <property
+               name="lifeCycleURI"
+               value="bundleclass://edu.rice.cs.hpc.viewer.e4/edu.rice.cs.hpc.viewer.framework.LifeCycleManager">
+         </property>
       </product>
    </extension>
 
