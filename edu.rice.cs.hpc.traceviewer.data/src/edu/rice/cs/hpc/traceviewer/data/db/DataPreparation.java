@@ -2,7 +2,7 @@ package edu.rice.cs.hpc.traceviewer.data.db;
 
 import org.eclipse.swt.graphics.Color;
 
-import edu.rice.cs.hpc.traceviewer.data.graph.CallPath;
+import edu.rice.cs.hpc.traceviewer.data.abstraction.AbstractStack;
 import edu.rice.cs.hpc.traceviewer.data.graph.ColorTable;
 import edu.rice.cs.hpc.traceviewer.data.timeline.ProcessTimeline;
 
@@ -57,11 +57,11 @@ public abstract class DataPreparation
 		
 		int succSampleMidpoint = (int) Math.max(0, (ptl.getTime(0)-begTime)/pixelLength);
 
-		CallPath cp = ptl.getCallPath(0, depth);
+		AbstractStack cp = ptl.getStack(0);
 		if (cp==null)
 			return;
 		
-		String succFunction = cp.getScopeAt(depth).getName(); 
+		String succFunction = cp.getNameAt(depth);
 		Color succColor = colorTable.getColor(succFunction);
 		int last_ptl_index = ptl.size() - 1;
 
@@ -86,10 +86,10 @@ public abstract class DataPreparation
 			
 			while (still_the_same && (++indexSucc <= last_ptl_index))
 			{
-				cp = ptl.getCallPath(indexSucc, depth);
+				cp = ptl.getStack(indexSucc);
 				if(cp != null)
 				{
-					succFunction = cp.getScopeAt(depth).getName(); 
+					succFunction = cp.getNameAt(depth);
 					succColor = colorTable.getColor(succFunction);
 					
 					// the color will be the same if and only if the two regions have the save function name

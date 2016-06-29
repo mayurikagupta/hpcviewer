@@ -130,8 +130,8 @@ public class SpaceTimeDataControllerLocal extends SpaceTimeDataController
 		int currentLineNum = currentLine.getAndIncrement();
 		if (currentLineNum < totalLines) {
 			
-			if (ptlService.getNumProcessTimeline() == 0)
-				ptlService.setProcessTimeline(new ProcessTimeline[totalLines]);
+			if (ptlService.getNumProcessData() == 0)
+				ptlService.setProcessData(new ProcessTimeline[totalLines]);
 			
 			if (changedBounds) {
 				ProcessTimeline currentTimeline = new ProcessTimeline(currentLineNum, getScopeMap(),
@@ -139,14 +139,14 @@ public class SpaceTimeDataControllerLocal extends SpaceTimeDataController
 						attributes.numPixelsH, attributes.getTimeInterval(), 
 						minBegTime + attributes.getTimeBegin());
 				
-				if (ptlService.setProcessTimeline(currentLineNum, currentTimeline)) {
+				if (ptlService.setProcessData(currentLineNum, currentTimeline)) {
 					timeline = currentTimeline;
 				} else {
 					monitor.setCanceled(true);
 					monitor.done();
 				}
 			} else {
-				timeline = ptlService.getProcessTimeline(currentLineNum);
+				timeline = (ProcessTimeline)ptlService.getProcessData(currentLineNum);
 			}
 		}
 		return timeline;

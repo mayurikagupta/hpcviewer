@@ -39,12 +39,12 @@ import edu.rice.cs.hpc.traceviewer.painter.AbstractTimeCanvas;
 import edu.rice.cs.hpc.traceviewer.painter.BufferPaint;
 import edu.rice.cs.hpc.traceviewer.painter.ISpaceTimeCanvas;
 import edu.rice.cs.hpc.traceviewer.painter.ResizeListener;
+import edu.rice.cs.hpc.traceviewer.data.abstraction.ProcessDataService;
 import edu.rice.cs.hpc.traceviewer.data.controller.SpaceTimeDataController;
 import edu.rice.cs.hpc.traceviewer.data.db.Frame;
 import edu.rice.cs.hpc.traceviewer.data.db.ImageTraceAttributes;
 import edu.rice.cs.hpc.traceviewer.data.db.Position;
 import edu.rice.cs.hpc.traceviewer.data.timeline.ProcessTimeline;
-import edu.rice.cs.hpc.traceviewer.data.timeline.ProcessTimelineService;
 import edu.rice.cs.hpc.traceviewer.util.Utility;
 import edu.rice.cs.hpc.traceviewer.data.util.Constants;
 import edu.rice.cs.hpc.traceviewer.data.util.Debugger;
@@ -105,7 +105,7 @@ public class SpaceTimeDetailCanvas extends AbstractTimeCanvas
 	
 	final private ImageTraceAttributes oldAttributes;
 	
-	final private ProcessTimelineService ptlService;
+	final private ProcessDataService ptlService;
 	
 	final IWorkbenchWindow window;
 
@@ -125,8 +125,8 @@ public class SpaceTimeDetailCanvas extends AbstractTimeCanvas
 		
 		ISourceProviderService service = (ISourceProviderService)window.
 				getService(ISourceProviderService.class);
-		ptlService = (ProcessTimelineService) service.
-				getSourceProvider(ProcessTimelineService.PROCESS_TIMELINE_PROVIDER);
+		ptlService = (ProcessDataService) service.
+				getSourceProvider(ProcessDataService.PROCESS_DATA_PROVIDER);
 		
 		this.window = window;
 		
@@ -890,7 +890,7 @@ public class SpaceTimeDetailCanvas extends AbstractTimeCanvas
 		oldAttributes.copy(attributes);
 		if (changedBounds) {
 			ProcessTimeline []traces = new ProcessTimeline[ numLines ];
-			ptlService.setProcessTimeline(traces);
+			ptlService.setProcessData(traces);
 		}
 
 		/*************************************************************************

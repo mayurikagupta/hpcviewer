@@ -6,6 +6,8 @@ import java.util.Queue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.eclipse.core.runtime.IProgressMonitor;
+
+import edu.rice.cs.hpc.traceviewer.data.abstraction.ProcessDataService;
 import edu.rice.cs.hpc.traceviewer.data.controller.SpaceTimeDataController;
 import edu.rice.cs.hpc.traceviewer.data.db.DataPreparation;
 import edu.rice.cs.hpc.traceviewer.data.db.ImageTraceAttributes;
@@ -15,13 +17,12 @@ import edu.rice.cs.hpc.traceviewer.data.graph.ColorTable;
 import edu.rice.cs.hpc.traceviewer.timeline.BaseTimelineThread;
 
 import edu.rice.cs.hpc.traceviewer.data.timeline.ProcessTimeline;
-import edu.rice.cs.hpc.traceviewer.data.timeline.ProcessTimelineService;
 
 public class TimelineThread 
 	extends BaseTimelineThread
 {
 	final private int totalLines;
-	final private ProcessTimelineService traceService;
+	final private ProcessDataService traceService;
 
 	/**Stores whether or not the bounds have been changed*/
 	private boolean changedBounds;
@@ -31,7 +32,7 @@ public class TimelineThread
 	 * @param changedBounds - whether or not the thread needs to go get the data for its ProcessTimelines.
 	 ***********************************************************************************************************/
 	public TimelineThread(SpaceTimeDataController stData, ImageTraceAttributes attributes,
-			ProcessTimelineService traceService,
+			ProcessDataService traceService,
 			boolean _changedBounds, double _scaleY, Queue<TimelineDataSet> queue, 
 			AtomicInteger currentLine, int totalLines, IProgressMonitor monitor)
 	{
@@ -56,7 +57,7 @@ public class TimelineThread
 			if (trace.isEmpty()) {
 				
 				trace.readInData();
-				if (!traceService.setProcessTimeline(trace.line(), trace)) {
+				if (!traceService.setProcessData(trace.line(), trace)) {
 					// something wrong happens, perhaps data races ?
 					monitor.setCanceled(true);
 					monitor.done();

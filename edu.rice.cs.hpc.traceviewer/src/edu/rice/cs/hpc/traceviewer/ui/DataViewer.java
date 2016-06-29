@@ -19,10 +19,10 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.ui.services.ISourceProviderService;
 
+import edu.rice.cs.hpc.traceviewer.data.abstraction.AbstractProcessData;
+import edu.rice.cs.hpc.traceviewer.data.abstraction.ProcessDataService;
 import edu.rice.cs.hpc.traceviewer.data.controller.SpaceTimeDataController;
 import edu.rice.cs.hpc.traceviewer.data.db.Position;
-import edu.rice.cs.hpc.traceviewer.data.timeline.ProcessTimeline;
-import edu.rice.cs.hpc.traceviewer.data.timeline.ProcessTimelineService;
 import edu.rice.cs.hpc.traceviewer.data.util.Constants;
 import edu.rice.cs.hpc.traceviewer.data.util.Debugger;
 
@@ -35,7 +35,7 @@ public class DataViewer extends TableViewer
 	
 	private final TableViewerColumn viewerColumn;
 	
-	private final ProcessTimelineService ptlService;
+	private final ProcessDataService ptlService;
 
 	public DataViewer(Composite parent, final HPCDataView dataview)
 	{
@@ -117,8 +117,8 @@ public class DataViewer extends TableViewer
 		
 		final ISourceProviderService service = (ISourceProviderService)dataview.getSite().
 				getWorkbenchWindow().getService(ISourceProviderService.class);
-		ptlService = (ProcessTimelineService) service.
-				getSourceProvider(ProcessTimelineService.PROCESS_TIMELINE_PROVIDER);
+		ptlService = (ProcessDataService) service.
+				getSourceProvider(ProcessDataService.PROCESS_DATA_PROVIDER);
 	}
 	
 	
@@ -147,10 +147,10 @@ public class DataViewer extends TableViewer
 		// the original code: 
 		// int proc = painter.getProcessRelativePosition(ptlService.getNumProcessTimeline());
 		int proc = 0; 
-		ProcessTimeline ptl = ptlService.getProcessTimeline(proc);
+		AbstractProcessData ptl = ptlService.getProcessData(proc);
 
 		if (ptl != null) {
-			int sample = ptl.findMidpointBefore(position.time, stData.isEnableMidpoint());
+			int sample = ptl.findClosestSample(position.time, stData.isEnableMidpoint());
 			
 			Vector<String> dataVec = new Vector<String>();
 			if (sample >= 0) {

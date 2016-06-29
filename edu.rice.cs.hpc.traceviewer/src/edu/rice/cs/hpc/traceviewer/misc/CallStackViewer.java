@@ -33,12 +33,12 @@ import edu.rice.cs.hpc.traceviewer.operation.PositionOperation;
 import edu.rice.cs.hpc.traceviewer.operation.TraceOperation;
 import edu.rice.cs.hpc.traceviewer.services.DataService;
 
+import edu.rice.cs.hpc.traceviewer.data.abstraction.AbstractProcessData;
+import edu.rice.cs.hpc.traceviewer.data.abstraction.AbstractStack;
+import edu.rice.cs.hpc.traceviewer.data.abstraction.ProcessDataService;
 import edu.rice.cs.hpc.traceviewer.data.controller.SpaceTimeDataController;
 import edu.rice.cs.hpc.traceviewer.data.db.ImageTraceAttributes;
 import edu.rice.cs.hpc.traceviewer.data.db.Position;
-import edu.rice.cs.hpc.traceviewer.data.graph.CallPath;
-import edu.rice.cs.hpc.traceviewer.data.timeline.ProcessTimeline;
-import edu.rice.cs.hpc.traceviewer.data.timeline.ProcessTimelineService;
 import edu.rice.cs.hpc.traceviewer.data.util.Debugger;
 
 
@@ -52,7 +52,7 @@ public class CallStackViewer extends TableViewer
 	
 	private final static String EMPTY_FUNCTION = "--------------";
 	
-	private final ProcessTimelineService ptlService;
+	private final ProcessDataService ptlService;
 	
 	private final DataService dataService;
 	
@@ -67,7 +67,7 @@ public class CallStackViewer extends TableViewer
 
 		dataService = (DataService) service.getSourceProvider(DataService.DATA_PROVIDER);
 				
-		ptlService = (ProcessTimelineService) service.getSourceProvider(ProcessTimelineService.PROCESS_TIMELINE_PROVIDER);
+		ptlService = (ProcessDataService) service.getSourceProvider(ProcessDataService.PROCESS_DATA_PROVIDER);
 		
         final Table stack = this.getTable();
         
@@ -184,7 +184,7 @@ public class CallStackViewer extends TableViewer
 		// general case
 		final ImageTraceAttributes attributes = stData.getAttributes();
     	int estimatedProcess = (attributes.getPosition().process - attributes.getProcessBegin());
-    	int numDisplayedProcess = ptlService.getNumProcessTimeline();
+    	int numDisplayedProcess = ptlService.getNumProcessData();
     	
     	// case for num displayed processes is less than the number of processes
     	estimatedProcess = (int) ((float)estimatedProcess* 
@@ -193,14 +193,14 @@ public class CallStackViewer extends TableViewer
     	// case for single process
     	estimatedProcess = Math.min(estimatedProcess, numDisplayedProcess-1);
 
-		ProcessTimeline ptl = ptlService.getProcessTimeline(estimatedProcess);
+    	AbstractProcessData ptl = ptlService.getProcessData(estimatedProcess);
 		if (ptl != null) {
-			int sample = ptl.findMidpointBefore(position.time, stData.isEnableMidpoint());
+			int sample = ptl.findClosestSample(position.time, stData.isEnableMidpoint());
 			final Vector<String> sampleVector;
 			if (sample>=0) {
-				final CallPath cp = ptl.getCallPath(sample, depth);
+				final AbstractStack cp = ptl.getStack(sample);
 				if (cp != null)
-					sampleVector = ptl.getCallPath(sample, depth).getFunctionNames();
+					sampleVector = ptl.getStack(sample).getNames();
 				else
 					// empty array of string
 					sampleVector = new Vector<String>();

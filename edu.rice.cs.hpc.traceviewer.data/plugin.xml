@@ -4,9 +4,9 @@
    <extension
          point="org.eclipse.ui.services">
       <sourceProvider
-            provider="edu.rice.cs.hpc.traceviewer.data.timeline.ProcessTimelineService">
+            provider="edu.rice.cs.hpc.traceviewer.data.abstraction.ProcessDataService">
          <variable
-               name="edu.rice.cs.hpc.traceviewer.services.ProcessTimelineService.data"
+               name="edu.rice.cs.hpc.traceviewer.services.ProcessDataService.data"
                priorityLevel="workbench">
          </variable>
       </sourceProvider>

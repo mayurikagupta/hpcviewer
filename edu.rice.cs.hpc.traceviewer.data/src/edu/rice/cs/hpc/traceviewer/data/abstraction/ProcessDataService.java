@@ -1,4 +1,4 @@
-package edu.rice.cs.hpc.traceviewer.data.timeline;
+package edu.rice.cs.hpc.traceviewer.data.abstraction;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -7,10 +7,10 @@ import org.eclipse.ui.AbstractSourceProvider;
 
 import edu.rice.cs.hpc.traceviewer.data.timeline.ProcessTimeline;
 
-public class ProcessTimelineService extends AbstractSourceProvider {
+public class ProcessDataService extends AbstractSourceProvider {
 
-	final static public String PROCESS_TIMELINE_PROVIDER = "edu.rice.cs.hpc.traceviewer.services.ProcessTimelineService.data";
-	private ProcessTimeline []traces;
+	final static public String PROCESS_DATA_PROVIDER = "edu.rice.cs.hpc.traceviewer.services.ProcessDataService.data";
+	private AbstractProcessData []traces;
 
 
 	@Override
@@ -19,22 +19,22 @@ public class ProcessTimelineService extends AbstractSourceProvider {
 	@Override
 	public Map getCurrentState() {
 		Map<String, Object> map = new HashMap<String, Object>(1);
-		map.put(PROCESS_TIMELINE_PROVIDER, traces);
+		map.put(PROCESS_DATA_PROVIDER, traces);
 		
 		return map;
 	}
 
 	@Override
 	public String[] getProvidedSourceNames() {
-		return new String[] {PROCESS_TIMELINE_PROVIDER};
+		return new String[] {PROCESS_DATA_PROVIDER};
 	}
 
-	public void setProcessTimeline(ProcessTimeline[] traces) {
+	public void setProcessData(AbstractProcessData[] traces) {
 		this.traces = traces;
 	}
 	
 	
-	public boolean setProcessTimeline(int index, ProcessTimeline trace) {
+	public boolean setProcessData(int index, AbstractProcessData trace) {
 		boolean result = (traces != null && traces.length > index);
 		if (result)
 			traces[index] = trace;
@@ -44,14 +44,14 @@ public class ProcessTimelineService extends AbstractSourceProvider {
 	}
  	
 	
-	public ProcessTimeline getProcessTimeline(int proc) {
+	public AbstractProcessData getProcessData(int proc) {
 		if (traces == null)
 			return null;
 		
 		return traces[proc];
 	}
 	
-	public int getNumProcessTimeline() {
+	public int getNumProcessData() {
 		if (traces == null)
 			return 0;
 		return traces.length;
@@ -59,7 +59,7 @@ public class ProcessTimelineService extends AbstractSourceProvider {
 	
 	public boolean isFilled() {
 		if (traces != null) {
-			for (ProcessTimeline trace: traces) {
+			for (AbstractProcessData trace: traces) {
 				if (trace == null)
 					return false;
 			}

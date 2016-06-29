@@ -8,13 +8,13 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.InflaterInputStream;
 
+import edu.rice.cs.hpc.traceviewer.data.abstraction.ProcessDataService;
 import edu.rice.cs.hpc.traceviewer.data.db.ImageTraceAttributes;
 import edu.rice.cs.hpc.traceviewer.data.db.TraceDataByRank;
 import edu.rice.cs.hpc.traceviewer.data.db.DataRecord;
 
 import edu.rice.cs.hpc.traceviewer.data.graph.CallPath;
 import edu.rice.cs.hpc.traceviewer.data.timeline.ProcessTimeline;
-import edu.rice.cs.hpc.traceviewer.data.timeline.ProcessTimelineService;
 import edu.rice.cs.hpc.traceviewer.data.util.Constants;
 import edu.rice.cs.hpc.traceviewer.data.util.Debugger;
 
@@ -35,7 +35,7 @@ public class DecompressionThread extends Thread {
 	final private ConcurrentLinkedQueue<DecompressionItemToDo> workToDo;
 	final private ConcurrentLinkedQueue<Integer> timelinesAvailableForRendering;
 	// Variables for decompression
-	final ProcessTimelineService timelineServ;
+	final ProcessDataService timelineServ;
 	final HashMap<Integer, CallPath> scopeMap;
 
 	final ImageTraceAttributes attributes;
@@ -62,7 +62,7 @@ public class DecompressionThread extends Thread {
 	 * @param listener
 	 */
 	public DecompressionThread(
-			ProcessTimelineService ptlService,
+			ProcessDataService ptlService,
 			HashMap<Integer, CallPath> _scopeMap,
 			ImageTraceAttributes attributes,
 			ConcurrentLinkedQueue<DecompressionItemToDo> workToDo, 
@@ -152,7 +152,7 @@ public class DecompressionThread extends Thread {
 		ProcessTimeline ptl = new ProcessTimeline(dataAsTraceDBR, scopeMap, lineNumber, 
 				attributes.numPixelsH, attributes.getTimeInterval(), attributes.getTimeBegin());
 		
-		timelineServ.setProcessTimeline(lineNumber, ptl);
+		timelineServ.setProcessData(lineNumber, ptl);
 		timelinesAvailableForRendering.add(lineNumber);
 	}
 

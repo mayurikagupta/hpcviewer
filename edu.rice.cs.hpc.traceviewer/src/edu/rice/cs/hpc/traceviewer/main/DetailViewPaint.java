@@ -17,10 +17,10 @@ import org.eclipse.ui.handlers.RegistryToggleState;
 import org.eclipse.ui.services.ISourceProviderService;
 
 import edu.rice.cs.hpc.traceviewer.actions.OptionRecordsDisplay;
+import edu.rice.cs.hpc.traceviewer.data.abstraction.ProcessDataService;
 import edu.rice.cs.hpc.traceviewer.data.controller.SpaceTimeDataController;
 import edu.rice.cs.hpc.traceviewer.data.db.ImageTraceAttributes;
 import edu.rice.cs.hpc.traceviewer.data.db.TimelineDataSet;
-import edu.rice.cs.hpc.traceviewer.data.timeline.ProcessTimelineService;
 import edu.rice.cs.hpc.traceviewer.painter.BasePaintThread;
 import edu.rice.cs.hpc.traceviewer.painter.BaseViewPaint;
 import edu.rice.cs.hpc.traceviewer.painter.ISpaceTimeCanvas;
@@ -44,7 +44,7 @@ public class DetailViewPaint extends BaseViewPaint {
 	private final GC masterGC;
 	private final GC origGC;
 	
-	final private ProcessTimelineService ptlService;
+	final private ProcessDataService ptlService;
 	final private boolean debug;
 	final private AtomicInteger currentLine, numDataCollected;
 	final private int numLines;
@@ -60,8 +60,8 @@ public class DetailViewPaint extends BaseViewPaint {
 
 		ISourceProviderService sourceProviderService = (ISourceProviderService) window.getService(
 				ISourceProviderService.class);
-		ptlService = (ProcessTimelineService) sourceProviderService.
-				getSourceProvider(ProcessTimelineService.PROCESS_TIMELINE_PROVIDER); 
+		ptlService = (ProcessDataService) sourceProviderService.
+				getSourceProvider(ProcessDataService.PROCESS_DATA_PROVIDER); 
 		
 		// check if we need to print the text information on the canvas
 		

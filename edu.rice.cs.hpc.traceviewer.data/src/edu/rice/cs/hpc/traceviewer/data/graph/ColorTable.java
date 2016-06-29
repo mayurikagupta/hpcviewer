@@ -15,6 +15,7 @@ import org.eclipse.swt.widgets.Display;
 import edu.rice.cs.hpc.common.ui.Util;
 import edu.rice.cs.hpc.common.util.ProcedureClassData;
 import edu.rice.cs.hpc.data.util.IProcedureTable;
+import edu.rice.cs.hpc.traceviewer.data.abstraction.AbstractStack;
 import edu.rice.cs.hpc.traceviewer.data.util.ProcedureClassMap;
 
 /**************************************************************
@@ -42,7 +43,7 @@ public class ColorTable implements IProcedureTable
 		procNames = new ArrayList<String>();
 		// Initializes the CSS that represents time values outside of the
 		// time-line.
-		procNames.add(CallPath.NULL_FUNCTION);
+		procNames.add(AbstractStack.NULL_NAME);
 		
 		display = Util.getActiveShell().getDisplay();
 		
@@ -128,7 +129,7 @@ public class ColorTable implements IProcedureTable
 				
 				String procName = procNames.get(l);
 				
-				if (procName != CallPath.NULL_FUNCTION) {
+				if (procName != AbstractStack.NULL_NAME) {
 					
 					if (!colorMatcher.containsKey(procName)) {
 						

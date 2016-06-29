@@ -70,7 +70,7 @@ public class SpaceTimeDataControllerRemote extends SpaceTimeDataController
 			final int ranksExpected = Math.min(attributes.getProcessInterval(), attributes.numPixelsV);
 			
 			final AtomicInteger ranksRemainingToDecompress = new AtomicInteger(ranksExpected);
-			ptlService.setProcessTimeline(new ProcessTimeline[ranksExpected]);
+			ptlService.setProcessData(new ProcessTimeline[ranksExpected]);
 			
 			// The variable workToDo needs to be accessible across different objects:
 			// RemoteDataRetriever: producer
@@ -125,7 +125,7 @@ public class SpaceTimeDataControllerRemote extends SpaceTimeDataController
 				
 				//Make sure a different thread didn't get the last one while 
 				//this thread was waiting:
-				if (lineNum.get() >= ptlService.getNumProcessTimeline())
+				if (lineNum.get() >= ptlService.getNumProcessData())
 					return null;
 				
 				// check for the timeout
@@ -145,10 +145,10 @@ public class SpaceTimeDataControllerRemote extends SpaceTimeDataController
 		}
 		else{
 			nextIndex = lineNum.getAndIncrement();
-			if (nextIndex >= ptlService.getNumProcessTimeline())
+			if (nextIndex >= ptlService.getNumProcessData())
 				return null;
 		}
-		return ptlService.getProcessTimeline(nextIndex.intValue());
+		return (ProcessTimeline)ptlService.getProcessData(nextIndex.intValue());
 	}
 
 	

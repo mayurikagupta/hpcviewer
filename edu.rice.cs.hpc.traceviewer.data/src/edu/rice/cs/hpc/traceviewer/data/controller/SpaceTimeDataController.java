@@ -21,11 +21,11 @@ import edu.rice.cs.hpc.data.experiment.extdata.TraceAttribute;
 import edu.rice.cs.hpc.data.experiment.scope.RootScope;
 import edu.rice.cs.hpc.data.experiment.scope.RootScopeType;
 
+import edu.rice.cs.hpc.traceviewer.data.abstraction.ProcessDataService;
 import edu.rice.cs.hpc.traceviewer.data.db.ImageTraceAttributes;
 import edu.rice.cs.hpc.traceviewer.data.graph.ColorTable;
 import edu.rice.cs.hpc.traceviewer.data.graph.CallPath;
 import edu.rice.cs.hpc.traceviewer.data.timeline.ProcessTimeline;
-import edu.rice.cs.hpc.traceviewer.data.timeline.ProcessTimelineService;
 
 
 /*******************************************************************************************
@@ -52,7 +52,7 @@ public abstract class SpaceTimeDataController
 	protected long maxEndTime, minBegTime;
 
 
-	protected ProcessTimelineService ptlService;
+	protected ProcessDataService ptlService;
 
 	
 	/** The map between the nodes and the cpid's. */
@@ -162,7 +162,7 @@ public abstract class SpaceTimeDataController
 				//depthLineNum = new AtomicInteger(0);
 
 				ISourceProviderService sourceProviderService = (ISourceProviderService) window.getService(ISourceProviderService.class);
-				ptlService = (ProcessTimelineService) sourceProviderService.getSourceProvider(ProcessTimelineService.PROCESS_TIMELINE_PROVIDER); 
+				ptlService = (ProcessDataService) sourceProviderService.getSourceProvider(ProcessDataService.PROCESS_DATA_PROVIDER); 
 			}			
 		});
 		final TraceAttribute trAttribute = exp.getTraceAttribute();
@@ -211,7 +211,7 @@ public abstract class SpaceTimeDataController
 	 */
 	public ProcessTimeline getCurrentDepthTrace() {
 		int scaledDTProcess = computeScaledProcess();
-		return  ptlService.getProcessTimeline(scaledDTProcess);
+		return  (ProcessTimeline)ptlService.getProcessData(scaledDTProcess);
 	}
 	
 	/***********************************************************************
