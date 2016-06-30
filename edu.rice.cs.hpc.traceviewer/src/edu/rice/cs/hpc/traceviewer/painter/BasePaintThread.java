@@ -12,7 +12,7 @@ import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Device;
 
-import edu.rice.cs.hpc.traceviewer.data.controller.SpaceTimeDataController;
+import edu.rice.cs.hpc.traceviewer.data.abstraction.AbstractDataController;
 import edu.rice.cs.hpc.traceviewer.data.db.BaseDataVisualization;
 import edu.rice.cs.hpc.traceviewer.data.db.TimelineDataSet;
 import edu.rice.cs.hpc.traceviewer.painter.ImagePosition;
@@ -36,7 +36,7 @@ public abstract class BasePaintThread implements Callable<List<ImagePosition>> {
 	final private List<ImagePosition> listOfImages;
 	final private int numberOfTotalLines;
 	
-	final protected SpaceTimeDataController stData;
+	final protected AbstractDataController stData;
 	final private AtomicInteger numDataCollected, currentPaint;
 	
 	/****
@@ -52,7 +52,7 @@ public abstract class BasePaintThread implements Callable<List<ImagePosition>> {
 	 * @param device : the display device used to create images. Cannot be null
 	 * @param width : the width of the view
 	 */
-	public BasePaintThread( SpaceTimeDataController stData, Queue<TimelineDataSet> list, 
+	public BasePaintThread( AbstractDataController stData, Queue<TimelineDataSet> list, 
 			int numberOfTotalLines, AtomicInteger dataCollected, AtomicInteger currentPaint,
 			Device device, int width, IProgressMonitor monitor) {
 		

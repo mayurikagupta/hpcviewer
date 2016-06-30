@@ -5,8 +5,6 @@ import java.util.Map;
 
 import org.eclipse.ui.AbstractSourceProvider;
 
-import edu.rice.cs.hpc.traceviewer.data.timeline.ProcessTimeline;
-
 public class ProcessDataService extends AbstractSourceProvider {
 
 	final static public String PROCESS_DATA_PROVIDER = "edu.rice.cs.hpc.traceviewer.services.ProcessDataService.data";

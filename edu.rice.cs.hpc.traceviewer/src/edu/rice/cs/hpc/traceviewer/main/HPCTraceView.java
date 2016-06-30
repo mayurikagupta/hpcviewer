@@ -33,7 +33,7 @@ import org.eclipse.ui.services.ISourceProviderService;
 import edu.rice.cs.hpc.common.util.SleakManager;
 import edu.rice.cs.hpc.traceviewer.actions.OptionMidpoint;
 import edu.rice.cs.hpc.traceviewer.actions.OptionRecordsDisplay;
-import edu.rice.cs.hpc.traceviewer.data.controller.SpaceTimeDataController;
+import edu.rice.cs.hpc.traceviewer.data.abstraction.AbstractDataController;
 import edu.rice.cs.hpc.traceviewer.data.db.Frame;
 import edu.rice.cs.hpc.traceviewer.services.DataService;
 
@@ -50,7 +50,7 @@ implements ITraceViewAction
 	public static final String ID = "hpctraceview.view";
 	
 	/** Stores/Creates all of the data that is used in the view.*/
-	private SpaceTimeDataController stData = null;
+	private AbstractDataController stData = null;
 	
 	/** Paints and displays the detail view.*/
 	SpaceTimeDetailCanvas detailCanvas;
@@ -81,7 +81,7 @@ implements ITraceViewAction
 	/*************************************************************************
 	 * update new data
 	 *************************************************************************/
-	public void updateView(SpaceTimeDataController _stData)
+	public void updateView(AbstractDataController _stData)
 	{
 		this.stData = _stData;
 		this.detailCanvas.updateView(_stData);

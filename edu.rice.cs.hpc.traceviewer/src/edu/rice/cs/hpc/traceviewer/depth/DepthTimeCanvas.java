@@ -30,7 +30,7 @@ import edu.rice.cs.hpc.traceviewer.painter.BaseViewPaint;
 import edu.rice.cs.hpc.traceviewer.painter.ISpaceTimeCanvas;
 
 import edu.rice.cs.hpc.traceviewer.util.Utility;
-import edu.rice.cs.hpc.traceviewer.data.controller.SpaceTimeDataController;
+import edu.rice.cs.hpc.traceviewer.data.abstraction.AbstractDataController;
 import edu.rice.cs.hpc.traceviewer.data.db.Frame;
 import edu.rice.cs.hpc.traceviewer.data.db.ImageTraceAttributes;
 import edu.rice.cs.hpc.traceviewer.data.db.Position;
@@ -43,7 +43,7 @@ public class DepthTimeCanvas extends AbstractTimeCanvas
 {	
 	final private ExecutorService threadExecutor;
 
-	private SpaceTimeDataController stData;
+	private AbstractDataController stData;
 	private int currentProcess = Integer.MIN_VALUE;
 	private boolean needToRedraw = false;
 	private Rectangle bound;
@@ -71,7 +71,7 @@ public class DepthTimeCanvas extends AbstractTimeCanvas
 	 * new data update
 	 * @param _stData
 	 */
-	public void updateView(SpaceTimeDataController stData)
+	public void updateView(AbstractDataController stData)
 	{
 		super.init();
 		setVisible(true);

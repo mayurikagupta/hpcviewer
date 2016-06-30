@@ -24,7 +24,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 
 import edu.rice.cs.hpc.data.experiment.extdata.IBaseData;
-import edu.rice.cs.hpc.traceviewer.data.controller.SpaceTimeDataController;
+import edu.rice.cs.hpc.traceviewer.data.abstraction.AbstractDataController;
 import edu.rice.cs.hpc.traceviewer.data.db.Frame;
 import edu.rice.cs.hpc.traceviewer.data.db.ImageTraceAttributes;
 import edu.rice.cs.hpc.traceviewer.data.util.Debugger;
@@ -145,7 +145,7 @@ public class SpaceTimeMiniCanvas extends SpaceTimeCanvas
 	 * 
 	 * @param _stData : the new database
 	 **********/
-	public void updateView(SpaceTimeDataController _stData) 
+	public void updateView(AbstractDataController _stData) 
 	{
 		setSpaceTimeData(_stData);
 

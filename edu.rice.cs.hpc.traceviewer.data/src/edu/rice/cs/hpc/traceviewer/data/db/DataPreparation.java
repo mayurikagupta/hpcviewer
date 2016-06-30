@@ -2,9 +2,9 @@ package edu.rice.cs.hpc.traceviewer.data.db;
 
 import org.eclipse.swt.graphics.Color;
 
+import edu.rice.cs.hpc.traceviewer.data.abstraction.AbstractProcessData;
 import edu.rice.cs.hpc.traceviewer.data.abstraction.AbstractStack;
 import edu.rice.cs.hpc.traceviewer.data.graph.ColorTable;
-import edu.rice.cs.hpc.traceviewer.data.timeline.ProcessTimeline;
 
 /***********************************************************************
  * 
@@ -17,7 +17,7 @@ import edu.rice.cs.hpc.traceviewer.data.timeline.ProcessTimeline;
  ***********************************************************************/
 public abstract class DataPreparation
 {
-	final protected ProcessTimeline ptl;
+	final protected AbstractProcessData ptl;
 	final protected int depth;
 	final protected int height;
 	final protected double pixelLength;
@@ -37,7 +37,7 @@ public abstract class DataPreparation
 	 * @param _pixelLength : the length (in pixel)
 	 * @param usingMidpoint : flag whether we should use midpoint or not
 	 */
-	public DataPreparation(ColorTable _colorTable, ProcessTimeline _ptl, 
+	public DataPreparation(ColorTable _colorTable, AbstractProcessData _ptl, 
 			long _begTime, int _depth, int _height, double _pixelLength, boolean _usingMidpoint)
 	{
 		this.ptl = _ptl;

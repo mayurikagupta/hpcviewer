@@ -7,12 +7,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 
-import edu.rice.cs.hpc.traceviewer.data.controller.SpaceTimeDataController;
+import edu.rice.cs.hpc.traceviewer.data.abstraction.AbstractDataController;
+import edu.rice.cs.hpc.traceviewer.data.abstraction.AbstractProcessData;
 import edu.rice.cs.hpc.traceviewer.data.db.DataPreparation;
 import edu.rice.cs.hpc.traceviewer.data.db.ImageTraceAttributes;
 import edu.rice.cs.hpc.traceviewer.data.db.TimelineDataSet;
 import edu.rice.cs.hpc.traceviewer.data.graph.ColorTable;
-import edu.rice.cs.hpc.traceviewer.data.timeline.ProcessTimeline;
 
 
 /*****************************************************************************
@@ -30,7 +30,7 @@ public abstract class BaseTimelineThread implements Callable<Integer> {
 	final static byte MIN_HEIGHT_FOR_SEPARATOR_LINES = 15;
 
 	/**The SpaceTimeData that this thread gets its files from and adds it data and images to.*/
-	final protected SpaceTimeDataController stData;
+	final protected AbstractDataController stData;
 	
 	/**The scale in the y-direction of pixels to processors (for the drawing of the images).*/
 	final private double scaleY;	
@@ -41,7 +41,7 @@ public abstract class BaseTimelineThread implements Callable<Integer> {
 	protected final ImageTraceAttributes attributes;
 	
 
-	public BaseTimelineThread(SpaceTimeDataController stData,
+	public BaseTimelineThread(AbstractDataController stData,
 			ImageTraceAttributes attributes,
 			double scaleY, Queue<TimelineDataSet> queue, 
 			AtomicInteger currentLine, 
@@ -63,7 +63,7 @@ public abstract class BaseTimelineThread implements Callable<Integer> {
 	 */
 	public Integer call() throws Exception {
 
-		ProcessTimeline trace = getNextTrace(currentLine);
+		AbstractProcessData trace = getNextTrace(currentLine);
 		Integer numTraces = 0;
 		final double pixelLength = (attributes.getTimeInterval())/(double)attributes.numPixelsH;
 		final long timeBegin = attributes.getTimeBegin();
@@ -126,13 +126,13 @@ public abstract class BaseTimelineThread implements Callable<Integer> {
 	 * 
 	 * @return
 	 ****/
-	abstract protected ProcessTimeline getNextTrace(AtomicInteger currentLine);
+	abstract protected AbstractProcessData getNextTrace(AtomicInteger currentLine);
 	
-	abstract protected boolean init(ProcessTimeline trace) throws IOException;
+	abstract protected boolean init(AbstractProcessData trace) throws IOException;
 	
 	abstract protected void finalize();
 	
-	abstract protected DataPreparation getData(ColorTable colorTable, ProcessTimeline timeline,
+	abstract protected DataPreparation getData(ColorTable colorTable, AbstractProcessData timeline,
 			long timeBegin, int linenum,
 			int height, double pixelLength, boolean midPoint);
 }

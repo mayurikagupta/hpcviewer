@@ -31,7 +31,7 @@ import edu.rice.cs.hpc.traceviewer.services.DataService;
 import edu.rice.cs.hpc.traceviewer.summary.HPCSummaryView;
 import edu.rice.cs.hpc.traceviewer.ui.OpenDatabaseDialog;
 
-import edu.rice.cs.hpc.traceviewer.data.controller.SpaceTimeDataController;
+import edu.rice.cs.hpc.traceviewer.data.abstraction.AbstractDataController;
 import edu.rice.cs.hpc.traceviewer.data.db.AbstractDBOpener;
 import edu.rice.cs.hpc.traceviewer.data.db.DatabaseAccessInfo;
 
@@ -44,7 +44,7 @@ public class TraceDatabase
 {
 	static private HashMap<IWorkbenchWindow, TraceDatabase> listOfDatabases = null;
 
-	private SpaceTimeDataController dataTraces = null;
+	private AbstractDataController dataTraces = null;
 
 	/***
 	 * get the instance of this class
@@ -182,7 +182,7 @@ public class TraceDatabase
 		private final IWorkbenchWindow window;
 		private final DatabaseAccessInfo info; 
 		private final boolean useLocalDatbaase;
-		private SpaceTimeDataController stdc;
+		private AbstractDataController stdc;
 		
 		JobOpeningDatabase(final IWorkbenchWindow window, final DatabaseAccessInfo info, 
 				final boolean useLocalDatbaase) {
@@ -225,7 +225,7 @@ public class TraceDatabase
 			return Status.OK_STATUS;
 		}
 		
-		SpaceTimeDataController getSTDC() {
+		AbstractDataController getSTDC() {
 			return stdc;
 		}
 	}
@@ -264,7 +264,7 @@ public class TraceDatabase
 	
 	
 	static private boolean processDatabase(final IWorkbenchWindow window, 
-			SpaceTimeDataController stdc)
+			AbstractDataController stdc)
 	{
 		if (stdc == null) {
 			return false;

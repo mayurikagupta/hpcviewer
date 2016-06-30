@@ -33,10 +33,10 @@ import edu.rice.cs.hpc.traceviewer.operation.PositionOperation;
 import edu.rice.cs.hpc.traceviewer.operation.TraceOperation;
 import edu.rice.cs.hpc.traceviewer.services.DataService;
 
+import edu.rice.cs.hpc.traceviewer.data.abstraction.AbstractDataController;
 import edu.rice.cs.hpc.traceviewer.data.abstraction.AbstractProcessData;
 import edu.rice.cs.hpc.traceviewer.data.abstraction.AbstractStack;
 import edu.rice.cs.hpc.traceviewer.data.abstraction.ProcessDataService;
-import edu.rice.cs.hpc.traceviewer.data.controller.SpaceTimeDataController;
 import edu.rice.cs.hpc.traceviewer.data.db.ImageTraceAttributes;
 import edu.rice.cs.hpc.traceviewer.data.db.Position;
 import edu.rice.cs.hpc.traceviewer.data.util.Debugger;
@@ -115,7 +115,7 @@ public class CallStackViewer extends TableViewer
         	public Image getImage(Object element) {
         		if (element instanceof String) {
         			Image img = null;
-    				SpaceTimeDataController stData = dataService.getData();
+        			AbstractDataController stData = dataService.getData();
         			if (stData != null)
         				img = stData.getColorTable().getImage((String)element);
         			return img;
@@ -157,7 +157,7 @@ public class CallStackViewer extends TableViewer
 	 */
 	public void updateView()
 	{
-		final SpaceTimeDataController data = dataService.getData();
+		final AbstractDataController data = dataService.getData();
 		this.setSample(data.getAttributes().getPosition(), data.getAttributes().getDepth());
 	}
 	
@@ -176,7 +176,7 @@ public class CallStackViewer extends TableViewer
 		// 	then we keep the selected process
 		//-------------------------------------------------------------------------------------------
 
-		SpaceTimeDataController stData = dataService.getData();
+		AbstractDataController stData = dataService.getData();
 		
 		if (stData == null) {
 			return;

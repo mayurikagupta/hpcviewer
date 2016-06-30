@@ -39,12 +39,12 @@ import edu.rice.cs.hpc.traceviewer.painter.AbstractTimeCanvas;
 import edu.rice.cs.hpc.traceviewer.painter.BufferPaint;
 import edu.rice.cs.hpc.traceviewer.painter.ISpaceTimeCanvas;
 import edu.rice.cs.hpc.traceviewer.painter.ResizeListener;
+import edu.rice.cs.hpc.traceviewer.data.abstraction.AbstractDataController;
+import edu.rice.cs.hpc.traceviewer.data.abstraction.AbstractProcessData;
 import edu.rice.cs.hpc.traceviewer.data.abstraction.ProcessDataService;
-import edu.rice.cs.hpc.traceviewer.data.controller.SpaceTimeDataController;
 import edu.rice.cs.hpc.traceviewer.data.db.Frame;
 import edu.rice.cs.hpc.traceviewer.data.db.ImageTraceAttributes;
 import edu.rice.cs.hpc.traceviewer.data.db.Position;
-import edu.rice.cs.hpc.traceviewer.data.timeline.ProcessTimeline;
 import edu.rice.cs.hpc.traceviewer.util.Utility;
 import edu.rice.cs.hpc.traceviewer.data.util.Constants;
 import edu.rice.cs.hpc.traceviewer.data.util.Debugger;
@@ -60,7 +60,7 @@ public class SpaceTimeDetailCanvas extends AbstractTimeCanvas
 	implements IOperationHistoryListener, ISpaceTimeCanvas
 {	
 	/**The SpaceTimeData corresponding to this canvas.*/
-	protected SpaceTimeDataController stData;
+	protected AbstractDataController stData;
 
 	/**Triggers zoom back to beginning view screen.*/
 	private Action homeButton;
@@ -153,7 +153,7 @@ public class SpaceTimeDetailCanvas extends AbstractTimeCanvas
 	 * set new database and refresh the screen
 	 * @param dataTraces
 	 *****/
-	public void updateView(SpaceTimeDataController _stData) {
+	public void updateView(AbstractDataController _stData) {
 
 		super.init();
 
@@ -889,7 +889,7 @@ public class SpaceTimeDetailCanvas extends AbstractTimeCanvas
 		
 		oldAttributes.copy(attributes);
 		if (changedBounds) {
-			ProcessTimeline []traces = new ProcessTimeline[ numLines ];
+			AbstractProcessData []traces = new AbstractProcessData[ numLines ];
 			ptlService.setProcessData(traces);
 		}
 

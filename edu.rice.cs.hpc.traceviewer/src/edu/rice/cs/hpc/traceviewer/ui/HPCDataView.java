@@ -9,7 +9,7 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.ViewPart;
 
-import edu.rice.cs.hpc.traceviewer.data.controller.SpaceTimeDataController;
+import edu.rice.cs.hpc.traceviewer.data.abstraction.AbstractDataController;
 import edu.rice.cs.hpc.traceviewer.data.db.Position;
 import edu.rice.cs.hpc.traceviewer.main.HPCTraceView;
 
@@ -21,7 +21,7 @@ public class HPCDataView extends ViewPart implements ISizeProvider//, ITraceData
 	
 	Composite master;
 
-	SpaceTimeDataController stData;
+	AbstractDataController stData;
 	
 	DataViewer dataViewer;
 		
@@ -59,7 +59,7 @@ public class HPCDataView extends ViewPart implements ISizeProvider//, ITraceData
 	}
 	
 	
-	public void updateView(SpaceTimeDataController _stData) 
+	public void updateView(AbstractDataController _stData) 
 	{
 		this.stData = _stData;	
 		this.dataViewer.updateView(_stData);

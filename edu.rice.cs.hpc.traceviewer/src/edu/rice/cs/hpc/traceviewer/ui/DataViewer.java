@@ -19,9 +19,9 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.ui.services.ISourceProviderService;
 
+import edu.rice.cs.hpc.traceviewer.data.abstraction.AbstractDataController;
 import edu.rice.cs.hpc.traceviewer.data.abstraction.AbstractProcessData;
 import edu.rice.cs.hpc.traceviewer.data.abstraction.ProcessDataService;
-import edu.rice.cs.hpc.traceviewer.data.controller.SpaceTimeDataController;
 import edu.rice.cs.hpc.traceviewer.data.db.Position;
 import edu.rice.cs.hpc.traceviewer.data.util.Constants;
 import edu.rice.cs.hpc.traceviewer.data.util.Debugger;
@@ -31,7 +31,7 @@ import edu.rice.cs.hpc.traceviewer.data.util.Debugger;
  *************************************************/
 public class DataViewer extends TableViewer
 {
-	private SpaceTimeDataController stData;
+	private AbstractDataController stData;
 	
 	private final TableViewerColumn viewerColumn;
 	
@@ -126,7 +126,7 @@ public class DataViewer extends TableViewer
 	 * set new database
 	 * @param _stData
 	 */
-	public void updateView(SpaceTimeDataController _stData) 
+	public void updateView(AbstractDataController _stData) 
 	{
 		this.stData = _stData;
 		//this.setSample(painter.getPosition(), painter.getMaxDepth(), painter.getData());

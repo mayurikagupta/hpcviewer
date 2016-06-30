@@ -11,7 +11,7 @@ import org.eclipse.swt.graphics.Device;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Display;
 
-import edu.rice.cs.hpc.traceviewer.data.controller.SpaceTimeDataController;
+import edu.rice.cs.hpc.traceviewer.data.abstraction.AbstractDataController;
 import edu.rice.cs.hpc.traceviewer.data.db.BaseDataVisualization;
 import edu.rice.cs.hpc.traceviewer.data.db.TimelineDataSet;
 import edu.rice.cs.hpc.traceviewer.data.util.Constants;
@@ -52,7 +52,7 @@ public class DetailPaintThread
 	 * @param maxTextSize : the maximum size of a letter for a given device
 	 * @param debugMode : flag whether we need to show text information
 	 */
-	public DetailPaintThread( SpaceTimeDataController stData, Queue<TimelineDataSet> list, int numLines,
+	public DetailPaintThread( AbstractDataController stData, Queue<TimelineDataSet> list, int numLines,
 			AtomicInteger numDataCollected, AtomicInteger paintDone, Device device, int width, 
 			Point maxTextSize, boolean debugMode,
 			IProgressMonitor monitor) {

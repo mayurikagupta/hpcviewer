@@ -9,7 +9,7 @@ import org.eclipse.swt.graphics.Device;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.ui.IWorkbenchWindow;
 
-import edu.rice.cs.hpc.traceviewer.data.controller.SpaceTimeDataController;
+import edu.rice.cs.hpc.traceviewer.data.abstraction.AbstractDataController;
 import edu.rice.cs.hpc.traceviewer.data.db.ImageTraceAttributes;
 import edu.rice.cs.hpc.traceviewer.data.db.TimelineDataSet;
 import edu.rice.cs.hpc.traceviewer.painter.BasePaintThread;
@@ -30,7 +30,7 @@ public class DepthViewPaint extends BaseViewPaint {
 	private final AtomicInteger timelineDone, numDataCollected;
 	private float numPixels;
 
-	public DepthViewPaint(IWorkbenchWindow window, final GC masterGC, SpaceTimeDataController data,
+	public DepthViewPaint(IWorkbenchWindow window, final GC masterGC, AbstractDataController data,
 			ImageTraceAttributes attributes, boolean changeBound, ISpaceTimeCanvas canvas, 
 			ExecutorService threadExecutor) {
 		
@@ -52,7 +52,7 @@ public class DepthViewPaint extends BaseViewPaint {
 		
 		if (process >= attributes.getProcessBegin() && process <= attributes.getProcessEnd()) {
 			// TODO warning: data races for accessing the current process timeline 
-			if ( controller.getCurrentDepthTrace() != null) {
+			if ( controller.getCurrentDepthData() != null) {
 				numPixels = attributes.numPixelsDepthV/(float)controller.getMaxDepth();
 				return changedBounds;
 			}

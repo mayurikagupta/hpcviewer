@@ -6,13 +6,13 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import edu.rice.cs.hpc.data.experiment.InvalExperimentException;
-import edu.rice.cs.hpc.traceviewer.data.controller.SpaceTimeDataController;
+import edu.rice.cs.hpc.traceviewer.data.controller.TraceDataController;
 
 
 /**
  * An interface for the DBOpeners. Specifically, it is implemented by
  * {@link RemoteDBOpener} and {@link LocalDBOpener}. Its main purpose is to
- * create a {@link SpaceTimeDataController} from the connection to the database
+ * create a {@link TraceDataController} from the connection to the database
  * (be it local or remote), but it also partially handles closing that connection.
  * 
  * @author Philip Taffet
@@ -38,7 +38,7 @@ public abstract class AbstractDBOpener {
 	 * @throws Exception 
 	 * @throws InvalExperimentException 
 	 */
-	public abstract SpaceTimeDataController openDBAndCreateSTDC(IWorkbenchWindow window, IProgressMonitor statusMgr)
+	public abstract TraceDataController openDBAndCreateSTDC(IWorkbenchWindow window, IProgressMonitor statusMgr)
 			throws IOException, InvalExperimentException, Exception;
 
 	// Our current policy on closing: Except for back-to-back connections to the

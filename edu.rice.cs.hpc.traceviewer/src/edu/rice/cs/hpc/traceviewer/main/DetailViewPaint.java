@@ -17,8 +17,8 @@ import org.eclipse.ui.handlers.RegistryToggleState;
 import org.eclipse.ui.services.ISourceProviderService;
 
 import edu.rice.cs.hpc.traceviewer.actions.OptionRecordsDisplay;
+import edu.rice.cs.hpc.traceviewer.data.abstraction.AbstractDataController;
 import edu.rice.cs.hpc.traceviewer.data.abstraction.ProcessDataService;
-import edu.rice.cs.hpc.traceviewer.data.controller.SpaceTimeDataController;
 import edu.rice.cs.hpc.traceviewer.data.db.ImageTraceAttributes;
 import edu.rice.cs.hpc.traceviewer.data.db.TimelineDataSet;
 import edu.rice.cs.hpc.traceviewer.painter.BasePaintThread;
@@ -49,7 +49,7 @@ public class DetailViewPaint extends BaseViewPaint {
 	final private AtomicInteger currentLine, numDataCollected;
 	final private int numLines;
 	
-	public DetailViewPaint(final GC masterGC, final GC origGC, SpaceTimeDataController data,
+	public DetailViewPaint(final GC masterGC, final GC origGC, AbstractDataController data,
 			ImageTraceAttributes attributes, int numLines, boolean changeBound,
 			IWorkbenchWindow window, ISpaceTimeCanvas canvas, ExecutorService threadExecutor) 
 	{

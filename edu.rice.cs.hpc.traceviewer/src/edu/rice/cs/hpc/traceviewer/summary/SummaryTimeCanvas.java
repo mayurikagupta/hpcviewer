@@ -28,7 +28,7 @@ import edu.rice.cs.hpc.traceviewer.operation.TraceOperation;
 import edu.rice.cs.hpc.traceviewer.operation.ZoomOperation;
 import edu.rice.cs.hpc.traceviewer.painter.AbstractTimeCanvas;
 
-import edu.rice.cs.hpc.traceviewer.data.controller.SpaceTimeDataController;
+import edu.rice.cs.hpc.traceviewer.data.abstraction.AbstractDataController;
 import edu.rice.cs.hpc.traceviewer.data.db.Frame;
 import edu.rice.cs.hpc.traceviewer.data.db.ImageTraceAttributes;
 import edu.rice.cs.hpc.traceviewer.data.db.Position;
@@ -43,7 +43,7 @@ import edu.rice.cs.hpc.traceviewer.data.util.Debugger;
 public class SummaryTimeCanvas extends AbstractTimeCanvas 
 implements IOperationHistoryListener
 {	
-	private SpaceTimeDataController dataTraces = null;
+	private AbstractDataController dataTraces = null;
 	private TreeMap<Integer, Integer> mapStatistics;
 	private int totPixels;
 	private ImageData detailData;
@@ -238,7 +238,7 @@ implements IOperationHistoryListener
 	 * set the new database
 	 * @param data
 	 ********/
-	public void updateData(SpaceTimeDataController data)
+	public void updateData(AbstractDataController data)
 	{
 		dataTraces = data;
 		needToRedraw = true; // new data

@@ -9,7 +9,7 @@ import edu.rice.cs.hpc.data.experiment.InvalExperimentException;
 import edu.rice.cs.hpc.data.experiment.extdata.FileDB2;
 import edu.rice.cs.hpc.data.experiment.extdata.IFileDB;
 import edu.rice.cs.hpc.data.util.Util;
-import edu.rice.cs.hpc.traceviewer.data.controller.SpaceTimeDataController;
+import edu.rice.cs.hpc.traceviewer.data.controller.TraceDataController;
 import edu.rice.cs.hpc.traceviewer.data.db.AbstractDBOpener;
 import edu.rice.cs.hpc.traceviewer.data.db.DatabaseAccessInfo;
 import edu.rice.cs.hpc.traceviewer.data.version3.FileDB3;
@@ -49,7 +49,7 @@ public class LocalDBOpener extends AbstractDBOpener
 	 * @see edu.rice.cs.hpc.traceviewer.db.AbstractDBOpener#openDBAndCreateSTDC
 	 * (org.eclipse.ui.IWorkbenchWindow, org.eclipse.jface.action.IStatusLineManager)
 	 */
-	public SpaceTimeDataController openDBAndCreateSTDC(IWorkbenchWindow window,
+	public TraceDataController openDBAndCreateSTDC(IWorkbenchWindow window,
 			final IProgressMonitor statusMgr) throws InvalExperimentException, Exception {
 			
 		// Laks 2014.03.10: needs to comment the call to removeInstance

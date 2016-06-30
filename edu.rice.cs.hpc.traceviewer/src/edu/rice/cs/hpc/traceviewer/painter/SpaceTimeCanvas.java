@@ -2,7 +2,7 @@ package edu.rice.cs.hpc.traceviewer.painter;
 
 import org.eclipse.swt.widgets.Composite;
 
-import edu.rice.cs.hpc.traceviewer.data.controller.SpaceTimeDataController;
+import edu.rice.cs.hpc.traceviewer.data.abstraction.AbstractDataController;
 
 
 /******************************************************************
@@ -11,7 +11,7 @@ import edu.rice.cs.hpc.traceviewer.data.controller.SpaceTimeDataController;
 public abstract class SpaceTimeCanvas extends BufferedCanvas
 {
 	/**The SpaceTimeData corresponding to this canvas.*/
-	protected SpaceTimeDataController stData;
+	protected AbstractDataController stData;
 	
     /**Creates a SpaceTimeCanvas with the data _stData and Composite _composite.*/
     public SpaceTimeCanvas(Composite _composite)
@@ -25,7 +25,7 @@ public abstract class SpaceTimeCanvas extends BufferedCanvas
     /**Conversion factor from actual processes to pixels on the y axis.  To be implemented in subclasses.*/
     public abstract double getScalePixelsPerRank();
     
-    public void setSpaceTimeData(SpaceTimeDataController dataTraces) {
+    public void setSpaceTimeData(AbstractDataController dataTraces) {
     	this.stData = dataTraces;
     }
 }

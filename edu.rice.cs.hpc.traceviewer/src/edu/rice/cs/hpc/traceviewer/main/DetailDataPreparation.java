@@ -2,10 +2,10 @@ package edu.rice.cs.hpc.traceviewer.main;
 
 import org.eclipse.swt.graphics.Color;
 
+import edu.rice.cs.hpc.traceviewer.data.abstraction.AbstractProcessData;
 import edu.rice.cs.hpc.traceviewer.data.db.DataPreparation;
 import edu.rice.cs.hpc.traceviewer.data.db.TimelineDataSet;
 import edu.rice.cs.hpc.traceviewer.data.graph.ColorTable;
-import edu.rice.cs.hpc.traceviewer.data.timeline.ProcessTimeline;
 
 public class DetailDataPreparation extends DataPreparation {
 
@@ -15,20 +15,20 @@ public class DetailDataPreparation extends DataPreparation {
 	 * Constructor for preparing data to paint on the space-time canvas
 	 * 
 	 * @param _colorTable
-	 * @param _ptl
+	 * @param timeline
 	 * @param _begTime
 	 * @param _depth
 	 * @param _height
 	 * @param _pixelLength
 	 * @param _usingMidpoint
 	 */
-	public DetailDataPreparation(ColorTable _colorTable, ProcessTimeline _ptl,
+	public DetailDataPreparation(ColorTable _colorTable, AbstractProcessData timeline,
 			long _begTime, int _depth, int _height, double _pixelLength,
 			boolean _usingMidpoint) 
 	{
-		super(_colorTable, _ptl, _begTime, _depth, _height, _pixelLength,
+		super(_colorTable, timeline, _begTime, _depth, _height, _pixelLength,
 				_usingMidpoint);
-		dataset = new TimelineDataSet( ptl.line(),_ptl.size(), height);
+		dataset = new TimelineDataSet( ptl.line(),timeline.size(), height);
 	}
 
 	@Override

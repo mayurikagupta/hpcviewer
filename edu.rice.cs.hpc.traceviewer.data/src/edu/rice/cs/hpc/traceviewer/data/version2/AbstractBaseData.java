@@ -3,6 +3,7 @@ package edu.rice.cs.hpc.traceviewer.data.version2;
 import java.io.IOException;
 
 import edu.rice.cs.hpc.data.experiment.extdata.IBaseData;
+import edu.rice.cs.hpc.data.experiment.extdata.IBaseTraceData;
 import edu.rice.cs.hpc.data.experiment.extdata.IFileDB;
 import edu.rice.cs.hpc.data.util.Constants;
 
@@ -12,7 +13,7 @@ import edu.rice.cs.hpc.data.util.Constants;
  * This class is the parent for all regular data and filtered data
  *
  *********************************************************/
-public abstract class AbstractBaseData implements IBaseData 
+public abstract class AbstractBaseData implements IBaseTraceData 
 {
 	final protected IFileDB baseDataFile;
 

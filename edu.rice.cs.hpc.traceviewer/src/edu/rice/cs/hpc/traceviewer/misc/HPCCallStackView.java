@@ -16,7 +16,7 @@ import org.eclipse.ui.ISourceProviderListener;
 import org.eclipse.ui.part.ViewPart;
 import org.eclipse.ui.services.ISourceProviderService;
 
-import edu.rice.cs.hpc.traceviewer.data.controller.SpaceTimeDataController;
+import edu.rice.cs.hpc.traceviewer.data.abstraction.AbstractDataController;
 import edu.rice.cs.hpc.traceviewer.services.DataService;
 
 /**A view for displaying the call path viewer and minimap.*/
@@ -117,7 +117,7 @@ public class HPCCallStackView extends ViewPart implements ISizeProvider
 				// eclipse bug: even if we set a very specific source provider, eclipse still
 				//	gather event from other source. we then require to put a guard to avoid this.
 				if (sourceName.equals(DataService.DATA_UPDATE)) {
-					if (sourceValue instanceof SpaceTimeDataController) {
+					if (sourceValue instanceof AbstractDataController) {
 						// new color mapping
 						csViewer.updateView();
 					} else if (sourceValue instanceof Boolean) {
@@ -135,7 +135,7 @@ public class HPCCallStackView extends ViewPart implements ISizeProvider
 	}
 	
 	
-	public void updateView(SpaceTimeDataController _stData) 
+	public void updateView(AbstractDataController _stData) 
 	{
 		depthEditor.setMaximum(_stData.getMaxDepth());
 		depthEditor.setSelection(0);

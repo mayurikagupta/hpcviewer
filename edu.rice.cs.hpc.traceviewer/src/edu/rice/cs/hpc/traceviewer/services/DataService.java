@@ -6,7 +6,7 @@ import java.util.Map;
 import org.eclipse.ui.AbstractSourceProvider;
 import org.eclipse.ui.ISources;
 
-import edu.rice.cs.hpc.traceviewer.data.controller.SpaceTimeDataController;
+import edu.rice.cs.hpc.traceviewer.data.abstraction.AbstractDataController;
 
 
 public class DataService extends AbstractSourceProvider {
@@ -17,7 +17,7 @@ public class DataService extends AbstractSourceProvider {
 	final static public String DATA_AVAILABLE = "ENABLED";
 	final static public String DATA_UNAVAILABLE = "DISABLED";
 	
-	private SpaceTimeDataController data;
+	private AbstractDataController data;
 	
 
 	/*
@@ -52,7 +52,7 @@ public class DataService extends AbstractSourceProvider {
 	 * set the updated data
 	 * @param data
 	 */
-	public void setData( SpaceTimeDataController data ) {
+	public void setData( AbstractDataController data ) {
 		this.data = data;
 		fireSourceChanged(ISources.WORKBENCH, DATA_PROVIDER, DATA_AVAILABLE);
 	}
@@ -71,7 +71,7 @@ public class DataService extends AbstractSourceProvider {
 	 * retrieve the current data
 	 * @return
 	 */
-	public SpaceTimeDataController getData() {
+	public AbstractDataController getData() {
 		return data;
 	}
 	

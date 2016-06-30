@@ -20,7 +20,7 @@ import edu.rice.cs.hpc.common.ui.Util;
 import edu.rice.cs.hpc.data.util.OSValidator;
 
 import edu.rice.cs.hpc.traceviewer.timeline.BaseTimelineThread;
-import edu.rice.cs.hpc.traceviewer.data.controller.SpaceTimeDataController;
+import edu.rice.cs.hpc.traceviewer.data.abstraction.AbstractDataController;
 import edu.rice.cs.hpc.traceviewer.data.db.ImageTraceAttributes;
 import edu.rice.cs.hpc.traceviewer.data.db.TimelineDataSet;
 import edu.rice.cs.hpc.traceviewer.data.util.Debugger;
@@ -41,7 +41,7 @@ public abstract class BaseViewPaint extends Job
 	
 	private final IWorkbenchWindow window;
 	
-	protected SpaceTimeDataController controller;
+	protected AbstractDataController controller;
 
 	final private ExecutorService threadExecutor;
 	final private ISpaceTimeCanvas canvas;
@@ -60,7 +60,7 @@ public abstract class BaseViewPaint extends Job
 	 * @param threadExecutor executor
 	 */
 
-	public BaseViewPaint(String title, SpaceTimeDataController _data, ImageTraceAttributes attributes, boolean _changeBound, 
+	public BaseViewPaint(String title, AbstractDataController _data, ImageTraceAttributes attributes, boolean _changeBound, 
 			IWorkbenchWindow window, ISpaceTimeCanvas canvas, ExecutorService threadExecutor) 
 	{
 		super(title);

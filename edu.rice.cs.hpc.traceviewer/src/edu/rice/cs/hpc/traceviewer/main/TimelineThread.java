@@ -7,16 +7,15 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 
+import edu.rice.cs.hpc.traceviewer.data.abstraction.AbstractDataController;
+import edu.rice.cs.hpc.traceviewer.data.abstraction.AbstractProcessData;
 import edu.rice.cs.hpc.traceviewer.data.abstraction.ProcessDataService;
-import edu.rice.cs.hpc.traceviewer.data.controller.SpaceTimeDataController;
 import edu.rice.cs.hpc.traceviewer.data.db.DataPreparation;
 import edu.rice.cs.hpc.traceviewer.data.db.ImageTraceAttributes;
 import edu.rice.cs.hpc.traceviewer.data.db.TimelineDataSet;
 import edu.rice.cs.hpc.traceviewer.data.graph.ColorTable;
 
 import edu.rice.cs.hpc.traceviewer.timeline.BaseTimelineThread;
-
-import edu.rice.cs.hpc.traceviewer.data.timeline.ProcessTimeline;
 
 public class TimelineThread 
 	extends BaseTimelineThread
@@ -31,7 +30,7 @@ public class TimelineThread
 	 * Creates a TimelineThread with SpaceTimeData _stData; the rest of the parameters are things for drawing
 	 * @param changedBounds - whether or not the thread needs to go get the data for its ProcessTimelines.
 	 ***********************************************************************************************************/
-	public TimelineThread(SpaceTimeDataController stData, ImageTraceAttributes attributes,
+	public TimelineThread(AbstractDataController stData, ImageTraceAttributes attributes,
 			ProcessDataService traceService,
 			boolean _changedBounds, double _scaleY, Queue<TimelineDataSet> queue, 
 			AtomicInteger currentLine, int totalLines, IProgressMonitor monitor)
@@ -44,13 +43,13 @@ public class TimelineThread
 	
 	
 	@Override
-	protected ProcessTimeline getNextTrace(AtomicInteger currentLine) {
-		return stData.getNextTrace(currentLine, totalLines, attributes, changedBounds, monitor);
+	protected AbstractProcessData getNextTrace(AtomicInteger currentLine) {
+		return stData.getNextData(currentLine, totalLines, attributes, changedBounds, monitor);
 	}
 
 	
 	@Override
-	protected boolean init(ProcessTimeline trace) throws IOException {
+	protected boolean init(AbstractProcessData trace) throws IOException {
 		//nextTrace.data is not empty if the data is from the server
 		if(changedBounds)
 		{
@@ -76,7 +75,7 @@ public class TimelineThread
 
 	@Override
 	protected DataPreparation getData(ColorTable colorTable,
-			ProcessTimeline timeline, long timeBegin, int linenum, int height,
+			AbstractProcessData timeline, long timeBegin, int linenum, int height,
 			double pixelLength, boolean midPoint) {
 
 		return new DetailDataPreparation(colorTable, timeline, 

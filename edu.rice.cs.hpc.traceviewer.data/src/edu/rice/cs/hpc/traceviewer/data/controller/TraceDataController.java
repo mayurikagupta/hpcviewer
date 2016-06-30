@@ -1,27 +1,23 @@
 package edu.rice.cs.hpc.traceviewer.data.controller;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.services.ISourceProviderService;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
 
 import edu.rice.cs.hpc.common.util.ProcedureAliasMap;
 import edu.rice.cs.hpc.data.experiment.ExperimentWithoutMetrics;
 import edu.rice.cs.hpc.data.experiment.InvalExperimentException;
-import edu.rice.cs.hpc.data.experiment.extdata.IBaseData;
-import edu.rice.cs.hpc.data.experiment.extdata.IFilteredData;
 import edu.rice.cs.hpc.data.experiment.extdata.TraceAttribute;
 import edu.rice.cs.hpc.data.experiment.scope.RootScope;
 import edu.rice.cs.hpc.data.experiment.scope.RootScopeType;
 
-import edu.rice.cs.hpc.traceviewer.data.abstraction.ProcessDataService;
+import edu.rice.cs.hpc.traceviewer.data.abstraction.AbstractDataController;
 import edu.rice.cs.hpc.traceviewer.data.db.ImageTraceAttributes;
 import edu.rice.cs.hpc.traceviewer.data.graph.ColorTable;
 import edu.rice.cs.hpc.traceviewer.data.graph.CallPath;
@@ -42,19 +38,8 @@ import edu.rice.cs.hpc.traceviewer.data.timeline.ProcessTimeline;
  * - 2014.2.1 Laksono: refactoring to make it as simple as possible and avoid code redundancy
  *
  *******************************************************************************************/
-public abstract class SpaceTimeDataController 
+public abstract class TraceDataController extends AbstractDataController
 {
-	protected ImageTraceAttributes attributes;
-	/**
-	 * The minimum beginning and maximum ending time stamp across all traces (in
-	 * microseconds)).
-	 */
-	protected long maxEndTime, minBegTime;
-
-
-	protected ProcessDataService ptlService;
-
-	
 	/** The map between the nodes and the cpid's. */
 	private HashMap<Integer, CallPath> scopeMap;
 	
@@ -63,19 +48,8 @@ public abstract class SpaceTimeDataController
 	// the same thread class yet get their information differently.
 	//protected AtomicInteger lineNum;
 	//AtomicInteger depthLineNum;
-		
-	/** The maximum depth of any single CallStackSample in any trace. */
-	protected int maxDepth;
-	
-	protected ColorTable colorTable;
-	private boolean enableMidpoint;
-	
-	protected IBaseData dataTrace = null;
+
 	final protected ExperimentWithoutMetrics exp;
-	
-	// nathan's data index variable
-	// TODO: we need to remove this and delegate to the inherited class instead !
-	private int currentDataIdx;
 
 	/***
 	 * Constructor to create a data based on File. This constructor is more suitable
@@ -84,9 +58,10 @@ public abstract class SpaceTimeDataController
 	 * @param _window : SWT window
 	 * @param expFile : experiment file (XML format)
 	 */
-	public SpaceTimeDataController(IWorkbenchWindow _window, File expFile) 
+	public TraceDataController(IWorkbenchWindow _window, File expFile) 
 			throws InvalExperimentException, Exception 
-	{			
+	{	
+		super(_window);
 		exp = new ExperimentWithoutMetrics();
 		try {
 			// possible java.lang.OutOfMemoryError exception here
@@ -108,26 +83,17 @@ public abstract class SpaceTimeDataController
 	 * @param Name : the name of the file on the remote server
 	 * @throws InvalExperimentException 
 	 *****/
-	public SpaceTimeDataController(IWorkbenchWindow _window, InputStream expStream, String Name) 
+	public TraceDataController(IWorkbenchWindow _window, InputStream expStream, String Name) 
 			throws InvalExperimentException, Exception 
 	{	
+		super(_window);
+		
 		exp = new ExperimentWithoutMetrics();
 
 		// Without metrics, so param 3 is false
 		exp.open(expStream, new ProcedureAliasMap(), Name);
 		
 		init(_window);
-	}
-
-	public void setDataIndex(int dataIndex) 
-	{
-		currentDataIdx = dataIndex;
-	}
-	
-	
-	public int getDataIndex()
-	{
-		return currentDataIdx;
 	}
 	
 	/******
@@ -156,13 +122,8 @@ public abstract class SpaceTimeDataController
 				// initialize colors
 				colorTable.setColorTable();
 				
-				// attributes initialization
-				attributes 	 = new ImageTraceAttributes();
 				//lineNum 	 = new AtomicInteger(0);
 				//depthLineNum = new AtomicInteger(0);
-
-				ISourceProviderService sourceProviderService = (ISourceProviderService) window.getService(ISourceProviderService.class);
-				ptlService = (ProcessDataService) sourceProviderService.getSourceProvider(ProcessDataService.PROCESS_DATA_PROVIDER); 
 			}			
 		});
 		final TraceAttribute trAttribute = exp.getTraceAttribute();
@@ -175,12 +136,6 @@ public abstract class SpaceTimeDataController
 
 	}
 
-	public int getMaxDepth() 
-	{
-		return maxDepth;
-	}
-	
-	
 	private int getCurrentlySelectedProcess()
 	{
 		return attributes.getPosition().process;
@@ -193,7 +148,7 @@ public abstract class SpaceTimeDataController
 	 * begProcess    -> 0,
 	 * endProcess-1  -> numTracesShown-1
 	 */
-	public int computeScaledProcess() {
+	private int computeScaledProcess() {
 		int numTracesShown = Math.min(attributes.getProcessInterval(), attributes.numPixelsV);
 		int selectedProc = getCurrentlySelectedProcess();
 		
@@ -209,7 +164,8 @@ public abstract class SpaceTimeDataController
 	 *  
 	 * @return ProcessTimeline
 	 */
-	public ProcessTimeline getCurrentDepthTrace() {
+	@Override
+	public ProcessTimeline getCurrentDepthData() {
 		int scaledDTProcess = computeScaledProcess();
 		return  (ProcessTimeline)ptlService.getProcessData(scaledDTProcess);
 	}
@@ -219,10 +175,11 @@ public abstract class SpaceTimeDataController
 	 * 
 	 * @return The next trace.
 	 **********************************************************************/
-	public ProcessTimeline getNextDepthTrace(AtomicInteger depthLineNum, 
+	@Override
+	public ProcessTimeline getNextDepthData(AtomicInteger depthLineNum, 
 			ImageTraceAttributes attributes, IProgressMonitor monitor) {
 		
-		ProcessTimeline depthTrace = getCurrentDepthTrace();
+		ProcessTimeline depthTrace = getCurrentDepthData();
 		if (depthTrace == null) {
 			monitor.setCanceled(true);
 			monitor.done(); // forcing to reset the title bar
@@ -246,74 +203,15 @@ public abstract class SpaceTimeDataController
 		} else
 			return null;
 	}
-	
-	public IBaseData getBaseData(){
-		return dataTrace;
-	}
 
-	/******************************************************************************
-	 * Returns number of processes (ProcessTimelines) held in this
-	 * SpaceTimeData.
-	 ******************************************************************************/
-	public int getTotalTraceCount() {
-		return dataTrace.getNumberOfRanks();
-	}
-	
+
 	protected HashMap<Integer, CallPath> getScopeMap() {
 		return scopeMap;
 	}
 
-	/******************************************************************************
-	 * getter/setter trace attributes
-	 * @return
-	 ******************************************************************************/
-	
-	public int getPixelHorizontal() {
-		return attributes.numPixelsH;
-	}
-	
-	
-
-	public ImageTraceAttributes getAttributes() {
-		return attributes;
-	}
-
-
 	public int getHeaderSize() {
 		final int headerSize = exp.getTraceAttribute().dbHeaderSize;
 		return headerSize;
-	}
-
-	/*************************************************************************
-	 * Returns width of the spaceTimeData: The width (the last time in the
-	 * ProcessTimeline) of the longest ProcessTimeline.
-	 ************************************************************************/
-	public long getTimeWidth() {
-		return maxEndTime - minBegTime;
-	}
-
-	public long getMaxEndTime() {
-		return maxEndTime;
-	}
-
-	public long getMinBegTime() {
-		return minBegTime;
-	}
-
-	public ColorTable getColorTable() {
-		return colorTable;
-	}
-
-	public void dispose() {
-		colorTable.dispose();
-	}
-
-	public void setEnableMidpoint(boolean enable) {
-		this.enableMidpoint = enable;
-	}
-
-	public boolean isEnableMidpoint() {
-		return enableMidpoint;
 	}
 
 	/*public void resetCounter() {
@@ -333,64 +231,4 @@ public abstract class SpaceTimeDataController
 	}*/
 	
 	//see the note where this is called in FilterRanks
-	public IFilteredData getFilteredBaseData() {
-		if (dataTrace instanceof IFilteredData)
-			return (IFilteredData) dataTrace;
-		return null;
-	}
-	/**
-	 * changing the trace data, caller needs to make sure to refresh the views
-	 * @param filteredBaseData
-	 */
-	public void setBaseData(IFilteredData filteredBaseData) {
-		dataTrace = filteredBaseData;
-
-		int endProcess = attributes.getProcessEnd();
-		int begProcess = attributes.getProcessBegin();
-		
-		//Snap it back into the acceptable limits.
-		if (endProcess > dataTrace.getNumberOfRanks())
-			endProcess  = dataTrace.getNumberOfRanks();
-		
-		if (begProcess >= endProcess)
-			begProcess = 0;
-		
-		attributes.setProcess(begProcess, endProcess);
-	}
-
-	public boolean isTimelineFilled() {
-		return (ptlService != null && ptlService.isFilled());
-	}
-	
-	
-	////////////////////////////////////////////////////////////////////////////////
-	// Abstract methods
-	////////////////////////////////////////////////////////////////////////////////
-	
-	/*************************************************************************
-	 * Retrieve the name of the database. The name can be either the path of
-	 * the directory, or the name of the profiled application, or both.
-	 * <p>
-	 * Ideally the name should be unique to distinguish with other databases. 
-	 * 
-	 * @return String: the name of the database
-	 *************************************************************************/
-	abstract public String getName() ;
-
-	/***
-	 * get the next trace process timeline base on the current line
-	 * 
-	 * @param currentLine : atomic integer of current line
-	 * @param changedBounds : boolean flag whether there's a change of boundary or not
-	 * @return
-	 */
-	public abstract ProcessTimeline getNextTrace(AtomicInteger currentLine, int totalLines,
-			ImageTraceAttributes attributes, boolean changedBounds, IProgressMonitor monitor);
-
-	public abstract void closeDB();
-
-	public abstract IFilteredData createFilteredBaseData();
-
-	public abstract void fillTracesWithData(boolean changedBounds, int numThreadsToLaunch)
-			throws IOException;
 }

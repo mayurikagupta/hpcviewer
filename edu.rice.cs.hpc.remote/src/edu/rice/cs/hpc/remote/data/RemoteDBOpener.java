@@ -23,7 +23,7 @@ import edu.rice.cs.hpc.data.experiment.extdata.TraceName;
 import edu.rice.cs.hpc.remote.tunnel.LocalTunneling;
 import edu.rice.cs.hpc.remote.tunnel.RemoteUserInfo;
 
-import edu.rice.cs.hpc.traceviewer.data.controller.SpaceTimeDataController;
+import edu.rice.cs.hpc.traceviewer.data.controller.TraceDataController;
 import edu.rice.cs.hpc.traceviewer.data.db.AbstractDBOpener;
 import edu.rice.cs.hpc.traceviewer.data.db.DatabaseAccessInfo;
 import edu.rice.cs.hpc.traceviewer.data.db.DatabaseAccessInfo.DatabaseField;
@@ -87,7 +87,7 @@ public class RemoteDBOpener extends AbstractDBOpener
 	 * @see edu.rice.cs.hpc.traceviewer.db.AbstractDBOpener#openDBAndCreateSTDC(org.eclipse.ui.IWorkbenchWindow, 
 	 * org.eclipse.jface.action.IStatusLineManager)
 	 */
-	public SpaceTimeDataController openDBAndCreateSTDC(
+	public TraceDataController openDBAndCreateSTDC(
 			IWorkbenchWindow window, IProgressMonitor statusMgr) 
 			throws InvalExperimentException, Exception 
 	{

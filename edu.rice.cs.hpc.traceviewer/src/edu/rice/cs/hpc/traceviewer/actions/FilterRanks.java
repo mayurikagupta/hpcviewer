@@ -10,7 +10,7 @@ import org.eclipse.ui.handlers.HandlerUtil;
 import org.eclipse.ui.services.ISourceProviderService;
 
 import edu.rice.cs.hpc.data.experiment.extdata.IFilteredData;
-import edu.rice.cs.hpc.traceviewer.data.controller.SpaceTimeDataController;
+import edu.rice.cs.hpc.traceviewer.data.abstraction.AbstractDataController;
 import edu.rice.cs.hpc.traceviewer.filter.FilterDialog;
 import edu.rice.cs.hpc.traceviewer.services.DataService;
 
@@ -32,7 +32,7 @@ public class FilterRanks extends AbstractHandler {
 				ISourceProviderService.class);
 		
 		DataService dataService = (DataService) sourceProviderService.getSourceProvider(DataService.DATA_PROVIDER);
-        SpaceTimeDataController absData = dataService.getData();
+		AbstractDataController absData = dataService.getData();
         
 		/*
 		 * This isn't the prettiest, but when we are local, we don't want to set

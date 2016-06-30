@@ -9,7 +9,7 @@ import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
 
-import edu.rice.cs.hpc.traceviewer.data.controller.SpaceTimeDataController;
+import edu.rice.cs.hpc.traceviewer.data.abstraction.AbstractDataController;
 import edu.rice.cs.hpc.traceviewer.data.db.BaseDataVisualization;
 import edu.rice.cs.hpc.traceviewer.data.db.TimelineDataSet;
 import edu.rice.cs.hpc.traceviewer.painter.BasePaintThread;
@@ -21,7 +21,7 @@ public class DepthPaintThread extends BasePaintThread {
 	private Image image;
 	private GC gc;
 
-	public DepthPaintThread(SpaceTimeDataController stData, Queue<TimelineDataSet> list, int linesToPaint, 
+	public DepthPaintThread(AbstractDataController stData, Queue<TimelineDataSet> list, int linesToPaint, 
 			AtomicInteger numDataCollected, AtomicInteger paintDone, Device device, 
 			int width, IProgressMonitor monitor) {
 

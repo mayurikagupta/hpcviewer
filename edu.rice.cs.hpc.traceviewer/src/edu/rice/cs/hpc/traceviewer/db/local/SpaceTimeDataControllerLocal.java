@@ -14,7 +14,7 @@ import edu.rice.cs.hpc.data.experiment.extdata.IFilteredData;
 import edu.rice.cs.hpc.data.experiment.extdata.TraceAttribute;
 import edu.rice.cs.hpc.data.util.Constants;
 import edu.rice.cs.hpc.data.util.MergeDataFiles;
-import edu.rice.cs.hpc.traceviewer.data.controller.SpaceTimeDataController;
+import edu.rice.cs.hpc.traceviewer.data.controller.TraceDataController;
 import edu.rice.cs.hpc.traceviewer.data.db.ImageTraceAttributes;
 import edu.rice.cs.hpc.traceviewer.data.db.TraceDataByRank;
 import edu.rice.cs.hpc.traceviewer.data.timeline.ProcessTimeline;
@@ -29,7 +29,7 @@ import edu.rice.cs.hpc.traceviewer.util.TraceProgressReport;
  * @author Philip Taffet
  * 
  */
-public class SpaceTimeDataControllerLocal extends SpaceTimeDataController 
+public class SpaceTimeDataControllerLocal extends TraceDataController 
 {	
 	final static private int MIN_TRACE_SIZE = TraceDataByRank.HeaderSzMin + TraceDataByRank.RecordSzMin * 2;
 	final static public int RECORD_SIZE    = Constants.SIZEOF_LONG + Constants.SIZEOF_INT;
@@ -119,7 +119,7 @@ public class SpaceTimeDataControllerLocal extends SpaceTimeDataController
 	 * @return The next trace.
 	 **********************************************************************/
 	@Override
-	public ProcessTimeline getNextTrace(AtomicInteger currentLine, int totalLines,
+	public ProcessTimeline getNextData(AtomicInteger currentLine, int totalLines,
 			ImageTraceAttributes attributes, boolean changedBounds, IProgressMonitor monitor) {
 		
 		ProcessTimeline timeline = null;

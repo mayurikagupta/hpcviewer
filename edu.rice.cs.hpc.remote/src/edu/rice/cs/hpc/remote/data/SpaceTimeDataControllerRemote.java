@@ -15,7 +15,7 @@ import edu.rice.cs.hpc.data.experiment.extdata.IFilteredData;
 import edu.rice.cs.hpc.remote.data.DecompressionThread.DecompressionItemToDo;
 import edu.rice.cs.hpc.remote.data.RemoteFilteredBaseData;
 import edu.rice.cs.hpc.data.experiment.extdata.TraceName;
-import edu.rice.cs.hpc.traceviewer.data.controller.SpaceTimeDataController;
+import edu.rice.cs.hpc.traceviewer.data.controller.TraceDataController;
 import edu.rice.cs.hpc.traceviewer.data.db.ImageTraceAttributes;
 import edu.rice.cs.hpc.traceviewer.data.timeline.ProcessTimeline;
 import edu.rice.cs.hpc.traceviewer.data.util.Debugger;
@@ -28,7 +28,7 @@ import edu.rice.cs.hpc.traceviewer.data.util.Debugger;
  * @author Philip Taffet
  * 
  *************************************************/
-public class SpaceTimeDataControllerRemote extends SpaceTimeDataController 
+public class SpaceTimeDataControllerRemote extends TraceDataController 
 {	
 	final RemoteDataRetriever dataRetriever;
 
@@ -111,7 +111,7 @@ public class SpaceTimeDataControllerRemote extends SpaceTimeDataController
 	}
 
 	@Override
-	public ProcessTimeline getNextTrace(AtomicInteger lineNum, int totalLines, 
+	public ProcessTimeline getNextData(AtomicInteger lineNum, int totalLines, 
 			ImageTraceAttributes attributes, boolean changedBounds, IProgressMonitor monitor) {
 		Integer nextIndex;
 

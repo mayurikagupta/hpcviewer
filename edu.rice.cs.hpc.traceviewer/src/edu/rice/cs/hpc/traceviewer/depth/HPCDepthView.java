@@ -10,7 +10,7 @@ import org.eclipse.ui.ISourceProvider;
 import org.eclipse.ui.ISourceProviderListener;
 import org.eclipse.ui.services.ISourceProviderService;
 
-import edu.rice.cs.hpc.traceviewer.data.controller.SpaceTimeDataController;
+import edu.rice.cs.hpc.traceviewer.data.abstraction.AbstractDataController;
 import edu.rice.cs.hpc.traceviewer.services.DataService;
 import edu.rice.cs.hpc.traceviewer.ui.AbstractTimeView;
 
@@ -77,7 +77,7 @@ public class HPCDepthView extends AbstractTimeView
 		});		
 	}
 
-	public void updateView(SpaceTimeDataController _stData)
+	public void updateView(AbstractDataController _stData)
 	{
 		this.depthCanvas.updateView(_stData);
 		depthCanvas.setVisible(true);
