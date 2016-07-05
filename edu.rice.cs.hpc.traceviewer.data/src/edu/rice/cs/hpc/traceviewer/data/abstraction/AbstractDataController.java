@@ -12,6 +12,12 @@ import edu.rice.cs.hpc.data.experiment.extdata.IFilteredData;
 import edu.rice.cs.hpc.traceviewer.data.db.ImageTraceAttributes;
 import edu.rice.cs.hpc.traceviewer.data.graph.ColorTable;
 
+/**
+ * Provides the data across all ranks.
+ * 
+ * @log
+ * - 2016.7 (by Lai Wei) Added this abstraction layer so that hpctraceviewer can display data from multiple sources.
+ */
 public abstract class AbstractDataController {
 	// Fields inited by this class.
 	protected ImageTraceAttributes attributes;

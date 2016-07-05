@@ -20,14 +20,14 @@ public abstract class AbstractStack {
 	}
 	
 	/**
-	 * Retrieve the name of a stack frame at given depth.
+	 * Retrieve the name, for coloring purposes, of a stack frame at given depth.
 	 */
-	public abstract String getNameAt(int depth);
+	public abstract String getColorNameAt(int depth);
 	
 	/**
-	 * Retrieve the names of all stack frames on the stack
+	 * Retrieve the names, for displaying purposes, of all stack frames on the stack.
 	 */
-	public abstract Vector<String> getNames();
+	public abstract Vector<String> getDisplayNames();
 	
 	/*******************************
 	 * Retrieve the maximum depth of this stack

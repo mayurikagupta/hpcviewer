@@ -5,6 +5,12 @@ import java.util.Map;
 
 import org.eclipse.ui.AbstractSourceProvider;
 
+/**
+ * The service that keep track of selected ranks.
+ * 
+ * @log
+ * - 2016.7 (by Lai Wei) Added this abstraction layer so that hpctraceviewer can display data from multiple sources.
+ */
 public class ProcessDataService extends AbstractSourceProvider {
 
 	final static public String PROCESS_DATA_PROVIDER = "edu.rice.cs.hpc.traceviewer.services.ProcessDataService.data";

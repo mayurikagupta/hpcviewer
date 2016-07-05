@@ -2,6 +2,12 @@ package edu.rice.cs.hpc.traceviewer.data.abstraction;
 
 import java.io.IOException;
 
+/**
+ * Provides the data of a given rank
+ * 
+ * @log
+ * - 2016.7 (by Lai Wei) Added this abstraction layer so that hpctraceviewer can display data from multiple sources.
+ */
 public abstract class AbstractProcessData {
 	/** This process's line number & proc id. */
 	protected final int lineNum;

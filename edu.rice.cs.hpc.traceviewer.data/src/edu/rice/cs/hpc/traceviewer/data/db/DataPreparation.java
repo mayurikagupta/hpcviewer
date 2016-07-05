@@ -61,7 +61,7 @@ public abstract class DataPreparation
 		if (cp==null)
 			return;
 		
-		String succFunction = cp.getNameAt(depth);
+		String succFunction = cp.getColorNameAt(depth);
 		Color succColor = colorTable.getColor(succFunction);
 		int last_ptl_index = ptl.size() - 1;
 
@@ -89,7 +89,7 @@ public abstract class DataPreparation
 				cp = ptl.getStack(indexSucc);
 				if(cp != null)
 				{
-					succFunction = cp.getNameAt(depth);
+					succFunction = cp.getColorNameAt(depth);
 					succColor = colorTable.getColor(succFunction);
 					
 					// the color will be the same if and only if the two regions have the save function name
