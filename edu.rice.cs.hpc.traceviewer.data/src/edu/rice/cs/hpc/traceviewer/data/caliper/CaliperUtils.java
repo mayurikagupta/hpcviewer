@@ -1,5 +1,7 @@
 package edu.rice.cs.hpc.traceviewer.data.caliper;
 
+import java.io.File;
+
 import edu.rice.cs.hpc.traceviewer.data.caliper.stackframe.CaliperRoot;
 
 /**
@@ -12,7 +14,7 @@ public class CaliperUtils {
 	/**
 	 * Input caliper data file related constants
 	 */
-	public static final String CALIPER_DIR = "caliper\\";
+	public static final String CALIPER_DIR = "caliper" + File.separatorChar;
 	public static final String SUMMARY_FILENAME = "summary";
 	public static final String RECORD_INDEX_FILE_PREFIX = "index_";
 	
@@ -39,5 +41,5 @@ public class CaliperUtils {
 	public static final String PHASE_PREFIX = "Phase ";
 	public static final String LOOP_PREFIX = "Loop ";
 	public static final String ITERATION_PREFIX = "#";
-	public static final String ITERATION_AT = "@ ";
+	public static final String ITERATION_AT = " @ ";
 }

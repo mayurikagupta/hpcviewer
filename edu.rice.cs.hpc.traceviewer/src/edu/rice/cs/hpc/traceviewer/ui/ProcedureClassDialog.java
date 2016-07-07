@@ -35,7 +35,7 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 
 import edu.rice.cs.hpc.common.util.ProcedureClassData;
-import edu.rice.cs.hpc.traceviewer.data.graph.ColorTable;
+import edu.rice.cs.hpc.traceviewer.data.abstraction.AbstractColorTable;
 import edu.rice.cs.hpc.traceviewer.data.util.ProcedureClassMap;
 
 /*********************************
@@ -495,7 +495,7 @@ public class ProcedureClassDialog extends TitleAreaDialog {
 		}
 		
 		public Image put(String name, RGB rgb) {
-			Image image = ColorTable.createImage(ProcedureClassDialog.this.getShell().getDisplay(), rgb);
+			Image image = AbstractColorTable.createImage(ProcedureClassDialog.this.getShell().getDisplay(), rgb);
 			images.put(name, image);
 			return image;
 		}

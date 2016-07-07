@@ -9,12 +9,7 @@ package edu.rice.cs.hpc.traceviewer.data.caliper.stackframe;
 public abstract class CaliperStackFrame {
 
 	/**
-	 * Return the name that is used to determine the color of this frame.
+	 * Return the name of this frame.
 	 */
-	public abstract String getColorName();
-	
-	/**
-	 * Return the name that is shown to the user.
-	 */
-	public abstract String getDisplayName();
+	public abstract String getName();
 }

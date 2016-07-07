@@ -19,7 +19,7 @@ import edu.rice.cs.hpc.data.experiment.scope.RootScopeType;
 
 import edu.rice.cs.hpc.traceviewer.data.abstraction.AbstractDataController;
 import edu.rice.cs.hpc.traceviewer.data.db.ImageTraceAttributes;
-import edu.rice.cs.hpc.traceviewer.data.graph.ColorTable;
+import edu.rice.cs.hpc.traceviewer.data.graph.ProcedureColorTable;
 import edu.rice.cs.hpc.traceviewer.data.graph.CallPath;
 import edu.rice.cs.hpc.traceviewer.data.timeline.ProcessTimeline;
 
@@ -62,6 +62,10 @@ public abstract class TraceDataController extends AbstractDataController
 			throws InvalExperimentException, Exception 
 	{	
 		super(_window);
+		
+		// attributes initialization
+		attributes = new ImageTraceAttributes();
+		
 		exp = new ExperimentWithoutMetrics();
 		try {
 			// possible java.lang.OutOfMemoryError exception here
@@ -88,6 +92,9 @@ public abstract class TraceDataController extends AbstractDataController
 	{	
 		super(_window);
 		
+		// attributes initialization
+		attributes = new ImageTraceAttributes();
+		
 		exp = new ExperimentWithoutMetrics();
 
 		// Without metrics, so param 3 is false
@@ -111,13 +118,13 @@ public abstract class TraceDataController extends AbstractDataController
 			@Override
 			public void run() {
 				// tree traversal to get the list of cpid, procedures and max depth
-				TraceDataVisitor visitor = new TraceDataVisitor();
+				TraceDataVisitor visitor = new TraceDataVisitor(window);
 				RootScope root = exp.getRootScope(RootScopeType.CallingContextTree);
 				root.dfsVisitScopeTree(visitor);
 
 				maxDepth   = visitor.getMaxDepth();
 				scopeMap   = visitor.getMap();
-				colorTable = (ColorTable) visitor.getProcedureTable();
+				colorTable = (ProcedureColorTable) visitor.getProcedureTable();
 				
 				// initialize colors
 				colorTable.setColorTable();
@@ -133,29 +140,6 @@ public abstract class TraceDataController extends AbstractDataController
 		}
 		minBegTime = trAttribute.dbTimeMin;
 		maxEndTime = trAttribute.dbTimeMax;
-
-	}
-
-	private int getCurrentlySelectedProcess()
-	{
-		return attributes.getPosition().process;
-	}
-	
-	/**
-	 * {@link getCurrentlySelectedProcess()} returns something on [begProcess,
-	 * endProcess-1]. We need to map that to something on [0, numTracesShown -
-	 * 1]. We use a simple linear mapping:
-	 * begProcess    -> 0,
-	 * endProcess-1  -> numTracesShown-1
-	 */
-	private int computeScaledProcess() {
-		int numTracesShown = Math.min(attributes.getProcessInterval(), attributes.numPixelsV);
-		int selectedProc = getCurrentlySelectedProcess();
-		
-		double scaledDTProcess = (((double) numTracesShown -1 )
-					/ ((double) attributes.getProcessInterval() - 1) * 
-					(selectedProc - attributes.getProcessBegin()));
-		return (int)scaledDTProcess;
 	}
 
 
@@ -166,7 +150,7 @@ public abstract class TraceDataController extends AbstractDataController
 	 */
 	@Override
 	public ProcessTimeline getCurrentDepthData() {
-		int scaledDTProcess = computeScaledProcess();
+		int scaledDTProcess = computeScaledRank();
 		return  (ProcessTimeline)ptlService.getProcessData(scaledDTProcess);
 	}
 	
@@ -193,7 +177,7 @@ public abstract class TraceDataController extends AbstractDataController
 			// a ProcessTimeline with data=null and then copy the actual data to
 			// it.
 			ProcessTimeline toDonate = new ProcessTimeline(currentDepthLineNum,
-					scopeMap, dataTrace, getCurrentlySelectedProcess(), attributes.numPixelsH,
+					scopeMap, dataTrace, getCurrentlySelectedRank(), attributes.numPixelsH,
 					attributes.getTimeInterval(), minBegTime
 							+ attributes.getTimeBegin());
 

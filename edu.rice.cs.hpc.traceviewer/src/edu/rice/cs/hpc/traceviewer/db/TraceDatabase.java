@@ -32,6 +32,8 @@ import edu.rice.cs.hpc.traceviewer.summary.HPCSummaryView;
 import edu.rice.cs.hpc.traceviewer.ui.OpenDatabaseDialog;
 
 import edu.rice.cs.hpc.traceviewer.data.abstraction.AbstractDataController;
+import edu.rice.cs.hpc.traceviewer.data.caliper.CaliperDataController;
+import edu.rice.cs.hpc.traceviewer.data.controller.TraceDataController;
 import edu.rice.cs.hpc.traceviewer.data.db.AbstractDBOpener;
 import edu.rice.cs.hpc.traceviewer.data.db.DatabaseAccessInfo;
 
@@ -201,7 +203,19 @@ public class TraceDatabase
 			do {
 				try {
 					AbstractDBOpener opener = getDBOpener(database_info);
-					stdc = opener.openDBAndCreateSTDC(window, monitor);
+					
+					TraceDataController traceController = opener.openDBAndCreateSTDC(window, monitor);
+					CaliperDataController caliperController = 
+							new CaliperDataController(window, traceController, info.getDatabasePath());
+					
+					if (caliperController.isCaliperOpen()) {
+						stdc = caliperController;
+//						System.out.println("caliper");
+					}
+					else {
+						stdc = traceController;
+//						System.out.println("trace");
+					}
 				} catch (final Exception e) 
 				{
 					// in case of error while opening the database, we should display again

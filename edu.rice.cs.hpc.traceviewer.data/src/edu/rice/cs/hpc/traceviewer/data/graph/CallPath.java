@@ -26,12 +26,12 @@ public class CallPath extends AbstractStack
 	}
 	
 	@Override
-	public String getColorNameAt(int depth) {
+	public String getNameAt(int depth) {
 		return this.getScopeAt(depth).getName();
 	}
 	
 	/**returns the scope at the given depth that's along the path between the root scope and the leafScope*/
-	private Scope getScopeAt(int depth)
+	public Scope getScopeAt(int depth)
 	{
 		if (depth < 0)
 			return null;
@@ -58,7 +58,7 @@ public class CallPath extends AbstractStack
 	 * 
 	 * @return vector of procedure names
 	 ************************************/
-	public Vector<String> getDisplayNames()
+	public Vector<String> getNames()
 	{
 		final Vector<String> functionNames = new Vector<String>();
 		if (functionNames.isEmpty())

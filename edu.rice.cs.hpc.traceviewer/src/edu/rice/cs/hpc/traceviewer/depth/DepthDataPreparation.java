@@ -2,11 +2,11 @@ package edu.rice.cs.hpc.traceviewer.depth;
 
 import org.eclipse.swt.graphics.Color;
 
+import edu.rice.cs.hpc.traceviewer.data.abstraction.AbstractColorTable;
 import edu.rice.cs.hpc.traceviewer.data.abstraction.AbstractProcessData;
 import edu.rice.cs.hpc.traceviewer.data.db.BaseDataVisualization;
 import edu.rice.cs.hpc.traceviewer.data.db.DataPreparation;
 import edu.rice.cs.hpc.traceviewer.data.db.TimelineDataSet;
-import edu.rice.cs.hpc.traceviewer.data.graph.ColorTable;
 
 /*********************************************
  * 
@@ -31,7 +31,7 @@ public class DepthDataPreparation extends DataPreparation {
 	 * @param _pixelLength
 	 * @param _usingMidpoint
 	 */
-	public DepthDataPreparation(ColorTable _colorTable, AbstractProcessData _ptl,
+	public DepthDataPreparation(AbstractColorTable _colorTable, AbstractProcessData _ptl,
 			long _begTime, int _depth, int _height, double _pixelLength,
 			boolean _usingMidpoint) {
 		

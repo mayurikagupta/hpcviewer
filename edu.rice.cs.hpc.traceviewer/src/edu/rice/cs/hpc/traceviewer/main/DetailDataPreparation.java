@@ -2,10 +2,10 @@ package edu.rice.cs.hpc.traceviewer.main;
 
 import org.eclipse.swt.graphics.Color;
 
+import edu.rice.cs.hpc.traceviewer.data.abstraction.AbstractColorTable;
 import edu.rice.cs.hpc.traceviewer.data.abstraction.AbstractProcessData;
 import edu.rice.cs.hpc.traceviewer.data.db.DataPreparation;
 import edu.rice.cs.hpc.traceviewer.data.db.TimelineDataSet;
-import edu.rice.cs.hpc.traceviewer.data.graph.ColorTable;
 
 public class DetailDataPreparation extends DataPreparation {
 
@@ -22,7 +22,7 @@ public class DetailDataPreparation extends DataPreparation {
 	 * @param _pixelLength
 	 * @param _usingMidpoint
 	 */
-	public DetailDataPreparation(ColorTable _colorTable, AbstractProcessData timeline,
+	public DetailDataPreparation(AbstractColorTable _colorTable, AbstractProcessData timeline,
 			long _begTime, int _depth, int _height, double _pixelLength,
 			boolean _usingMidpoint) 
 	{

@@ -1,19 +1,18 @@
 package edu.rice.cs.hpc.traceviewer.main;
 
-
 import java.io.IOException;
 import java.util.Queue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 
+import edu.rice.cs.hpc.traceviewer.data.abstraction.AbstractColorTable;
 import edu.rice.cs.hpc.traceviewer.data.abstraction.AbstractDataController;
 import edu.rice.cs.hpc.traceviewer.data.abstraction.AbstractProcessData;
 import edu.rice.cs.hpc.traceviewer.data.abstraction.ProcessDataService;
 import edu.rice.cs.hpc.traceviewer.data.db.DataPreparation;
 import edu.rice.cs.hpc.traceviewer.data.db.ImageTraceAttributes;
 import edu.rice.cs.hpc.traceviewer.data.db.TimelineDataSet;
-import edu.rice.cs.hpc.traceviewer.data.graph.ColorTable;
 
 import edu.rice.cs.hpc.traceviewer.timeline.BaseTimelineThread;
 
@@ -74,7 +73,7 @@ public class TimelineThread
 	}
 
 	@Override
-	protected DataPreparation getData(ColorTable colorTable,
+	protected DataPreparation getData(AbstractColorTable colorTable,
 			AbstractProcessData timeline, long timeBegin, int linenum, int height,
 			double pixelLength, boolean midPoint) {
 

@@ -10,7 +10,6 @@ import org.eclipse.ui.services.ISourceProviderService;
 import edu.rice.cs.hpc.data.experiment.extdata.IBaseData;
 import edu.rice.cs.hpc.data.experiment.extdata.IFilteredData;
 import edu.rice.cs.hpc.traceviewer.data.db.ImageTraceAttributes;
-import edu.rice.cs.hpc.traceviewer.data.graph.ColorTable;
 
 /**
  * Provides the data across all ranks.
@@ -20,22 +19,22 @@ import edu.rice.cs.hpc.traceviewer.data.graph.ColorTable;
  */
 public abstract class AbstractDataController {
 	// Fields inited by this class.
-	protected ImageTraceAttributes attributes;
 	protected ProcessDataService ptlService;
 	
 	
 	// Fields inited by child classes.
+	protected ImageTraceAttributes attributes;
 	/**
 	 * The minimum beginning and maximum ending time stamp across all data.
 	 */
 	protected long maxEndTime, minBegTime;
 	/** The maximum depth of any single CallStackSample in any trace. */
 	protected int maxDepth;
-	protected ColorTable colorTable;
+	protected AbstractColorTable colorTable;
+	protected IBaseData dataTrace;
 	
 	// Fields inited by later function calls.
 	protected boolean enableMidpoint;
-	protected IBaseData dataTrace = null;
 	
 	// nathan's data index variable
 	// TODO: we need to remove this and delegate to the inherited class instead !
@@ -43,9 +42,6 @@ public abstract class AbstractDataController {
 	
 	
 	public AbstractDataController(IWorkbenchWindow window) {
-		// attributes initialization
-		attributes = new ImageTraceAttributes();
-		
 		ISourceProviderService sourceProviderService = (ISourceProviderService) window.getService(ISourceProviderService.class);
 		ptlService = (ProcessDataService) sourceProviderService.getSourceProvider(ProcessDataService.PROCESS_DATA_PROVIDER); 
 	}
@@ -81,6 +77,40 @@ public abstract class AbstractDataController {
 	public abstract void fillTracesWithData(boolean changedBounds, int numThreadsToLaunch)
 			throws IOException;
 	
+	protected int getCurrentlySelectedRank()
+	{
+		return attributes.getPosition().process;
+	}
+	
+	/**
+	 * {@link getCurrentlySelectedRank()} returns something on [begProcess,
+	 * endProcess-1]. We need to map that to something on [0, numTracesShown -
+	 * 1]. We use a simple linear mapping:
+	 * begProcess    -> 0,
+	 * endProcess-1  -> numTracesShown-1
+	 */
+	protected int computeScaledRank() {
+		int numTracesShown = Math.min(attributes.getProcessInterval(), attributes.numPixelsV);
+		int selectedProc = getCurrentlySelectedRank();
+		
+		double scaledDTProcess = (((double) numTracesShown -1 )
+					/ ((double) attributes.getProcessInterval() - 1) * 
+					(selectedProc - attributes.getProcessBegin()));
+		return (int)scaledDTProcess;
+	}
+	
+	/** Returns the index of the file to which the line-th line corresponds. */
+	protected int lineToPaint(int line, ImageTraceAttributes attributes) {
+
+		int numTimelinesToPaint = attributes.getProcessInterval();
+		if (numTimelinesToPaint > attributes.numPixelsV)
+			return attributes.getProcessBegin() + (line * numTimelinesToPaint)
+					/ (attributes.numPixelsV);
+		else
+			return attributes.getProcessBegin() + line;
+	}
+	
+
 	
 	public void setDataIndex(int dataIndex) 
 	{
@@ -139,7 +169,7 @@ public abstract class AbstractDataController {
 		return minBegTime;
 	}
 
-	public ColorTable getColorTable() {
+	public AbstractColorTable getColorTable() {
 		return colorTable;
 	}
 

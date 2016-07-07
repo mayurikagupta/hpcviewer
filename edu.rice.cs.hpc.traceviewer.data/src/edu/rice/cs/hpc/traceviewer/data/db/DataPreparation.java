@@ -2,9 +2,9 @@ package edu.rice.cs.hpc.traceviewer.data.db;
 
 import org.eclipse.swt.graphics.Color;
 
+import edu.rice.cs.hpc.traceviewer.data.abstraction.AbstractColorTable;
 import edu.rice.cs.hpc.traceviewer.data.abstraction.AbstractProcessData;
 import edu.rice.cs.hpc.traceviewer.data.abstraction.AbstractStack;
-import edu.rice.cs.hpc.traceviewer.data.graph.ColorTable;
 
 /***********************************************************************
  * 
@@ -21,7 +21,7 @@ public abstract class DataPreparation
 	final protected int depth;
 	final protected int height;
 	final protected double pixelLength;
-	final protected ColorTable colorTable;
+	final protected AbstractColorTable colorTable;
 	final private long begTime;
 	final private boolean usingMidpoint;
 		
@@ -37,7 +37,7 @@ public abstract class DataPreparation
 	 * @param _pixelLength : the length (in pixel)
 	 * @param usingMidpoint : flag whether we should use midpoint or not
 	 */
-	public DataPreparation(ColorTable _colorTable, AbstractProcessData _ptl, 
+	public DataPreparation(AbstractColorTable _colorTable, AbstractProcessData _ptl, 
 			long _begTime, int _depth, int _height, double _pixelLength, boolean _usingMidpoint)
 	{
 		this.ptl = _ptl;
@@ -61,7 +61,7 @@ public abstract class DataPreparation
 		if (cp==null)
 			return;
 		
-		String succFunction = cp.getColorNameAt(depth);
+		String succFunction = cp.getNameAt(depth);
 		Color succColor = colorTable.getColor(succFunction);
 		int last_ptl_index = ptl.size() - 1;
 
@@ -89,7 +89,7 @@ public abstract class DataPreparation
 				cp = ptl.getStack(indexSucc);
 				if(cp != null)
 				{
-					succFunction = cp.getColorNameAt(depth);
+					succFunction = cp.getNameAt(depth);
 					succColor = colorTable.getColor(succFunction);
 					
 					// the color will be the same if and only if the two regions have the save function name

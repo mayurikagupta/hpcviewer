@@ -63,12 +63,8 @@ public class ProcessCaliperData extends AbstractProcessData {
 			for (int i = 0; i < numPixelH; i++) {
 				long timestamp = this.startingTime + i * timeRange / numPixelH;
 				CaliperStack stack = parseRecord(reader.readRecord(timestamp));
-				if (stack != null) {
+				if (stack != null)
 					records.add(new CaliperRecord(timestamp, stack));
-					System.out.println(records.lastElement().timestamp + ": " + 
-						records.lastElement().stack.toString());
-				}
-				
 			}
 			reader.close();
 		}
@@ -128,6 +124,10 @@ public class ProcessCaliperData extends AbstractProcessData {
 		return records.isEmpty();
 	}
 
+	private long getTimeMidPoint(int left, int right) {
+		return (records.get(left).timestamp + records.get(right).timestamp) / 2;
+	}
+	
 	@Override
 	public int findClosestSample(long time, boolean usingMidpoint) {
 		if (records.size()==0)
@@ -146,17 +146,35 @@ public class ProcessCaliperData extends AbstractProcessData {
 		
 		int mid = (low + high) / 2;
 		
-		while( low != mid )
+		while(low != mid)
 		{
-			long time_current = records.get(mid).timestamp;
+			final long time_current = (usingMidpoint ? getTimeMidPoint(mid,mid+1) : 
+				records.get(mid).timestamp);
 			
-			if (time > time_current) low = mid;
-			else high = mid;
+			if (time > time_current)
+				low = mid;
+			else
+				high = mid;
+			mid = ( low + high ) / 2;
 			
-			mid = (low + high) / 2;
 		}
-		
-		return low;
+		if (usingMidpoint)
+		{
+			if (time >= getTimeMidPoint(low,low+1))
+				return low+1;
+			else
+				return low;
+		} 
+		else 
+		{
+			// without using midpoint, we adopt the leftmost sample approach.
+			// this means whoever on the left side, it will be the painted
+			return low;
+		}
 	}
 
+	public void copyDataFrom(ProcessCaliperData other) {
+		this.records = other.records;
+		this.shiftTime = other.shiftTime;
+	}
 }

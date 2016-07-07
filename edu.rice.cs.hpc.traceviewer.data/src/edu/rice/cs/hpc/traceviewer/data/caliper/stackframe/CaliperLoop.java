@@ -14,12 +14,7 @@ public class CaliperLoop extends CaliperStackFrame {
 	}
 
 	@Override
-	public String getColorName() {
-		return CaliperUtils.LOOP_PREFIX + loop_name;
-	}
-
-	@Override
-	public String getDisplayName() {
+	public String getName() {
 		return CaliperUtils.LOOP_PREFIX + loop_name;
 	}
 }

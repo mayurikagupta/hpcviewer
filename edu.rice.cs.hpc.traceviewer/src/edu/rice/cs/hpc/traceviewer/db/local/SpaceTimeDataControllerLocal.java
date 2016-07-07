@@ -152,19 +152,6 @@ public class SpaceTimeDataControllerLocal extends TraceDataController
 		return timeline;
 	}
 
-	
-	/** Returns the index of the file to which the line-th line corresponds. */
-
-	private int lineToPaint(int line, ImageTraceAttributes attributes) {
-
-		int numTimelinesToPaint = attributes.getProcessInterval();
-		if (numTimelinesToPaint > attributes.numPixelsV)
-			return attributes.getProcessBegin() + (line * numTimelinesToPaint)
-					/ (attributes.numPixelsV);
-		else
-			return attributes.getProcessBegin() + line;
-	}
-	
 
 	@Override
 	public IFilteredData createFilteredBaseData() {

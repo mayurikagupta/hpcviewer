@@ -2,6 +2,8 @@ package edu.rice.cs.hpc.traceviewer.data.controller;
 
 import java.util.HashMap;
 
+import org.eclipse.ui.IWorkbenchWindow;
+
 import edu.rice.cs.hpc.data.experiment.scope.AlienScope;
 import edu.rice.cs.hpc.data.experiment.scope.CallSiteScope;
 import edu.rice.cs.hpc.data.experiment.scope.FileScope;
@@ -15,10 +17,10 @@ import edu.rice.cs.hpc.data.experiment.scope.Scope;
 import edu.rice.cs.hpc.data.experiment.scope.ScopeVisitType;
 import edu.rice.cs.hpc.data.experiment.scope.StatementRangeScope;
 import edu.rice.cs.hpc.data.experiment.scope.visitors.IScopeVisitor;
-import edu.rice.cs.hpc.data.util.IProcedureTable;
 
+import edu.rice.cs.hpc.traceviewer.data.abstraction.AbstractColorTable;
 import edu.rice.cs.hpc.traceviewer.data.graph.CallPath;
-import edu.rice.cs.hpc.traceviewer.data.graph.ColorTable;
+import edu.rice.cs.hpc.traceviewer.data.graph.ProcedureColorTable;
 
 /**********************************************************
  * Visitor class for gathering procedure names and the 
@@ -31,12 +33,12 @@ import edu.rice.cs.hpc.traceviewer.data.graph.ColorTable;
 public class TraceDataVisitor implements IScopeVisitor 
 {
 	final private HashMap<Integer, CallPath> map;
-	final private IProcedureTable colorTable;
+	final private AbstractColorTable colorTable;
 	private int maxDepth = 0;
 
-	public TraceDataVisitor() {
+	public TraceDataVisitor(IWorkbenchWindow window) {
 		map = new HashMap<Integer, CallPath>();
-		colorTable = new ColorTable();
+		colorTable = new ProcedureColorTable(window);
 	}
 
 	//----------------------------------------------------
@@ -105,13 +107,13 @@ public class TraceDataVisitor implements IScopeVisitor
 	 * 
 	 * @return the instance of IProcedureTable
 	 */
-	public IProcedureTable getProcedureTable()
+	public AbstractColorTable getProcedureTable()
 	{
 		return colorTable;
 	}
 	
 	private void addProcedure(Scope scope)
 	{
-		colorTable.addProcedure(scope.getName());
+		colorTable.addName(scope.getName());
 	}
 }

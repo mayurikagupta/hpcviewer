@@ -44,4 +44,9 @@ public interface IBaseCaliperData extends IBaseData {
 	 * Get the caliper loop given its name
 	 */
 	public CaliperLoop getLoop(String loopName);
+	
+	/**
+	 * Get the maximum caliper stack depth
+	 */
+	public int getMaxDepth();
 }

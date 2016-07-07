@@ -200,7 +200,7 @@ public class CallStackViewer extends TableViewer
 			if (sample>=0) {
 				final AbstractStack cp = ptl.getStack(sample);
 				if (cp != null)
-					sampleVector = ptl.getStack(sample).getDisplayNames();
+					sampleVector = ptl.getStack(sample).getNames();
 				else
 					// empty array of string
 					sampleVector = new Vector<String>();

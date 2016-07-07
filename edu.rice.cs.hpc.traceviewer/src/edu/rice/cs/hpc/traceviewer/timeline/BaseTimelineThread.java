@@ -7,12 +7,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 
+import edu.rice.cs.hpc.traceviewer.data.abstraction.AbstractColorTable;
 import edu.rice.cs.hpc.traceviewer.data.abstraction.AbstractDataController;
 import edu.rice.cs.hpc.traceviewer.data.abstraction.AbstractProcessData;
 import edu.rice.cs.hpc.traceviewer.data.db.DataPreparation;
 import edu.rice.cs.hpc.traceviewer.data.db.ImageTraceAttributes;
 import edu.rice.cs.hpc.traceviewer.data.db.TimelineDataSet;
-import edu.rice.cs.hpc.traceviewer.data.graph.ColorTable;
 
 
 /*****************************************************************************
@@ -132,7 +132,7 @@ public abstract class BaseTimelineThread implements Callable<Integer> {
 	
 	abstract protected void finalize();
 	
-	abstract protected DataPreparation getData(ColorTable colorTable, AbstractProcessData timeline,
+	abstract protected DataPreparation getData(AbstractColorTable colorTable, AbstractProcessData timeline,
 			long timeBegin, int linenum,
 			int height, double pixelLength, boolean midPoint);
 }

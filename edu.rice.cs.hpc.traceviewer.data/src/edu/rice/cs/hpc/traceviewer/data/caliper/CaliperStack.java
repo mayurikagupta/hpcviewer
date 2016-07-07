@@ -19,29 +19,29 @@ public class CaliperStack extends AbstractStack {
 	 * @param frames frames ordered from stack bottom (the closed side) to stack top (the open side).
 	 */
 	public CaliperStack(Vector<CaliperStackFrame> frames) {
-		super(frames.size() - 1);
+		super(frames.size());
 		this.frames = frames;
 	}
 
 	@Override
-	public String getColorNameAt(int depth) {
+	public String getNameAt(int depth) {
 		if (depth < 0) return null;
 		if (depth >= frames.size() - 1) depth = frames.size() - 1;
-		return frames.get(depth).getColorName();
+		return frames.get(depth).getName();
 	}
 
 	@Override
-	public Vector<String> getDisplayNames() {
+	public Vector<String> getNames() {
 		Vector<String> names = new Vector<String>(frames.size());
 		for (int i = 0; i < frames.size(); i++) 
-			names.add(frames.get(i).getDisplayName());
+			names.add(frames.get(i).getName());
 		return names;
 	}
 	
 	public String toString() {
 		String ret = "";
 		for (int i = 0; i < frames.size(); i++)
-			ret += frames.get(i).getDisplayName() + " || ";
+			ret += frames.get(i).getName() + " || ";
 		return ret;
 	}
 }

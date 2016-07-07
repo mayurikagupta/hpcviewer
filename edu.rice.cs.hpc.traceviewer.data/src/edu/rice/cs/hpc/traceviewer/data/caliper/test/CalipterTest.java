@@ -2,6 +2,7 @@ package edu.rice.cs.hpc.traceviewer.data.caliper.test;
 
 import java.io.*;
 
+import edu.rice.cs.hpc.traceviewer.data.caliper.CaliperUtils;
 import edu.rice.cs.hpc.traceviewer.data.caliper.ProcessCaliperData;
 import edu.rice.cs.hpc.traceviewer.data.caliper.db.CaliperDataSummary;
 import edu.rice.cs.hpc.traceviewer.data.caliper.stackframe.CaliperStackFrame;
@@ -65,17 +66,17 @@ public class CalipterTest {
 
 		print_msg.println("Opening tracefile " + sFilename);
 		
-		CaliperDataSummary summary = new CaliperDataSummary(sFilename + '\\');
+		CaliperDataSummary summary = new CaliperDataSummary(sFilename + File.separatorChar + CaliperUtils.CALIPER_DIR);
 
 		if (summary.isCaliperDataOpen()) {
 			for (String s : summary.getListOfRanks())
 				objPrint.println(s);
 			
 			for (CaliperStackFrame f : summary.getStackFrames()) 
-				objPrint.println(f.getDisplayName());
+				objPrint.println(f.getName());
 		}
 		
-		ProcessCaliperData data = new ProcessCaliperData(0, summary, 0, 1467067500000000L, 250000000L, 1024);
+		ProcessCaliperData data = new ProcessCaliperData(0, summary, 0, 1467828121246621L, 90000000L, 256);
 		try {
 			data.readInData();
 		} catch (IOException e) {

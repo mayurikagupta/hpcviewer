@@ -34,6 +34,8 @@ public class CaliperDataSummary implements IBaseCaliperData {
 	
 	private int numLoop;
 	Hashtable<String, CaliperLoop> loops = null;
+	
+	private int maxDepth;
 
 	class RankInfo {
 		final int procID;
@@ -101,6 +103,9 @@ public class CaliperDataSummary implements IBaseCaliperData {
 			loops.put(loop.getLoopName(), loop);
 		}
 		
+		// +1 on maxDepth for CaliperRoot
+		maxDepth = scanner.nextInt() + 1;
+		
 		scanner.close();
 	}
 	
@@ -135,6 +140,10 @@ public class CaliperDataSummary implements IBaseCaliperData {
 
 	public CaliperLoop getLoop(String loopName) {
 		return loops.get(loopName);
+	}
+	
+	public int getMaxDepth() {
+		return maxDepth;
 	}
 	
 	@Override

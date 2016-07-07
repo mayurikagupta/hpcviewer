@@ -20,7 +20,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
-import edu.rice.cs.hpc.traceviewer.data.graph.ColorTable;
+import edu.rice.cs.hpc.traceviewer.data.abstraction.AbstractColorTable;
 
 /****
  * 
@@ -109,7 +109,7 @@ public class ProcedureMapDetailDialog extends Dialog {
 		final Label lblColor = new Label(composite, SWT.LEFT);
 		lblColor.setText("Color: ");
 		final Button btnColor = new Button(composite, SWT.PUSH | SWT.FLAT);
-		btnColor.computeSize(ColorTable.COLOR_ICON_SIZE, ColorTable.COLOR_ICON_SIZE);
+		btnColor.computeSize(AbstractColorTable.COLOR_ICON_SIZE, AbstractColorTable.COLOR_ICON_SIZE);
 		if (rgb == null) {
 			rgb = getShell().getDisplay().getSystemColor(SWT.COLOR_BLACK).getRGB();
 		}
@@ -142,7 +142,7 @@ public class ProcedureMapDetailDialog extends Dialog {
 		if (oldImage != null) {
 			oldImage.dispose();
 		}
-		Image image = ColorTable.createImage(getShell().getDisplay(), color);
+		Image image = AbstractColorTable.createImage(getShell().getDisplay(), color);
 		button.setImage(image);
 	}
 	
