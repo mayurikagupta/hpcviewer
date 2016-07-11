@@ -20,7 +20,12 @@ public class CaliperIteration extends CaliperStackFrame {
 	}
 
 	@Override
-	public String getName() {
-		return CaliperUtils.ITERATION_PREFIX + iteration + CaliperUtils.ITERATION_AT + loop.getName();
+	public String getDisplayName() {
+		return CaliperUtils.ITERATION_PREFIX + iteration + CaliperUtils.ITERATION_AT + loop.getDisplayName();
+	}
+
+	@Override
+	public String getColorName() {
+		return loop.getColorName();
 	}
 }

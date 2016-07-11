@@ -5,7 +5,12 @@ import edu.rice.cs.hpc.traceviewer.data.caliper.CaliperUtils;
 public class CaliperRoot extends CaliperStackFrame {
 
 	@Override
-	public String getName() {
+	public String getDisplayName() {
+		return getColorName();
+	}
+
+	@Override
+	public String getColorName() {
 		return CaliperUtils.CALIPER_ROOT;
 	}
 }

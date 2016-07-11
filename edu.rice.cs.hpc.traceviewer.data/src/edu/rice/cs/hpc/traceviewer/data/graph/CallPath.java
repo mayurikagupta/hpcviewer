@@ -26,7 +26,7 @@ public class CallPath extends AbstractStack
 	}
 	
 	@Override
-	public String getNameAt(int depth) {
+	public String getColorNameAt(int depth) {
 		return this.getScopeAt(depth).getName();
 	}
 	
@@ -58,7 +58,7 @@ public class CallPath extends AbstractStack
 	 * 
 	 * @return vector of procedure names
 	 ************************************/
-	public Vector<String> getNames()
+	public Vector<String> getDisplayNames()
 	{
 		final Vector<String> functionNames = new Vector<String>();
 		if (functionNames.isEmpty())
@@ -76,5 +76,10 @@ public class CallPath extends AbstractStack
 			}
 		}
 		return functionNames;
+	}
+
+	@Override
+	public boolean isSameInstanceAtDepth(AbstractStack other, int depth) {
+		return this.getColorNameAt(depth).equals(other.getColorNameAt(depth));
 	}
 }

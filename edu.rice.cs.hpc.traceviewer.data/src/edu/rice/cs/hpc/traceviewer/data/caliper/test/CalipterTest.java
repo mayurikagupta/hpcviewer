@@ -73,7 +73,7 @@ public class CalipterTest {
 				objPrint.println(s);
 			
 			for (CaliperStackFrame f : summary.getStackFrames()) 
-				objPrint.println(f.getName());
+				objPrint.println(f.getDisplayName());
 		}
 		
 		ProcessCaliperData data = new ProcessCaliperData(0, summary, 0, 1467828121246621L, 90000000L, 256);

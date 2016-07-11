@@ -20,8 +20,6 @@ Require-Bundle: edu.rice.cs.hpc.data,
  edu.rice.cs.hpc.common
 Export-Package: edu.rice.cs.hpc.traceviewer.data.abstraction,
  edu.rice.cs.hpc.traceviewer.data.caliper,
- edu.rice.cs.hpc.traceviewer.data.caliper.db,
- edu.rice.cs.hpc.traceviewer.data.caliper.stackframe,
  edu.rice.cs.hpc.traceviewer.data.controller,
  edu.rice.cs.hpc.traceviewer.data.db,
  edu.rice.cs.hpc.traceviewer.data.graph,

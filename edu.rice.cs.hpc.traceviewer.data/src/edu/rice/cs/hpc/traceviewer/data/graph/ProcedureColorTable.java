@@ -3,7 +3,6 @@ package edu.rice.cs.hpc.traceviewer.data.graph;
 import java.util.HashMap;
 import java.util.Random;
 
-import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -19,8 +18,6 @@ import edu.rice.cs.hpc.traceviewer.data.util.ProcedureClassMap;
  **************************************************************/
 public class ProcedureColorTable extends AbstractColorTable
 {
-	static private ColorImagePair IMAGE_WHITE;
-	
 	//TODO This could be generalized.
 	private ProcedureClassMap classMap;
 	
@@ -32,19 +29,6 @@ public class ProcedureColorTable extends AbstractColorTable
 		// Initializes the CSS that represents time values outside of the
 		// time-line.
 		names.add(AbstractStack.NULL_NAME);
-		
-		// create our own white color so we can dispose later, instead of disposing
-		//	Eclipse's white color
-		final RGB rgb_white = display.getSystemColor(SWT.COLOR_WHITE).getRGB();
-		IMAGE_WHITE = new ColorImagePair( new Color(display, rgb_white));
-	}
-	
-	/**
-	 * Dispose the allocated resources
-	 */
-	public void dispose() {
-		super.dispose();
-		IMAGE_WHITE.dispose();
 	}
 	
 	/*********************************************************************
@@ -80,7 +64,7 @@ public class ProcedureColorTable extends AbstractColorTable
 						colorMatcher.put(procName, new ColorImagePair(c));
 					}
 				} else {
-					colorMatcher.put(procName, IMAGE_WHITE);
+					colorMatcher.put(procName, imageWhite);
 				}
 			}
 		}

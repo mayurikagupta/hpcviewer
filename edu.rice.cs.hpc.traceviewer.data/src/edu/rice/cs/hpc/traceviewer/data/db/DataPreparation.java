@@ -25,6 +25,8 @@ public abstract class DataPreparation
 	final private long begTime;
 	final private boolean usingMidpoint;
 		
+	static final private int INSTANCE_SEPARATE_LIMIT = 5;
+	
 	/****
 	 * Abstract class constructor to paint a line (whether it's detail view or depth view) 
 	 * 
@@ -57,22 +59,28 @@ public abstract class DataPreparation
 		
 		int succSampleMidpoint = (int) Math.max(0, (ptl.getTime(0)-begTime)/pixelLength);
 
-		AbstractStack cp = ptl.getStack(0);
-		if (cp==null)
+		AbstractStack currStack = ptl.getStack(0);
+		if (currStack==null)
 			return;
 		
-		String succFunction = cp.getNameAt(depth);
-		Color succColor = colorTable.getColor(succFunction);
+		String succColorName = currStack.getColorNameAt(depth);
+		Color succColor = colorTable.getColor(succColorName);
 		int last_ptl_index = ptl.size() - 1;
 
+		
+		// The following three variables keeps track of separator-related statuses.
+		int sameInstanceAccumulator = 0;
+		boolean currIsSeparator = false;
+		boolean succIsSeparator = false;
+		
 		for (int index = 0; index < ptl.size(); index++)
 		{
 			// in case of bad cpid, we just quit painting the view
-			if (cp==null)
+			if (currStack==null)
 				return;		// throwing an exception is more preferable, but it will make
 							// more complexity to handle inside a running thread
 
-			final int currDepth = cp.getMaxDepth(); 
+			final int currDepth = currStack.getMaxDepth(); 
 			int currSampleMidpoint = succSampleMidpoint;
 			
 			//-----------------------------------------------------------------------
@@ -83,26 +91,41 @@ public abstract class DataPreparation
 			int end = index;
 
 			final Color currColor = succColor;
+			currIsSeparator = succIsSeparator;
 			
 			while (still_the_same && (++indexSucc <= last_ptl_index))
 			{
-				cp = ptl.getStack(indexSucc);
-				if(cp != null)
+				AbstractStack succStack = ptl.getStack(indexSucc);
+				if (succStack != null)
 				{
-					succFunction = cp.getNameAt(depth);
-					succColor = colorTable.getColor(succFunction);
+					if (sameInstanceAccumulator >= INSTANCE_SEPARATE_LIMIT &&
+							succStack.getColorNameAt(depth).equals(currStack.getColorNameAt(depth)) &&
+							!succStack.isSameInstanceAtDepth(currStack, depth)) {
+						succColor = colorTable.getSeparatorColor();
+						still_the_same = false;
+						succIsSeparator = true;
+					}
+					else {	
+						succColor = colorTable.getColor(succStack.getColorNameAt(depth));
+						
+						// the color will be the same if and only if the two regions have the save function name
+						// regardless they are from different max depth and different call path.
+						// This can be misleading, but at the moment it is a good approximation
+						
+						// laksono 2012.01.23 fix: need to add a max depth condition to ensure that the adjacent
+						//						   has the same depth. In depth view, we don't want to mix with
+						//							different depths
+						
+						still_the_same = (succColor.equals(currColor)) && currDepth == succStack.getMaxDepth();
+						if (still_the_same)
+							end = indexSucc;
+						succIsSeparator = false;
+					}
 					
-					// the color will be the same if and only if the two regions have the save function name
-					// regardless they are from different max depth and different call path.
-					// This can be misleading, but at the moment it is a good approximation
+					if (succStack.isSameInstanceAtDepth(currStack, depth)) sameInstanceAccumulator ++;
+					else sameInstanceAccumulator = 0;
 					
-					// laksono 2012.01.23 fix: need to add a max depth condition to ensure that the adjacent
-					//						   has the same depth. In depth view, we don't want to mix with
-					//							different depths
-					
-					still_the_same = (succColor.equals(currColor)) && currDepth == cp.getMaxDepth();
-					if (still_the_same)
-						end = indexSucc;
+					currStack = succStack;
 				}
 			}
 			
@@ -132,6 +155,9 @@ public abstract class DataPreparation
 				// johnmc: replaced above because it doesn't seem correct
 				succSampleMidpoint = (int) Math.max(0, ((ptl.getTime(end)-begTime)/pixelLength)); 
 			}
+			
+			// Always force one white pixel to be presented when a separator is added.
+			if (currIsSeparator) succSampleMidpoint = currSampleMidpoint + 1;
 			
 			finishLine(currSampleMidpoint, succSampleMidpoint, currDepth, currColor, end - index + 1);
 			index = end;

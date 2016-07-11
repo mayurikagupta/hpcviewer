@@ -17,15 +17,10 @@ public class CaliperColorTable extends AbstractColorTable {
 	}
 	
 	/**
-	 * Returns the color in the colorMatcher that corresponds to the name's class
-	 * @param name
-	 * @return
+	 * Returns the color that corresponds to the name's class
 	 */
 	public Color getColor(String name)
 	{
-		if (name.contains(CaliperUtils.ITERATION_AT)) 
-			name = name.substring(name.indexOf(CaliperUtils.ITERATION_AT) 
-					+ CaliperUtils.ITERATION_AT.length());
 		return super.getColor(name);
 	}
 	
@@ -36,6 +31,9 @@ public class CaliperColorTable extends AbstractColorTable {
 	 */
 	public Image getImage(String name) 
 	{
+		/* The name is the display name. As a result, we need to render the display name 
+		 * to get the color name when necessary.
+		 */
 		if (name.contains(CaliperUtils.ITERATION_AT)) 
 			name = name.substring(name.indexOf(CaliperUtils.ITERATION_AT) 
 					+ CaliperUtils.ITERATION_AT.length());

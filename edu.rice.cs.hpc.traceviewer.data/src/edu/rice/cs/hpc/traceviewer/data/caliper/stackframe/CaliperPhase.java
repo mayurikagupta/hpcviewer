@@ -14,7 +14,12 @@ public class CaliperPhase extends CaliperStackFrame {
 	}
 
 	@Override
-	public String getName() {
+	public String getDisplayName() {
+		return getColorName();
+	}
+
+	@Override
+	public String getColorName() {
 		return CaliperUtils.PHASE_PREFIX + phase_name;
 	}
 }

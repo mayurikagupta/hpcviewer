@@ -19,6 +19,7 @@ import org.eclipse.ui.IWorkbenchWindow;
  */
 public abstract class AbstractColorTable {
 	static final public int COLOR_ICON_SIZE = 8;
+	final protected ColorImagePair imageWhite;
 	
 	// data members
 	protected HashMap<String, ColorImagePair> colorMatcher;
@@ -32,6 +33,9 @@ public abstract class AbstractColorTable {
 	public AbstractColorTable(IWorkbenchWindow window) {
 		names = new ArrayList<String>();
 		display = window.getShell().getDisplay();
+		
+		RGB rgb_white = new RGB(255, 255, 255); 
+		imageWhite = new ColorImagePair( new Color(display, rgb_white));
 	}
 	
 	public abstract void setColorTable();
@@ -40,10 +44,19 @@ public abstract class AbstractColorTable {
 		for (ColorImagePair pair: colorMatcher.values()) {
 			pair.dispose();
 		}
+		imageWhite.dispose();
 	}
 	
 	/**
-	 * Returns the color in the colorMatcher that corresponds to the name's class
+	 * Returns the color that is used to separate different instances of the same name.
+	 */
+	public Color getSeparatorColor()
+	{
+		return imageWhite.getColor();
+	}
+	
+	/**
+	 * Returns the color that corresponds to the name's class
 	 * @param name
 	 * @return
 	 */
