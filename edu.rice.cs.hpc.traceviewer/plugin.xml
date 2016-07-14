@@ -27,7 +27,7 @@
             class="edu.rice.cs.hpc.traceviewer.main.HPCTraceView"
             icon="icons/trace-detail.png"
             id="hpctraceview.view"
-            name="Trace View">
+            name="Detailed View">
       </view>
       <view
             class="edu.rice.cs.hpc.traceviewer.depth.HPCDepthView"
@@ -39,7 +39,7 @@
          	class="edu.rice.cs.hpc.traceviewer.misc.HPCCallStackView"
         	icon="icons/trace-callpath.png"
          	id="hpccallstackview.view"
-         	name="Call Path">
+         	name="Stack View">
 	  </view>
 	  <view
          	class="edu.rice.cs.hpc.traceviewer.summary.HPCSummaryView"

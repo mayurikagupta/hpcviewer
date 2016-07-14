@@ -1,6 +1,11 @@
 package edu.rice.cs.hpc.traceviewer.data.abstraction;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Hashtable;
+import java.util.Map;
 
 /**
  * Provides the data of a given rank
@@ -46,4 +51,32 @@ public abstract class AbstractProcessData {
 	 * @return the sample index
 	 */
 	public abstract int findClosestSample(long time, boolean usingMidpoint);
+	
+	/**
+	 * Returns names that occurs frequently at the given depth. Used to create the legend.
+	 */
+	public ArrayList<String> getFrequentNames(int depth) {
+		Hashtable<String, Integer> table = new Hashtable<String, Integer>();
+		for (int i = 0; i < this.size(); i++) {
+			String name = this.getStack(i).getColorNameAt(depth);
+			int oldVal = table.containsKey(name) ? table.get(name) : 0;
+			table.put(name, oldVal + 1);
+		}
+		
+		//Transfer as List and sort it
+		ArrayList<Map.Entry<String, Integer>> list = new ArrayList<Map.Entry<String, Integer>>(table.entrySet());
+		Collections.sort(list, new Comparator<Map.Entry<String, Integer>>(){
+        	public int compare(Map.Entry<String, Integer> o1, Map.Entry<String, Integer> o2) {
+        		return o2.getValue().compareTo(o1.getValue()); // descending order
+        	}});
+		
+		ArrayList<String> names = new ArrayList<String>();
+		int k = 0;
+		while (k < list.size() && list.get(k).getValue() > this.size() * 0.01) {
+			names.add(list.get(k).getKey());
+			k++;
+		}
+		
+		return names;
+	}
 }

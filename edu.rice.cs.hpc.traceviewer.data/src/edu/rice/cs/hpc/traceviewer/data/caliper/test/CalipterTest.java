@@ -79,6 +79,7 @@ public class CalipterTest {
 		ProcessCaliperData data = new ProcessCaliperData(0, summary, 0, 1467828121246621L, 90000000L, 256);
 		try {
 			data.readInData();
+			System.out.println("names:" + data.getFrequentNames(3));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

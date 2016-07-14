@@ -68,18 +68,19 @@ public class CaliperDataSummary implements IBaseCaliperData {
 		rankInfos = new RankInfo[numThread];
 		
 		int rankID = 0;
+		
 		for (int k = 0; k < numProc; k++) {
 			int procID = scanner.nextInt();
 			int procNumThread = scanner.nextInt();
 			if (this.isHybridRank())
 				for (int threadID = 0; threadID < procNumThread; threadID ++) {
 					rankInfos[rankID] = new RankInfo(procID, threadID);
-					rankNames[rankID] = procID + "." + threadID;
+					rankNames[rankID] = k + "." + threadID;
 					rankID++;
 				}
 			else {
 				rankInfos[rankID] = new RankInfo(procID, 0);
-				rankNames[rankID] = String.valueOf(procID);
+				rankNames[rankID] = String.valueOf(k);
 				rankID++;
 			}
 		}

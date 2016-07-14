@@ -28,6 +28,8 @@ public class HPCCallStackView extends ViewPart implements ISizeProvider
 	
 	CallStackViewer csViewer;
 	
+	LegendViewer legendViewer;
+	
 	/** Paints and displays the miniMap.*/
 	SpaceTimeMiniCanvas miniCanvas;
 	
@@ -91,6 +93,13 @@ public class HPCCallStackView extends ViewPart implements ISizeProvider
 		csViewer = new CallStackViewer(master, this);
 		
 		/*************************************************************************
+		 * LegendViewer
+		 ************************************************************************/
+		Label legend = new Label(master, SWT.SINGLE);
+		legend.setText("Legends (ranked by occurance)");
+		legendViewer = new LegendViewer(master, this);
+		
+		/*************************************************************************
 		 * MiniMap
 		 ************************************************************************/
 		
@@ -120,6 +129,7 @@ public class HPCCallStackView extends ViewPart implements ISizeProvider
 					if (sourceValue instanceof AbstractDataController) {
 						// new color mapping
 						csViewer.updateView();
+						legendViewer.updateView();
 					} else if (sourceValue instanceof Boolean) {
 						// operations when every ones need to refresh their data
 						//	this event can happen when a filter event occurs
@@ -147,6 +157,7 @@ public class HPCCallStackView extends ViewPart implements ISizeProvider
 		// visible, and let other event to trigger the update content.
 		// at this point, a data may not be ready to be processed
 		csViewer.getTable().setVisible(true);
+		legendViewer.getTable().setVisible(true);
 		
 		this.miniCanvas.updateView(_stData);
 		

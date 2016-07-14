@@ -9,7 +9,7 @@ import org.eclipse.ui.AbstractSourceProvider;
  * The service that keep track of selected ranks.
  * 
  * @log
- * - 2016.7 (by Lai Wei) Added this abstraction layer so that hpctraceviewer can display data from multiple sources.
+ * - 2016.7 (by Lai Wei) Moved this class to the abstraction layer so that hpctraceviewer can display data from multiple sources.
  */
 public class ProcessDataService extends AbstractSourceProvider {
 
