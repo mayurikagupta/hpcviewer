@@ -27,8 +27,8 @@ import edu.rice.cs.hpc.traceviewer.operation.BufferRefreshOperation;
 import edu.rice.cs.hpc.traceviewer.operation.TraceOperation;
 import edu.rice.cs.hpc.traceviewer.operation.ZoomOperation;
 import edu.rice.cs.hpc.traceviewer.painter.AbstractTimeCanvas;
+import edu.rice.cs.hpc.traceviewer.services.DataService;
 
-import edu.rice.cs.hpc.traceviewer.data.abstraction.AbstractDataController;
 import edu.rice.cs.hpc.traceviewer.data.db.Frame;
 import edu.rice.cs.hpc.traceviewer.data.db.ImageTraceAttributes;
 import edu.rice.cs.hpc.traceviewer.data.db.Position;
@@ -43,7 +43,7 @@ import edu.rice.cs.hpc.traceviewer.data.util.Debugger;
 public class SummaryTimeCanvas extends AbstractTimeCanvas 
 implements IOperationHistoryListener
 {	
-	private AbstractDataController dataTraces = null;
+	private DataService dataService = null;
 	private TreeMap<Integer, Integer> mapStatistics;
 	private int totPixels;
 	private ImageData detailData;
@@ -238,9 +238,9 @@ implements IOperationHistoryListener
 	 * set the new database
 	 * @param data
 	 ********/
-	public void updateData(AbstractDataController data)
+	public void updateData(DataService dataService)
 	{
-		dataTraces = data;
+		this.dataService = dataService;
 		needToRedraw = true; // new data
 		setVisible(true);
 	}
@@ -263,7 +263,7 @@ implements IOperationHistoryListener
 	 */
 	private long getNumTimeDisplayed()
 	{
-		return (dataTraces.getAttributes().getTimeInterval());
+		return (dataService.getData().getAttributes().getTimeInterval());
 	}
 
 
@@ -357,7 +357,7 @@ implements IOperationHistoryListener
 	@Override
 	protected void changeRegion(Rectangle region) 
 	{
-		final ImageTraceAttributes attributes = dataTraces.getAttributes();
+		final ImageTraceAttributes attributes = dataService.getData().getAttributes();
 		
 		long timeBegin   = attributes.getTimeBegin();
 		int left = region.x;

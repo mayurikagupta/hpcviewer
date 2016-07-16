@@ -50,7 +50,7 @@ implements ITraceViewAction
 	public static final String ID = "hpctraceview.view";
 	
 	/** Stores/Creates all of the data that is used in the view.*/
-	private AbstractDataController stData = null;
+	private AbstractDataController[] stData = null;
 	
 	/** Paints and displays the detail view.*/
 	SpaceTimeDetailCanvas detailCanvas;
@@ -81,10 +81,13 @@ implements ITraceViewAction
 	/*************************************************************************
 	 * update new data
 	 *************************************************************************/
-	public void updateView(AbstractDataController _stData)
+	public void updateView()
 	{
-		this.stData = _stData;
-		this.detailCanvas.updateView(_stData);
+		ISourceProviderService service = (ISourceProviderService) this.getSite().
+				getWorkbenchWindow().getService(ISourceProviderService.class);
+		DataService dataService = (DataService) service.getSourceProvider(DataService.DATA_PROVIDER);
+		this.stData = dataService.getAllData();
+		this.detailCanvas.updateView();
 		
 		detailCanvas.setVisible(true);
 	}
@@ -181,7 +184,7 @@ implements ITraceViewAction
 		detailCanvas = new SpaceTimeDetailCanvas(getSite().getWorkbenchWindow(), parent); 
 		
 		detailCanvas.setLabels(labelGroup);
-		GridLayoutFactory.fillDefaults().numColumns(3).generateLayout(labelGroup);
+		GridLayoutFactory.fillDefaults().numColumns(5).generateLayout(labelGroup);
 		GridDataFactory.fillDefaults().grab(true, false).align(SWT.BEGINNING, SWT.CENTER).applyTo(labelGroup);
 		
 		detailCanvas.setButtons(new Action[]{traceCoolBar.home, traceCoolBar.open, traceCoolBar.save, null,

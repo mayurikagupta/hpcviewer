@@ -22,6 +22,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.services.ISourceProviderService;
@@ -56,18 +57,21 @@ public class CallStackViewer extends TableViewer
 	
 	private final DataService dataService;
 	
+	private final Spinner depthEditor;
+	
     /**Creates a CallStackViewer with Composite parent, SpaceTimeDataController _stData, and HPCTraceView _view.*/
 	public CallStackViewer(Composite parent, final HPCCallStackView csview)
 	{
 		super(parent, SWT.SINGLE | SWT.READ_ONLY );
 		
-		final IWorkbenchWindow window = (IWorkbenchWindow)csview.getSite().
-				getWorkbenchWindow();
-		final ISourceProviderService service = (ISourceProviderService) window.getService(ISourceProviderService.class);
+		final ISourceProviderService service = (ISourceProviderService) csview.getSite().
+				getWorkbenchWindow().getService(ISourceProviderService.class);
 
 		dataService = (DataService) service.getSourceProvider(DataService.DATA_PROVIDER);
 				
 		ptlService = (ProcessDataService) service.getSourceProvider(ProcessDataService.PROCESS_DATA_PROVIDER);
+		
+		depthEditor = csview.depthEditor;
 		
         final Table stack = this.getTable();
         
@@ -102,7 +106,7 @@ public class CallStackViewer extends TableViewer
 				int depth = stack.getSelectionIndex(); 
 
 				// ask the depth editor to update the depth and launch the updateDepth event
-				csview.depthEditor.setSelection(depth);
+				depthEditor.setSelection(depth);
 				notifyChange(depth);
 			}
 		});

@@ -18,11 +18,14 @@ import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.PaintEvent;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
@@ -45,6 +48,7 @@ import edu.rice.cs.hpc.traceviewer.data.abstraction.ProcessDataService;
 import edu.rice.cs.hpc.traceviewer.data.db.Frame;
 import edu.rice.cs.hpc.traceviewer.data.db.ImageTraceAttributes;
 import edu.rice.cs.hpc.traceviewer.data.db.Position;
+import edu.rice.cs.hpc.traceviewer.services.DataService;
 import edu.rice.cs.hpc.traceviewer.util.Utility;
 import edu.rice.cs.hpc.traceviewer.data.util.Constants;
 import edu.rice.cs.hpc.traceviewer.data.util.Debugger;
@@ -59,8 +63,14 @@ import edu.rice.cs.hpc.traceviewer.data.util.Debugger;
 public class SpaceTimeDetailCanvas extends AbstractTimeCanvas 
 	implements IOperationHistoryListener, ISpaceTimeCanvas
 {	
-	/**The SpaceTimeData corresponding to this canvas.*/
+	/**The AbstractDataController corresponding to this canvas.*/
 	protected AbstractDataController stData;
+	
+	/**A group of AbstractDataController that can be selected.*/
+	private AbstractDataController stDataGroup[];
+	
+	/**The index of AbstractDataController.*/
+	private int dcIndex = 0;
 
 	/**Triggers zoom back to beginning view screen.*/
 	private Action homeButton;
@@ -99,6 +109,12 @@ public class SpaceTimeDetailCanvas extends AbstractTimeCanvas
     
     /**The Label with the current cross hair information.*/
 	private Label crossHairLabel;
+	
+	/**The Label that indicates the type of data being displayed. */
+	private Label dataSelectionLabel;
+	
+	/**The Combo that indicates the type of data being displayed. */
+	private Combo dataSelectionCombo;
         
     /**The min number of process units you can zoom in.*/
     private final static int MIN_PROC_DISP = 1;
@@ -119,6 +135,7 @@ public class SpaceTimeDetailCanvas extends AbstractTimeCanvas
 
 		selectionTopLeft = new Point(0,0);
 		selectionBottomRight = new Point(0,0);
+		
 		stData = null;
 		
 		initMouseSelection();
@@ -153,10 +170,10 @@ public class SpaceTimeDetailCanvas extends AbstractTimeCanvas
 	 * set new database and refresh the screen
 	 * @param dataTraces
 	 *****/
-	public void updateView(AbstractDataController _stData) {
+	public void updateView() {
 
 		super.init();
-
+		
 		if (this.stData == null) 
 		{
 			addCanvasListener();
@@ -166,7 +183,13 @@ public class SpaceTimeDetailCanvas extends AbstractTimeCanvas
 		// reinitialize the selection rectangle
 		initSelectionRectangle();
 
-		this.stData = _stData;
+		ISourceProviderService service = (ISourceProviderService) window.getService(ISourceProviderService.class);
+		DataService dataService = (DataService) service.getSourceProvider(DataService.DATA_PROVIDER);
+		
+		this.stDataGroup = dataService.getAllData();
+		this.stData = dataService.getData();
+		for (dcIndex = 0; dcIndex < stDataGroup.length; dcIndex++)
+			if (stData == stDataGroup[dcIndex]) break;
 
 		// init configuration
 		Position p = new Position(-1, -1);
@@ -509,9 +532,11 @@ public class SpaceTimeDetailCanvas extends AbstractTimeCanvas
     {
 		labelGroup = _labelGroup;
         
-        timeLabel = new Label(labelGroup, SWT.LEFT);
-        processLabel = new Label(labelGroup, SWT.CENTER);
-        crossHairLabel = new Label(labelGroup, SWT.RIGHT);
+        timeLabel = new Label(labelGroup, SWT.NONE);
+        processLabel = new Label(labelGroup, SWT.NONE);
+        crossHairLabel = new Label(labelGroup, SWT.NONE);
+        dataSelectionLabel = new Label(labelGroup, SWT.NONE);
+        dataSelectionCombo = new Combo(labelGroup, SWT.DROP_DOWN | SWT.BORDER);
     }
    
 	/**************************************************************************
@@ -571,6 +596,30 @@ public class SpaceTimeDetailCanvas extends AbstractTimeCanvas
     			crossHairLabel.setText("Cross Hair: (" + (selectedTime/1000)/1000.0 + "s, ?)");
     		}
         }
+        crossHairLabel.setSize(crossHairLabel.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+        
+        dataSelectionLabel.setText("      Type of data in display:");
+        dataSelectionLabel.setSize(dataSelectionLabel.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+        
+        dataSelectionCombo.removeAll();
+        for (int i = 0; i < stDataGroup.length; i++)
+        	dataSelectionCombo.add(stDataGroup[i].getShortName());
+        dataSelectionCombo.select(dcIndex);
+        dataSelectionCombo.setSize(dataSelectionCombo.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+        final SpaceTimeDetailCanvas canvas = this;
+        dataSelectionCombo.addSelectionListener(new SelectionAdapter() {
+        	@Override
+        	public void widgetSelected(SelectionEvent e) {
+        		dcIndex = dataSelectionCombo.getSelectionIndex();
+        		stData = stDataGroup[dcIndex];
+        		
+				ISourceProviderService sourceProviderService = (ISourceProviderService) window.getService(ISourceProviderService.class);
+				DataService dataService = (DataService) sourceProviderService.getSourceProvider(DataService.DATA_UPDATE);
+				dataService.setData(stData);
+
+        		canvas.refresh(true);
+        	}
+        });
         
         labelGroup.setSize(labelGroup.computeSize(SWT.DEFAULT, SWT.DEFAULT));
     }

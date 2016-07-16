@@ -29,6 +29,7 @@ import edu.rice.cs.hpc.traceviewer.painter.AbstractTimeCanvas;
 import edu.rice.cs.hpc.traceviewer.painter.BaseViewPaint;
 import edu.rice.cs.hpc.traceviewer.painter.ISpaceTimeCanvas;
 
+import edu.rice.cs.hpc.traceviewer.services.DataService;
 import edu.rice.cs.hpc.traceviewer.util.Utility;
 import edu.rice.cs.hpc.traceviewer.data.abstraction.AbstractDataController;
 import edu.rice.cs.hpc.traceviewer.data.db.Frame;
@@ -43,7 +44,7 @@ public class DepthTimeCanvas extends AbstractTimeCanvas
 {	
 	final private ExecutorService threadExecutor;
 
-	private AbstractDataController stData;
+	private DataService dataService = null;
 	private int currentProcess = Integer.MIN_VALUE;
 	private boolean needToRedraw = false;
 	private Rectangle bound;
@@ -71,16 +72,16 @@ public class DepthTimeCanvas extends AbstractTimeCanvas
 	 * new data update
 	 * @param _stData
 	 */
-	public void updateView(AbstractDataController stData)
+	public void updateView(DataService dataService)
 	{
 		super.init();
 		setVisible(true);
 		
-		if (this.stData == null) {
+		if (this.dataService == null) {
 			// just initialize once
 			TraceOperation.getOperationHistory().addOperationHistoryListener(this);
 		}
-		this.stData = stData; 		
+		this.dataService = dataService;	
 	}
 	
 	/*
@@ -89,6 +90,7 @@ public class DepthTimeCanvas extends AbstractTimeCanvas
 	 */
 	public void paintControl(PaintEvent event)
 	{
+		AbstractDataController stData = this.dataService.getData();
 		bound = getClientArea();
 
 		if (stData == null || !stData.isTimelineFilled())
@@ -174,6 +176,7 @@ public class DepthTimeCanvas extends AbstractTimeCanvas
 	}
 
 	public double getScalePixelsPerRank() {
+		AbstractDataController stData = this.dataService.getData();
 		return Math.max(bound.height/(double)stData.getMaxDepth(), 1);
 	}
 
@@ -184,6 +187,7 @@ public class DepthTimeCanvas extends AbstractTimeCanvas
 
 	private long getNumTimeDisplayed()
 	{
+		AbstractDataController stData = this.dataService.getData();
 		return (stData.getAttributes().getTimeInterval());
 	}
 	
@@ -195,8 +199,9 @@ public class DepthTimeCanvas extends AbstractTimeCanvas
      */
 	private void rebuffer()
 	{
-		if (stData == null )
+		if (dataService == null )
 			return;
+		AbstractDataController stData = this.dataService.getData();
 
 		final ImageTraceAttributes attributes = stData.getAttributes();
 		final Frame frame = attributes.getFrame();
@@ -234,7 +239,7 @@ public class DepthTimeCanvas extends AbstractTimeCanvas
 				Debugger.printDebug(1, "DTC rebuffering " + attributes);
 				
 				BaseViewPaint depthPaint = new DepthViewPaint(Util.getActiveWindow(), bufferGC, 
-						stData, attributes, true, DepthTimeCanvas.this, threadExecutor);
+						dataService.getData(), attributes, true, DepthTimeCanvas.this, threadExecutor);
 				
 				depthPaint.addJobChangeListener(new DepthJobListener());
 				depthPaint.schedule();
@@ -291,6 +296,7 @@ public class DepthTimeCanvas extends AbstractTimeCanvas
 
 	@Override
 	protected void changePosition(Point point) {
+		AbstractDataController stData = this.dataService.getData();
     	long closeTime = stData.getAttributes().getTimeBegin() + (long)(point.x / getScalePixelsPerTime());
     	
     	Position currentPosition = stData.getAttributes().getPosition();
@@ -309,6 +315,8 @@ public class DepthTimeCanvas extends AbstractTimeCanvas
 	@Override
 	protected void changeRegion(Rectangle region) 
 	{
+		AbstractDataController stData = this.dataService.getData();
+		
 		final ImageTraceAttributes attributes = stData.getAttributes();
 
 		long topLeftTime 	 = attributes.getTimeBegin() + (long)(region.x / getScalePixelsPerTime());

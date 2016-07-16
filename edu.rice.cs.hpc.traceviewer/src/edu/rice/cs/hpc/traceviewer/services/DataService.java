@@ -17,8 +17,8 @@ public class DataService extends AbstractSourceProvider {
 	final static public String DATA_AVAILABLE = "ENABLED";
 	final static public String DATA_UNAVAILABLE = "DISABLED";
 	
-	private AbstractDataController data;
-	
+	private AbstractDataController currentData;
+	private AbstractDataController[] allData;
 
 	/*
 	 * (non-Javadoc)
@@ -34,7 +34,7 @@ public class DataService extends AbstractSourceProvider {
 
 		Map<String, Object> map = new HashMap<String, Object>(1);
 		map.put(DATA_PROVIDER, getValue());
-		map.put(DATA_UPDATE, data);
+		map.put(DATA_UPDATE, currentData);
 		
 		return map;
 	}
@@ -53,8 +53,24 @@ public class DataService extends AbstractSourceProvider {
 	 * @param data
 	 */
 	public void setData( AbstractDataController data ) {
-		this.data = data;
+		this.currentData = data;
 		fireSourceChanged(ISources.WORKBENCH, DATA_PROVIDER, DATA_AVAILABLE);
+	}
+	
+	/***
+	 * set all data
+	 * @param data
+	 */
+	public void setAllData( AbstractDataController[] all ) {
+		this.allData = all;
+	}
+	
+	/***
+	 * set all data
+	 * @param data
+	 */
+	public AbstractDataController[] getAllData() {
+		return allData;
 	}
 	
 	/***
@@ -62,7 +78,7 @@ public class DataService extends AbstractSourceProvider {
 	 */
 	public void broadcastUpdate( Object updatedData ) {
 		if (updatedData == null)
-			fireSourceChanged(ISources.WORKBENCH, DATA_UPDATE, data);
+			fireSourceChanged(ISources.WORKBENCH, DATA_UPDATE, currentData);
 		else
 			fireSourceChanged(ISources.WORKBENCH, DATA_UPDATE, updatedData);
 	}
@@ -72,7 +88,7 @@ public class DataService extends AbstractSourceProvider {
 	 * @return
 	 */
 	public AbstractDataController getData() {
-		return data;
+		return currentData;
 	}
 	
 	/**
@@ -92,6 +108,6 @@ public class DataService extends AbstractSourceProvider {
 	 * 	return {@link DATA_UNAVAILABLE} otherwise
 	 */
 	private String getValue() {
-		return (data != null)? DATA_AVAILABLE : DATA_UNAVAILABLE;
+		return (currentData != null)? DATA_AVAILABLE : DATA_UNAVAILABLE;
 	}
 }

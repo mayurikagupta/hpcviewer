@@ -54,7 +54,12 @@ public abstract class AbstractDataController {
 	 * 
 	 * @return String: the name of the database
 	 *************************************************************************/
-	abstract public String getName() ;
+	public abstract String getName() ;
+	
+	/**
+	 * Retrieve the short name for this database;
+	 */
+	public abstract String getShortName();
 
 	/***
 	 * get the next process's data base on the current line

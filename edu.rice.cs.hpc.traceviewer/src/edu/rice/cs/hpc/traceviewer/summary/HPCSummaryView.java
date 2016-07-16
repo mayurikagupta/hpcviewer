@@ -66,9 +66,12 @@ public class HPCSummaryView extends AbstractTimeView
 		});
 	}
 
-	public void updateView(AbstractDataController dataTraces)
+	public void updateView()
 	{
-		summaryCanvas.updateData(dataTraces);
+		ISourceProviderService service = (ISourceProviderService) this.getSite().
+				getWorkbenchWindow().getService(ISourceProviderService.class);
+		DataService dataService = (DataService) service.getSourceProvider(DataService.DATA_PROVIDER);
+		summaryCanvas.updateData(dataService);
 	}
 	
 	/*

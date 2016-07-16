@@ -46,7 +46,8 @@ public class TraceDatabase
 {
 	static private HashMap<IWorkbenchWindow, TraceDatabase> listOfDatabases = null;
 
-	private AbstractDataController dataTraces = null;
+	static private final int defaultDCIndex = 0;
+	private AbstractDataController[] dataTraces = null;
 
 	/***
 	 * get the instance of this class
@@ -83,8 +84,10 @@ public class TraceDatabase
 	static private void removeDatabase(TraceDatabase data) {
 		if (data != null) {
 			if (data.dataTraces != null) {
-				data.dataTraces.closeDB();
-				data.dataTraces.dispose();
+				for (int i = 0; i < data.dataTraces.length; i++) {
+					data.dataTraces[i].closeDB();
+					data.dataTraces[i].dispose();
+				}
 			}
 		}
 	}
@@ -184,7 +187,7 @@ public class TraceDatabase
 		private final IWorkbenchWindow window;
 		private final DatabaseAccessInfo info; 
 		private final boolean useLocalDatbaase;
-		private AbstractDataController stdc;
+		private AbstractDataController[] stdc;
 		
 		JobOpeningDatabase(final IWorkbenchWindow window, final DatabaseAccessInfo info, 
 				final boolean useLocalDatbaase) {
@@ -209,12 +212,13 @@ public class TraceDatabase
 							new CaliperDataController(window, traceController, info.getDatabasePath());
 					
 					if (caliperController.isCaliperOpen()) {
-						stdc = caliperController;
-//						System.out.println("caliper");
+						stdc = new AbstractDataController[2];
+						stdc[0] = caliperController;
+						stdc[1] = traceController;
 					}
 					else {
-						stdc = traceController;
-//						System.out.println("trace");
+						stdc = new AbstractDataController[1];
+						stdc[0] = traceController;
 					}
 				} catch (final Exception e) 
 				{
@@ -239,7 +243,7 @@ public class TraceDatabase
 			return Status.OK_STATUS;
 		}
 		
-		AbstractDataController getSTDC() {
+		AbstractDataController[] getSTDC() {
 			return stdc;
 		}
 	}
@@ -278,7 +282,7 @@ public class TraceDatabase
 	
 	
 	static private boolean processDatabase(final IWorkbenchWindow window, 
-			AbstractDataController stdc)
+			AbstractDataController[] stdc)
 	{
 		if (stdc == null) {
 			return false;
@@ -294,7 +298,8 @@ public class TraceDatabase
 		// ---------------------------------------------------------------------
 		final Command command = Util.getCommand(window, OptionMidpoint.commandId);
 		boolean enableMidpoint = Util.isOptionEnabled(command);
-		database.dataTraces.setEnableMidpoint(enableMidpoint);
+		for (int i = 0; i < database.dataTraces.length; i++)
+			database.dataTraces[i].setEnableMidpoint(enableMidpoint);
 		
 		// reset the operation history
 		TraceOperation.clear();
@@ -309,13 +314,14 @@ public class TraceDatabase
 
 				// keep the current data in "shared" variable
 				DataService dataService = (DataService) sourceProviderService.getSourceProvider(DataService.DATA_PROVIDER);
-				dataService.setData(database.dataTraces);
+				dataService.setData(database.dataTraces[defaultDCIndex]);
+				dataService.setAllData(database.dataTraces);
 
 				final Shell shell = window.getShell();
 				// ---------------------------------------------------------------------
 				// Update the title of the application
 				// ---------------------------------------------------------------------
-				shell.setText("hpctraceviewer: " + database.dataTraces.getName());
+				shell.setText("hpctraceviewer: " + database.dataTraces[defaultDCIndex].getName());
 
 				try {
 
@@ -334,16 +340,16 @@ public class TraceDatabase
 					IWorkbenchPage page = window.getActivePage();
 
 					HPCSummaryView sview = (HPCSummaryView) page.showView(HPCSummaryView.ID);
-					sview.updateView(database.dataTraces);
+					sview.updateView();
 
 					HPCDepthView dview = (HPCDepthView) page.showView(HPCDepthView.ID);
-					dview.updateView(database.dataTraces);
+					dview.updateView();
 
 					HPCTraceView tview = (HPCTraceView) page.showView(HPCTraceView.ID);
-					tview.updateView(database.dataTraces);
+					tview.updateView();
 
 					HPCCallStackView cview = (HPCCallStackView) page.showView(HPCCallStackView.ID);
-					cview.updateView(database.dataTraces);
+					cview.updateView();
 
 				} catch (PartInitException e) {
 					e.printStackTrace();

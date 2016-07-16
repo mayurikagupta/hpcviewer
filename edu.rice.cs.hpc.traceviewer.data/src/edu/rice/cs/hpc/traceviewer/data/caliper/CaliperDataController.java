@@ -55,6 +55,11 @@ public class CaliperDataController extends AbstractDataController {
 	public String getName() {
 		return ((IBaseCaliperData)dataTrace).getCaliperDir();
 	}
+	
+	@Override
+	public String getShortName() {
+		return "caliper";
+	}
 
 	@Override
 	public AbstractProcessData getNextData(AtomicInteger currentLine,

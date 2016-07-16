@@ -31,7 +31,7 @@ public class HPCCallStackView extends ViewPart implements ISizeProvider
 	LegendViewer legendViewer;
 	
 	/** Paints and displays the miniMap.*/
-	SpaceTimeMiniCanvas miniCanvas;
+	//SpaceTimeMiniCanvas miniCanvas;
 	
 	Spinner depthEditor;
 	
@@ -102,7 +102,7 @@ public class HPCCallStackView extends ViewPart implements ISizeProvider
 		/*************************************************************************
 		 * MiniMap
 		 ************************************************************************/
-		
+		/*
 		Label l = new Label(master, SWT.SINGLE);
 		l.setText("Mini Map");
 		miniCanvas = new SpaceTimeMiniCanvas(master);
@@ -113,6 +113,7 @@ public class HPCCallStackView extends ViewPart implements ISizeProvider
 		miniCanvas.setLayoutData(miniCanvasData);
 		
 		miniCanvas.setVisible(false);
+		*/
 	}
 	
 	private void setListener() {
@@ -133,7 +134,7 @@ public class HPCCallStackView extends ViewPart implements ISizeProvider
 					} else if (sourceValue instanceof Boolean) {
 						// operations when every ones need to refresh their data
 						//	this event can happen when a filter event occurs
-						miniCanvas.updateView();
+						//miniCanvas.updateView();
 						
 						// for the callstack viewer, we'll rely on BufferRefreshOperation to refresh
 						// the content to ensure that the data from the main view is ready to be fetched
@@ -145,9 +146,18 @@ public class HPCCallStackView extends ViewPart implements ISizeProvider
 	}
 	
 	
-	public void updateView(AbstractDataController _stData) 
+	public void updateView() 
 	{
-		depthEditor.setMaximum(_stData.getMaxDepth());
+		final ISourceProviderService service = (ISourceProviderService) this.getSite().
+				getWorkbenchWindow().getService(ISourceProviderService.class);
+		
+		DataService dataService = (DataService) service.getSourceProvider(DataService.DATA_PROVIDER);
+		int maxDepth = 0;
+		for (AbstractDataController data : dataService.getAllData())
+			if (data.getMaxDepth() > maxDepth)
+				maxDepth = data.getMaxDepth();
+		
+		depthEditor.setMaximum(maxDepth);
 		depthEditor.setSelection(0);
 		depthEditor.setVisible(true);
 
@@ -159,9 +169,9 @@ public class HPCCallStackView extends ViewPart implements ISizeProvider
 		csViewer.getTable().setVisible(true);
 		legendViewer.getTable().setVisible(true);
 		
-		this.miniCanvas.updateView(_stData);
+		//this.miniCanvas.updateView(_stData);
 		
-		miniCanvas.setVisible(true);
+		//miniCanvas.setVisible(true);
 	}
 
 	/*

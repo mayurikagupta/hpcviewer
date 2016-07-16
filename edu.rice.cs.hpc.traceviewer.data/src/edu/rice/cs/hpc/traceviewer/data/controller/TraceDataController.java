@@ -142,6 +142,10 @@ public abstract class TraceDataController extends AbstractDataController
 		maxEndTime = trAttribute.dbTimeMax;
 	}
 
+	@Override
+	public String getShortName() {
+		return "trace";
+	}
 
 	/******
 	 * get the depth trace of the current "selected" process

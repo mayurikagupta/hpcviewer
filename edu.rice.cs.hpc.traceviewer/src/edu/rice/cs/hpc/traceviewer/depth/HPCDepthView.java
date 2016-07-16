@@ -10,7 +10,6 @@ import org.eclipse.ui.ISourceProvider;
 import org.eclipse.ui.ISourceProviderListener;
 import org.eclipse.ui.services.ISourceProviderService;
 
-import edu.rice.cs.hpc.traceviewer.data.abstraction.AbstractDataController;
 import edu.rice.cs.hpc.traceviewer.services.DataService;
 import edu.rice.cs.hpc.traceviewer.ui.AbstractTimeView;
 
@@ -62,7 +61,7 @@ public class HPCDepthView extends AbstractTimeView
 	
 	private void setListener() {
 		ISourceProviderService service = (ISourceProviderService)getSite().getService(ISourceProviderService.class);
-		ISourceProvider serviceProvider = service.getSourceProvider(DataService.DATA_UPDATE);
+		final ISourceProvider serviceProvider = service.getSourceProvider(DataService.DATA_UPDATE);
 		serviceProvider.addSourceProviderListener( new ISourceProviderListener(){
 
 			public void sourceChanged(int sourcePriority, Map sourceValuesByName) {	}
@@ -77,9 +76,12 @@ public class HPCDepthView extends AbstractTimeView
 		});		
 	}
 
-	public void updateView(AbstractDataController _stData)
+	public void updateView()
 	{
-		this.depthCanvas.updateView(_stData);
+		ISourceProviderService service = (ISourceProviderService) this.getSite().
+				getWorkbenchWindow().getService(ISourceProviderService.class);
+		DataService dataService = (DataService) service.getSourceProvider(DataService.DATA_PROVIDER);
+		this.depthCanvas.updateView(dataService);
 		depthCanvas.setVisible(true);
 	}
 
