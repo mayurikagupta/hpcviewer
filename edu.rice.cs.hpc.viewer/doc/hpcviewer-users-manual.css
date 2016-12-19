@@ -5,9 +5,11 @@
 .cmr-17{font-size:154%;}
 .cmtt-12x-x-144{font-size:157%;font-family: monospace;}
 .cmtt-12x-x-144{font-family: monospace;}
+.cmtt-12x-x-144{font-family: monospace;}
 .cmr-8{font-size:72%;}
 .cmmi-8{font-size:72%;font-style: italic;}
 .cmcsc-10x-x-109{}
+.cmtt-10x-x-109{font-family: monospace;}
 .cmtt-10x-x-109{font-family: monospace;}
 .cmtt-10x-x-109{font-family: monospace;}
 .cmti-10x-x-109{ font-style: italic;}
@@ -15,6 +17,11 @@
 .cmmi-10x-x-109{font-style: italic;}
 .cmss-10x-x-109{  font-family: sans-serif;}
 .tctt-1095{font-family: monospace;}
+.cmr-9{font-size:81%;}
+.cmti-10{font-size:90%; font-style: italic;}
+.cmtt-10{font-size:90%;font-family: monospace;}
+.cmtt-10{font-family: monospace;}
+.cmtt-10{font-family: monospace;}
 .small-caps{font-variant: small-caps; }
 p.noindent { text-indent: 0em }
 td p.noindent { text-indent: 0em; margin-top:0em; }
