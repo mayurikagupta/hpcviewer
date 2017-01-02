@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: hpctraceviewer
 Bundle-SymbolicName: edu.rice.cs.hpc.traceviewer; singleton:=true
-Bundle-Version: 5.4.2.qualifier
+Bundle-Version: 5.5.1.qualifier
 Bundle-Activator: edu.rice.cs.hpc.traceviewer.framework.Activator
 Bundle-Vendor: Rice University
 Require-Bundle: edu.rice.cs.hpc.data,

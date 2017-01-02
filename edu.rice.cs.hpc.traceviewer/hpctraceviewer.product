@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?pde version="3.5"?>
 
-<product name="hpctraceviewer" id="edu.rice.cs.hpc.traceviewer.product" application="edu.rice.cs.hpc.traceviewer.application" version="5.4.2.qualifier" useFeatures="false" includeLaunchers="true">
+<product name="hpctraceviewer" id="edu.rice.cs.hpc.traceviewer.product" application="edu.rice.cs.hpc.traceviewer.application" version="5.5.1.qualifier" useFeatures="false" includeLaunchers="true">
 
    <aboutInfo>
       <image path="/edu.rice.cs.hpc.traceviewer/icons/hpctraceviewer048.png"/>
