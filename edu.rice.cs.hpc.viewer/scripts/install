@@ -104,7 +104,7 @@ java_vmsize=
 java_version=
 for size in 2048 1536 1024 512 256
 do
-    java_version=`java -Xmx${size}m -version 2>&1 | grep -i java | grep -i vers | head -1`
+    java_version=`java -Xmx${size}m -version 2>&1 | grep -i vers | head -1`
     if test -n "$java_version" ; then
 	java_vmsize="$size"
 	break

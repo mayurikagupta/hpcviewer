@@ -52,7 +52,7 @@ test -n "$DISPLAY" || die "DISPLAY variable is not set"
 # Check the java version.
 #------------------------------------------------------------
 
-java_version=`java -version 2>&1 | grep -i java | grep -i vers | head -1`
+java_version=`java -version 2>&1 | grep -i vers | head -1`
 if test "x$java_version" = x ; then
     die "unable to find program 'java' on your PATH"
 fi
