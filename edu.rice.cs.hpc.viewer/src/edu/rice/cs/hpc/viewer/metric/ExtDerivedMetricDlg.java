@@ -447,6 +447,8 @@ public class ExtDerivedMetricDlg extends TitleAreaDialog {
 					bResult = DerivedMetric.evaluateExpression(expFormula, varMap, fctMap);
 				} catch (ExpressionParseException e) {
 					MessageDialog.openError(getShell(), "Error: incorrect expression", e.getDescription());
+				} catch (Exception e) {
+					MessageDialog.openError(getShell(), "Error: " + e.getMessage(), e.getMessage());
 				}
 			} else {
 				MessageDialog.openError(this.getShell(), "Error: empty expression", 
