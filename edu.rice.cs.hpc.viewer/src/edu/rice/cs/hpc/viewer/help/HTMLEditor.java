@@ -4,6 +4,7 @@
 package edu.rice.cs.hpc.viewer.help;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 
 import org.eclipse.core.runtime.FileLocator;
@@ -13,7 +14,11 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorSite;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.browser.IWebBrowser;
 import org.eclipse.ui.part.EditorPart;
 import org.eclipse.swt.browser.*;
 import org.eclipse.swt.SWTError;
@@ -131,6 +136,7 @@ public class HTMLEditor extends EditorPart {
 	 */
 	//@Override
 	public void createPartControl(Composite parent) {
+		boolean success = true;
 		try {
 			// attempt to instantiate browser widget
 			browser = new Browser(parent, SWT.BORDER);
@@ -143,20 +149,44 @@ public class HTMLEditor extends EditorPart {
 
 		} catch (SWTError e) {
 			// if the platform doesn't support pluggable browser,
-			//   then we show error message
-			MessageDialog.openError(getSite().getShell(), "Unable to display HTML page", 
-					"HPCViewer is unable to open HTML page to display the help file\n"
-					+ "Please refer to the manual in HPCToolkit website (http://hpctoolkit.org)");
+			//   then we try to show with an external browser
+			showExternalBrowser();
+			IWorkbenchPage page = getSite().getPage();
+			if (page != null && page.isEditorAreaVisible()) {
+				IWorkbenchPart part = page.getActivePart();
+				// Eclipse flaw design: needs to check if part is null or not. 
+				// the page cannot hide a part is the part doesn't exist
+				if (part != null)
+					page.closeEditor(this, false);
+			}
+			success = false;
 		}
-		// display the original source of the HTML file (debugging purpose)
-		this.setContentDescription(sURI);
-		// set the title of the editor
-		this.setPartName(this.getEditorInput().getName());
-		
-		// set the layout: the browser has to be expanded as much as possible
-		GridLayoutFactory.fillDefaults().numColumns(1).generateLayout(parent);
+		if (success) {
+			// display the original source of the HTML file (debugging purpose)
+			this.setContentDescription(sURI);
+			// set the title of the editor
+			this.setPartName(this.getEditorInput().getName());
+			
+			// set the layout: the browser has to be expanded as much as possible
+			GridLayoutFactory.fillDefaults().numColumns(1).generateLayout(parent);
+		}
 	}
 
+	private void showExternalBrowser() {
+		try {
+			URL url = new URL(sURI);
+			IWebBrowser browser = PlatformUI.getWorkbench().getBrowserSupport().getExternalBrowser();
+			if (browser != null) 
+				browser.openURL(url);
+		} catch (PartInitException | MalformedURLException e) {
+			MessageDialog.openError(getSite().getShell(), "Unable to display HTML page", 
+					"HPCViewer is unable to open HTML page to display the help file\n"
+					+ "Please refer to the manual in HPCToolkit website (http://hpctoolkit.org)\n" 
+					+ "Error: " + e.getMessage());
+		}
+	}
+	
+	
 	/* (non-Javadoc)
 	 * @see org.eclipse.ui.part.WorkbenchPart#setFocus()
 	 */
