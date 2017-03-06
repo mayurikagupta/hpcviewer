@@ -9,8 +9,9 @@ import java.io.PrintStream;
 import edu.rice.cs.hpc.data.util.Constants;
 import edu.rice.cs.hpc.data.util.Util;
 
-import edu.rice.cs.hpc.traceAnalysis.data.HPCToolkitTraceReader;
 import edu.rice.cs.hpc.traceAnalysis.data.TraceTree;
+import edu.rice.cs.hpc.traceAnalysis.data.reader.HPCToolkitTraceReader;
+import edu.rice.cs.hpc.traceAnalysis.iteration.IterationClassifier;
 import edu.rice.cs.hpc.traceAnalysis.iteration.LoopDetector;
 
 public class Application {
@@ -25,12 +26,14 @@ public class Application {
 		
 		//traceReader.readRank(0);
 		TraceTree tree = traceReader.buildTraceTree(0);
-		//objPrint.println(traceReader.buildTraceTree(0).print(2));
 		
-		LoopDetector detector = new LoopDetector();
-		detector.detectLoop(tree.root, 0, tree.numSamples);
+		LoopDetector detector = new LoopDetector(tree);
+		detector.detectLoop(tree.root);
 		
-		//objPrint.println(traceReader.buildTraceTree(1).print(2));
+		//objPrint.println(tree.print(4));
+		
+		IterationClassifier classifier = new IterationClassifier(tree);
+		classifier.testDiff(tree.root);
 		
 		return true;
 	}
@@ -74,7 +77,6 @@ public class Application {
 
 					
 					} catch (FileNotFoundException e2) {
-						// TODO Auto-generated catch block
 						e2.printStackTrace();
 					}
 				} else {

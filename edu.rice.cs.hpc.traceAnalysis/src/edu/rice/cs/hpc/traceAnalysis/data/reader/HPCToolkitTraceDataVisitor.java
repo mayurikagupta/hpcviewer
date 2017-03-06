@@ -1,4 +1,4 @@
-package edu.rice.cs.hpc.traceAnalysis.data;
+package edu.rice.cs.hpc.traceAnalysis.data.reader;
 
 import java.util.HashMap;
 
@@ -15,15 +15,13 @@ import edu.rice.cs.hpc.data.experiment.scope.Scope;
 import edu.rice.cs.hpc.data.experiment.scope.ScopeVisitType;
 import edu.rice.cs.hpc.data.experiment.scope.StatementRangeScope;
 import edu.rice.cs.hpc.data.experiment.scope.visitors.IScopeVisitor;
-import edu.rice.cs.hpc.traceviewer.data.graph.CallPath;
 
 public class HPCToolkitTraceDataVisitor implements IScopeVisitor 
 {
-	final private HashMap<Integer, CallPath> map;
-	private int maxDepth = 0;
+	final private HashMap<Integer, LineScope> map;
 
 	public HPCToolkitTraceDataVisitor() {
-		map = new HashMap<Integer, CallPath>();
+		map = new HashMap<Integer, LineScope>();
 	}
 
 	//----------------------------------------------------
@@ -45,38 +43,15 @@ public class HPCToolkitTraceDataVisitor implements IScopeVisitor
 		if (vt == ScopeVisitType.PreVisit) {
 			int cpid = scope.getCpid();
 			if (cpid > 0)
-			{
-				Scope cur = scope;
-				int depth = 0;
-				do
-				{
-					if((cur instanceof CallSiteScope) || (cur instanceof ProcedureScope))
-						++depth;
-					cur = cur.getParentScope();
-				}
-				while(cur != null && !(cur instanceof RootScope));
-				this.map.put(cpid, new CallPath(scope, depth));
-				maxDepth = Math.max(maxDepth, depth);
-			}
+				this.map.put(cpid, scope);
 		}
 	}
 	
 	/****
-	 * get the maximum depth from the tree traversal based on the scope
-	 * where this visitor is used.
-	 * 
-	 * @return the maximum depth of a given scope 
-	 */
-	public int getMaxDepth()
-	{
-		return maxDepth;
-	}
-	
-	/****
-	 * get the map of cpid and its call path
+	 * get the map of cpid and its LineScope
 	 * @return a hash map
 	 */
-	public HashMap<Integer, CallPath> getMap()
+	public HashMap<Integer, LineScope> getMap()
 	{
 		return map;
 	}

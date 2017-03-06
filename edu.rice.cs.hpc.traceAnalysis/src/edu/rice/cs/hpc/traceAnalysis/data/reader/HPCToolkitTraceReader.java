@@ -1,9 +1,10 @@
-package edu.rice.cs.hpc.traceAnalysis.data;
+package edu.rice.cs.hpc.traceAnalysis.data.reader;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Stack;
 
 import edu.rice.cs.hpc.data.experiment.BaseExperiment;
@@ -11,11 +12,20 @@ import edu.rice.cs.hpc.data.experiment.ExperimentWithoutMetrics;
 import edu.rice.cs.hpc.data.experiment.extdata.FileDB2;
 import edu.rice.cs.hpc.data.experiment.extdata.IFileDB;
 import edu.rice.cs.hpc.data.experiment.extdata.TraceAttribute;
+import edu.rice.cs.hpc.data.experiment.scope.CallSiteScope;
+import edu.rice.cs.hpc.data.experiment.scope.LineScope;
+import edu.rice.cs.hpc.data.experiment.scope.LoopScope;
+import edu.rice.cs.hpc.data.experiment.scope.ProcedureScope;
 import edu.rice.cs.hpc.data.experiment.scope.RootScope;
 import edu.rice.cs.hpc.data.experiment.scope.RootScopeType;
+import edu.rice.cs.hpc.data.experiment.scope.Scope;
 import edu.rice.cs.hpc.data.util.Constants;
+import edu.rice.cs.hpc.traceAnalysis.data.AbstractTraceTreeNode;
+import edu.rice.cs.hpc.traceAnalysis.data.FunctionNode;
+import edu.rice.cs.hpc.traceAnalysis.data.RawLoopWithoutIteration;
+import edu.rice.cs.hpc.traceAnalysis.data.RootNode;
+import edu.rice.cs.hpc.traceAnalysis.data.TraceTree;
 import edu.rice.cs.hpc.traceviewer.data.db.TraceDataByRank;
-import edu.rice.cs.hpc.traceviewer.data.graph.CallPath;
 import edu.rice.cs.hpc.traceviewer.data.version2.BaseData;
 import edu.rice.cs.hpc.traceviewer.data.version3.FileDB3;
 
@@ -30,7 +40,7 @@ public class HPCToolkitTraceReader {
 	
     private ExperimentWithoutMetrics exp;
     private BaseData dataTrace;
-    HashMap<Integer, CallPath> scopeMap;
+    HashMap<Integer, LineScope> scopeMap;
     
     int maxDepth;
     long minTime;
@@ -49,7 +59,6 @@ public class HPCToolkitTraceReader {
 			RootScope root = exp.getRootScope(RootScopeType.CallingContextTree);
 			root.dfsVisitScopeTree(visitor);
 
-			maxDepth   = visitor.getMaxDepth();
 			scopeMap   = visitor.getMap();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -118,7 +127,7 @@ public class HPCToolkitTraceReader {
 		return dataTrace.getNumberOfRanks();
 	}
 	
-	private int computeLCADepth(CallPath last, CallPath cur) {
+	private int computeLCADepth(CallPathWithLoop last, CallPathWithLoop cur) {
 		int depth = Math.min(last.getMaxDepth(), cur.getMaxDepth()) - 1;
 		while (depth >= 0 && last.getScopeAt(depth).getCCTIndex() != cur.getScopeAt(depth).getCCTIndex()) depth--;
 		
@@ -132,9 +141,9 @@ public class HPCToolkitTraceReader {
 		long minloc = dataTrace.getMinLoc(rank);
 		long maxloc = dataTrace.getMaxLoc(rank);
 		
-		TraceTreeNode root = new TraceTreeNode(null, -1);
+		RootNode root = new RootNode();
 		
-		Stack<TraceTreeNode> activeTraceStack = new Stack<TraceTreeNode>();
+		Stack<AbstractTraceTreeNode> activeTraceStack = new Stack<AbstractTraceTreeNode>();
 		activeTraceStack.add(root);
 		try {
 			long sampleNum = 0;
@@ -143,16 +152,19 @@ public class HPCToolkitTraceReader {
 			long begTime = dataTrace.getLong(minloc) - minTime;
 			
 			long lastTime = begTime;
-			CallPath lastCP = scopeMap.get(dataTrace.getInt(minloc + Constants.SIZEOF_LONG));
+			CallPathWithLoop lastCP = new CallPathWithLoop(scopeMap.get(dataTrace.getInt(minloc + Constants.SIZEOF_LONG)));
 			root.setStartTimeInclusive(lastTime);
-			root.setStartTimeExclusive(lastTime);
-			root.setStartSampleInclusive(sampleNum);
+			root.setStartTimeExclusive(lastTime-1);
+			//root.setStartSampleInclusive(sampleNum);
 			
 			for (int depth = 0; depth < lastCP.getMaxDepth(); depth++) {
-				TraceTreeNode node = new TraceTreeNode(lastCP.getScopeAt(depth), depth);
+				Scope scope = lastCP.getScopeAt(depth);
+				AbstractTraceTreeNode node = (scope instanceof LoopScope) ? 
+						new RawLoopWithoutIteration(scope.getCCTIndex(), scope.getName(), depth+1)
+						: new FunctionNode(scope.getCCTIndex(), scope.getName(), depth+1);
 				node.setStartTimeInclusive(lastTime);
 				node.setStartTimeExclusive(lastTime);
-				root.setStartSampleInclusive(sampleNum);
+				//root.setStartSampleInclusive(sampleNum);
 				activeTraceStack.peek().addChild(node);
 				activeTraceStack.add(node);
 			}
@@ -160,25 +172,28 @@ public class HPCToolkitTraceReader {
 			// Get remaining samples
 			for (long pos = minloc + RECORD_SIZE; pos <= maxloc; pos += RECORD_SIZE) {
 				final long curTime = dataTrace.getLong(pos) - minTime;
-				final CallPath curCP = scopeMap.get(dataTrace.getInt(pos + Constants.SIZEOF_LONG));
+				final CallPathWithLoop curCP = new CallPathWithLoop(scopeMap.get(dataTrace.getInt(pos + Constants.SIZEOF_LONG)));
 				final int lcaDepth = computeLCADepth(lastCP, curCP);
 				
 				if (curCP.getScopeAt(0).getName().equals("Partial Call Paths")) continue;
 				
 				while (activeTraceStack.size() > lcaDepth + 2) {
-					TraceTreeNode inactiveNode = activeTraceStack.pop();
+					AbstractTraceTreeNode inactiveNode = activeTraceStack.pop();
 					inactiveNode.setEndTimeInclusive(lastTime);
 					inactiveNode.setEndTimeExclusive(curTime);
-					inactiveNode.setEndSampleInclusive(sampleNum);
+					//inactiveNode.setEndSampleInclusive(sampleNum);
 				}
 				
 				sampleNum++;
 
 				for (int depth = lcaDepth + 1; depth < curCP.getMaxDepth(); depth++) {
-					TraceTreeNode node = new TraceTreeNode(curCP.getScopeAt(depth), depth);
+					Scope scope = curCP.getScopeAt(depth);
+					AbstractTraceTreeNode node = (scope instanceof LoopScope) ? 
+							new RawLoopWithoutIteration(scope.getCCTIndex(), scope.getName(), depth+1)
+							: new FunctionNode(scope.getCCTIndex(), scope.getName(), depth+1);
 					node.setStartTimeInclusive(curTime);
 					node.setStartTimeExclusive(lastTime);
-					node.setStartSampleInclusive(sampleNum);
+					//node.setStartSampleInclusive(sampleNum);
 					activeTraceStack.peek().addChild(node);
 					activeTraceStack.add(node);
 				}
@@ -189,10 +204,10 @@ public class HPCToolkitTraceReader {
 			
 			// Handle leftovers at the end
 			while (activeTraceStack.size() > 0) {
-				TraceTreeNode inactiveNode = activeTraceStack.pop();
+				AbstractTraceTreeNode inactiveNode = activeTraceStack.pop();
 				inactiveNode.setEndTimeInclusive(lastTime);
-				inactiveNode.setEndTimeExclusive(lastTime);
-				inactiveNode.setEndSampleInclusive(sampleNum);
+				inactiveNode.setEndTimeExclusive(lastTime+1);
+				//inactiveNode.setEndSampleInclusive(sampleNum);
 			}
 			
 			long endTime = lastTime;
@@ -218,11 +233,13 @@ public class HPCToolkitTraceReader {
 				final long time = dataTrace.getLong(pos) - minTime;
 				final int cpid = dataTrace.getInt(pos + Constants.SIZEOF_LONG);
 
-				CallPath cp = scopeMap.get(cpid);
-				if (cp == null) 
+				LineScope scope = scopeMap.get(cpid);
+				if (scope == null) 
 					objPrint.println("Rank " + rank + " at time " + time + ": no call path");
-				else
+				else {
+					CallPathWithLoop cp = new CallPathWithLoop(scope);
 					objPrint.println("Rank " + rank + " at time " + time + ": depth = " + + cp.getMaxDepth() + " " + cp.getDisplayNames());
+				}
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -231,5 +248,37 @@ public class HPCToolkitTraceReader {
 			return false;
 		}
 		return true;
+	}
+}
+
+class CallPathWithLoop {
+	Scope[] scopes;
+	
+	CallPathWithLoop(LineScope leafscope) {
+		LinkedList<Scope> stack = new LinkedList<Scope>();
+		Scope scope = leafscope;
+		while ((scope != null) && !(scope instanceof RootScope)) {
+			if ((scope instanceof CallSiteScope) || (scope instanceof ProcedureScope) 
+					|| (scope instanceof LoopScope))
+				stack.push(scope);
+			scope = scope.getParentScope();
+		}
+		scopes = stack.toArray(new Scope[0]);
+	}
+	
+	int getMaxDepth() {
+		return scopes.length;
+	}
+	
+	Scope getScopeAt(int depth) {
+		return scopes[depth];
+	}
+	
+	public String[] getDisplayNames()
+	{
+		final String[] names = new String[scopes.length];
+		for (int i = 0; i < scopes.length; i++)
+			names[i] = scopes[i].getName();
+		return names;
 	}
 }
