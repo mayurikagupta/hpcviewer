@@ -9,8 +9,11 @@ import java.io.PrintStream;
 import edu.rice.cs.hpc.data.util.Constants;
 import edu.rice.cs.hpc.data.util.Util;
 
-import edu.rice.cs.hpc.traceAnalysis.data.TraceTree;
+import edu.rice.cs.hpc.traceAnalysis.cluster.ClusterIdentifier;
 import edu.rice.cs.hpc.traceAnalysis.data.reader.HPCToolkitTraceReader;
+import edu.rice.cs.hpc.traceAnalysis.data.tree.AbstractTraceNode;
+import edu.rice.cs.hpc.traceAnalysis.data.tree.ProfileNode;
+import edu.rice.cs.hpc.traceAnalysis.data.tree.TraceTree;
 import edu.rice.cs.hpc.traceAnalysis.iteration.IterationClassifier;
 import edu.rice.cs.hpc.traceAnalysis.iteration.LoopDetector;
 
@@ -31,9 +34,15 @@ public class Application {
 		detector.detectLoop(tree.root);
 		
 		//objPrint.println(tree.print(4));
+		//objPrint.println(detector.detectedLoopID);
 		
-		IterationClassifier classifier = new IterationClassifier(tree);
-		classifier.testDiff(tree.root);
+		//ProfileNode prof = Trace2ProfileConverter.trace2profile(((AbstractTraceNode)tree.root.getChild(0)).getChild(1));
+		//objPrint.println(((AbstractTraceNode)tree.root.getChild(0)).getChild(1).print(4, 0));
+		//objPrint.println(prof.print(7, 1000));
+		
+		ClusterIdentifier.testDiff(tree.root);
+		System.out.println("***********************************************");
+		IterationClassifier.ClasifyLoops(tree.root);
 		
 		return true;
 	}

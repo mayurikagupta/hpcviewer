@@ -5,16 +5,17 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Vector;
 
-import edu.rice.cs.hpc.traceAnalysis.data.AbstractTraceTreeNode;
-import edu.rice.cs.hpc.traceAnalysis.data.AbstractLoop;
-import edu.rice.cs.hpc.traceAnalysis.data.Iteration;
-import edu.rice.cs.hpc.traceAnalysis.data.RawLoopWithIteration;
-import edu.rice.cs.hpc.traceAnalysis.data.RawLoopWithoutIteration;
-import edu.rice.cs.hpc.traceAnalysis.data.TraceTree;
+import edu.rice.cs.hpc.traceAnalysis.data.tree.AbstractTraceNode;
+import edu.rice.cs.hpc.traceAnalysis.data.tree.AbstractTreeNode;
+import edu.rice.cs.hpc.traceAnalysis.data.tree.IteratedLoop;
+import edu.rice.cs.hpc.traceAnalysis.data.tree.Iteration;
+import edu.rice.cs.hpc.traceAnalysis.data.tree.ProfileNode;
+import edu.rice.cs.hpc.traceAnalysis.data.tree.RawLoop;
+import edu.rice.cs.hpc.traceAnalysis.data.tree.TraceTimeStruct;
+import edu.rice.cs.hpc.traceAnalysis.data.tree.TraceTree;
+import edu.rice.cs.hpc.traceAnalysis.utils.TraceAnalysisUtils;
 
 public class LoopDetector {
-
-	final public static int detectionCutoffRatio = 200;
 	final public static int noiseUpperCutoffRatio = 10;
 	final public static int noiseLowerCutoffRatio = 2;
 	
@@ -24,16 +25,16 @@ public class LoopDetector {
 	
 	final public TraceTree traceTree;
 	
-	private int detectedLoopID = 0;
+	public int detectedLoopID = 0;
 	
 	public LoopDetector(TraceTree traceTree) {
 		this.traceTree = traceTree;
-		this.detectionCutoff = this.traceTree.sampleFrequency * detectionCutoffRatio;
+		this.detectionCutoff = this.traceTree.sampleFrequency * TraceAnalysisUtils.traceCutoffMultiplier;
 		this.noiseUpperCutoff = this.traceTree.sampleFrequency * noiseUpperCutoffRatio;
 		this.noiseLowerCutoff = this.traceTree.sampleFrequency * noiseLowerCutoffRatio;
 	}
 	
-    private OccurrenceRecord[] getOccurrenceRecord(AbstractTraceTreeNode node, int startChild/*inclusive*/, int endChild/*exclusive*/) {
+    private OccurrenceRecord[] getOccurrenceRecord(AbstractTraceNode node, int startChild/*inclusive*/, int endChild/*exclusive*/) {
     	// ID -> Occurrence Record
         HashMap<Integer, OccurrenceRecord> map = new HashMap<Integer, OccurrenceRecord>();
         
@@ -43,7 +44,7 @@ public class LoopDetector {
         	int curID = node.getChild(k).getID();
         	if (!map.containsKey(curID)) {
         		OccurrenceRecord record = new OccurrenceRecord(curID, k);
-        		if (node.getChild(k) instanceof AbstractLoop)
+        		if (node.getChild(k) instanceof RawLoop)
         			record.minDuration = 0;
         		records.add(record);
         		map.put(curID, record);
@@ -51,8 +52,8 @@ public class LoopDetector {
         	OccurrenceRecord record = map.get(curID);
         	record.lastOccur = k;
         	record.occurrence++;
-        	record.totalDuration += node.getChild(k).getDuration();
-        	record.minDuration = Math.min(record.minDuration, node.getChild(k).getDuration());
+        	record.totalDuration += node.getChild(k).getMinDuration();
+        	record.minDuration = Math.min(record.minDuration, node.getChild(k).getMinDuration());
         	if (predID != -1) {
         		record.pred.add(predID);
         		map.get(predID).post.add(curID);
@@ -118,19 +119,10 @@ public class LoopDetector {
     	return frontier;
     }
     
-    private boolean skipNode(AbstractTraceTreeNode node) {
-    	if (node instanceof Iteration) return false;
-    	
-	    if (node.getName().length() >= 4 && node.getName().substring(0, 4).equals("PMPI")) return true;
-	    if (node.getDuration() < detectionCutoff) return true;
-	    
-	    return false;
-    }
-    
-    private RawLoopWithIteration detectIterations(RawLoopWithoutIteration loop)  {
+    private IteratedLoop detectIterations(RawLoop rawLoop)  {
     	// Get occurrence records ranked by their first occurred child index.
-    	OccurrenceRecord[] records = getOccurrenceRecord(loop, 0, loop.getNumOfChildren());
-    	if (records.length == loop.getNumOfChildren()) return null;
+    	OccurrenceRecord[] records = getOccurrenceRecord(rawLoop, 0, rawLoop.getNumOfChildren());
+    	if (records.length == rawLoop.getNumOfChildren()) return null;
     	
 		// Try to identify iteration boundaries.
 		// TODO we assume no if-statement in the loop at this moment.
@@ -142,16 +134,16 @@ public class LoopDetector {
 		// Derive a begin frontier, which consists of a set of CCT nodes that indicates the start of an iteration.
 		// Every instance of the CCT node in the frontier has a duration of more than an adaptively adjusted threshold.
 		int startIndex = 0;
-		while (map.get(loop.getChild(startIndex).getID()).occurrence == 1) startIndex++;
-		HashSet<Integer> beginFrontier = getFrontier(loop.getChild(startIndex).getID(), map, true);
+		while (map.get(rawLoop.getChild(startIndex).getID()).occurrence == 1) startIndex++;
+		HashSet<Integer> beginFrontier = getFrontier(rawLoop.getChild(startIndex).getID(), map, true);
 		int beginNoiseCutoff = beginFrontier.size() > 0 ? Integer.MAX_VALUE : 0;
 		for (int cctID: beginFrontier)
 			if (map.get(cctID).minDuration < beginNoiseCutoff)
 				beginNoiseCutoff = (int) map.get(cctID).minDuration;
 		
-		int endIndex = loop.getNumOfChildren()-1;
-		while (map.get(loop.getChild(endIndex).getID()).occurrence == 1) endIndex--;
-		HashSet<Integer> endFrontier = getFrontier(loop.getChild(endIndex).getID(), map, false);
+		int endIndex = rawLoop.getNumOfChildren()-1;
+		while (map.get(rawLoop.getChild(endIndex).getID()).occurrence == 1) endIndex--;
+		HashSet<Integer> endFrontier = getFrontier(rawLoop.getChild(endIndex).getID(), map, false);
 		int endNoiseCutoff = endFrontier.size() > 0 ? Integer.MAX_VALUE : 0;
 		for (int cctID: endFrontier)
 			if (map.get(cctID).minDuration < endNoiseCutoff)
@@ -175,87 +167,108 @@ public class LoopDetector {
 			else isBeginFrontier = false;
 		
 		HashSet<Integer> frontier = isBeginFrontier ? beginFrontier : endFrontier;
+
 		if (frontier.isEmpty()) return null;
 		
-		RawLoopWithIteration retLoop = new RawLoopWithIteration(loop);
+		IteratedLoop retLoop = new IteratedLoop(rawLoop);
 		
 		//TODO assign appropriate iteration ID
 		Iteration iter = new Iteration(retLoop, retLoop.getNumOfChildren());
-		long startTimeExclusive = loop.getStartTimeExclusive();
-	    long startTimeInclusive = loop.getStartTimeInclusive();
+		long startTimeExclusive = rawLoop.getTime().getStartTimeExclusive();
+	    long startTimeInclusive = rawLoop.getTime().getStartTimeInclusive();
 		
 		//TODO we assume that two neighboring frontier occurrences are separated by other functions.
 		boolean inFrontier = false;
-		for (int i = 0; i < loop.getNumOfChildren(); i++) {
+		int lastFrontierID = 0;
+		for (int i = 0; i < rawLoop.getNumOfChildren(); i++) {
 			if (!isBeginFrontier) // If end frontier, add the current child before terminating this iteration
-				iter.addChild(loop.getChild(i));
+				iter.addChild(rawLoop.getChild(i), rawLoop.getChildTime(i));
 			
 			// determine if the iteration should be terminated.
-			if (frontier.contains(loop.getChild(i).getID())) {
+			if (frontier.contains(rawLoop.getChild(i).getID())) {
+				// TODO a patch so that if the same frontier function occurs twice, they will be put into different iterations.
+				if (rawLoop.getChild(i).getID() == lastFrontierID) inFrontier = false;
+					
 				if (!inFrontier) 
 					if (iter.getNumOfChildren() > 0) {
-						retLoop.addChild(iter);
-						iter.setDepth(loop.getDepth()+1);
 						// start time for the current iteration
-						iter.setStartTimeExclusive(startTimeExclusive);
-						iter.setStartTimeInclusive(startTimeInclusive);
+						iter.getTime().setStartTimeExclusive(startTimeExclusive);
+						iter.getTime().setStartTimeInclusive(startTimeInclusive);
 						// start time for the next iteration
 						if (isBeginFrontier) {
-							startTimeExclusive = loop.getChild(i).getStartTimeExclusive();
-							startTimeInclusive = loop.getChild(i).getStartTimeInclusive();
+							startTimeExclusive = rawLoop.getChildTime(i).getStartTimeExclusive();
+							startTimeInclusive = rawLoop.getChildTime(i).getStartTimeInclusive();
 						}
 						else {
-							startTimeExclusive = loop.getChild(i).getEndTimeInclusive();
-							startTimeInclusive = loop.getChild(i).getEndTimeExclusive();
+							startTimeExclusive = rawLoop.getChildTime(i).getEndTimeInclusive();
+							startTimeInclusive = rawLoop.getChildTime(i).getEndTimeExclusive();
 						}
 						// end time for the current iteration
-						iter.setEndTimeExclusive(startTimeInclusive);
-						iter.setEndTimeInclusive(startTimeExclusive);
+						iter.getTime().setEndTimeExclusive(startTimeInclusive);
+						iter.getTime().setEndTimeInclusive(startTimeExclusive);
 
+						retLoop.addChild(iter, iter.getTime());
+						iter.setDepth(retLoop.getDepth()+1);
 						iter = new Iteration(retLoop, retLoop.getNumOfChildren());
 					}
 				inFrontier = true;
+				lastFrontierID = rawLoop.getChild(i).getID();
 			}
 			else {
 				inFrontier = false;
 			}
 			
 			if (isBeginFrontier) // if begin frontier, add the current child after terminating the previous iteration
-				iter.addChild(loop.getChild(i));
+				iter.addChild(rawLoop.getChild(i), rawLoop.getChildTime(i));
 		}
 		
 		if (iter.getNumOfChildren() > 0) {
-			retLoop.addChild(iter);
-			iter.setDepth(loop.getDepth()+1);
-			iter.setStartTimeExclusive(startTimeExclusive);
-			iter.setStartTimeInclusive(startTimeInclusive);
-			iter.setEndTimeExclusive(loop.getEndTimeExclusive());
-			iter.setEndTimeInclusive(loop.getEndTimeInclusive());
+			iter.getTime().setStartTimeExclusive(startTimeExclusive);
+			iter.getTime().setStartTimeInclusive(startTimeInclusive);
+			iter.getTime().setEndTimeExclusive(rawLoop.getTime().getEndTimeExclusive());
+			iter.getTime().setEndTimeInclusive(rawLoop.getTime().getEndTimeInclusive());
+			retLoop.addChild(iter, iter.getTime());
+			iter.setDepth(retLoop.getDepth()+1);
 		}
 		
 		return retLoop;
     }
-    
-    public RawLoopWithIteration detectLoop(AbstractTraceTreeNode node) {
-    	if (skipNode(node)) return null;
+
+    /**
+     * Input: trace tree containing only FunctionTrace and RawLoop nodes.
+     * Output: trace tree containing ProfileNode, FunctionTrace, and IteratedLoop nodes.
+     * @param node the input node, which can be a FunctionTrace or RawLoop node.
+     * @return the updated node, which can be a ProfileNode, FunctionTrace, or IteratedLoop node.
+     */
+    public AbstractTreeNode detectLoop(AbstractTreeNode node) {
+    	if (node.getName().length()>=4 && node.getName().substring(0, 4).equals("PMPI"))
+    		node.clearChildren();
     	
-		if (node instanceof RawLoopWithoutIteration) {
-			RawLoopWithIteration loop = detectIterations((RawLoopWithoutIteration)node);
-			if (loop != null)
-				for (int i = 0; i < loop.getNumOfChildren(); i++)
-					detectLoop(loop.getChild(i)); // must return null as all children are objects of class Iteration
-			return loop;
+    	if (!(node instanceof AbstractTraceNode)) return null;
+
+    	AbstractTraceNode trace = (AbstractTraceNode) node;
+   
+		if (trace instanceof RawLoop) {
+			IteratedLoop loop = detectIterations((RawLoop)trace);
+			if (loop != null)  {
+				for (int i = 0; i < loop.getNumOfChildren(); i++) {
+					AbstractTreeNode iter = detectLoop(loop.getChild(i));
+	    			if (iter != null) loop.updateChild(i, iter);
+	    		}
+				return loop;
+			}
+			else
+				return ProfileNode.toProfile(trace);
 		}
 
     	// Get occurrence records ranked by their first occurred child index.
-    	OccurrenceRecord[] records = getOccurrenceRecord(node, 0, node.getNumOfChildren());
+    	OccurrenceRecord[] records = getOccurrenceRecord(trace, 0, trace.getNumOfChildren());
     	
     	// No loop exists
-    	if (records.length == node.getNumOfChildren()) {
+    	if (records.length == trace.getNumOfChildren()) {
     		for (int i = 0; i < records.length; i++) {
-    			RawLoopWithIteration loop = detectLoop(node.getChild(i));
-    			if (loop != null)
-    				node.replaceChild(loop, i);
+    			AbstractTreeNode child = detectLoop(trace.getChild(i));
+    			if (child != null) trace.updateChild(i, child);
     		}
     		return null;
     	}
@@ -267,14 +280,16 @@ public class LoopDetector {
     	 * If so, try locating all loops.
     	 */
 
-    	Vector<AbstractTraceTreeNode> newChildren = new Vector<AbstractTraceTreeNode>();
+    	Vector<AbstractTreeNode> newChildren = new Vector<AbstractTreeNode>();
+    	Vector<TraceTimeStruct> newChildrenTime = new Vector<TraceTimeStruct>();
     	
     	int k = 0;
     	while (k < records.length) {
     		// For every child that occurred once and not overlapped with a loop, 
     		// they will remain the child of the current node.
     		while (k < records.length && records[k].occurrence == 1) {
-    			newChildren.add(node.getChild(records[k].firstOccur));
+    			newChildren.add(trace.getChild(records[k].firstOccur));
+    			newChildrenTime.add(trace.getChildTime(records[k].firstOccur));
 				k++;
     		}
     		
@@ -283,35 +298,60 @@ public class LoopDetector {
     		// If not, detect the loop region and put all overlapped children 
     		// under the new loop node.
     		
+    		int firstIdx = k;
     		int firstChild = records[k].firstOccur;
     		int lastChild = records[k].lastOccur;
     		k++;
+    		int numRepCat = 1;
     		while (k < records.length && records[k].firstOccur < lastChild) {
-    			if (records[k].lastOccur > lastChild) {
-    				lastChild = records[k].lastOccur;
-    			}
+    			if (records[k].lastOccur > lastChild) lastChild = records[k].lastOccur;
+    			if (records[k].occurrence > 1) numRepCat++;
     			k++;
     		}
     		
-    		//TODO assigning an appropriate loop ID
-    		RawLoopWithoutIteration loop = new RawLoopWithoutIteration(--detectedLoopID, "LOOP", node.getDepth()+1);
-    		loop.setStartTimeInclusive(node.getChild(firstChild).getStartTimeInclusive());
-    		loop.setStartTimeExclusive(node.getChild(firstChild).getStartTimeExclusive());
-    		loop.setEndTimeInclusive(node.getChild(lastChild).getEndTimeInclusive());
-    		loop.setEndTimeExclusive(node.getChild(lastChild).getEndTimeExclusive());
+    		RawLoop loop = null;
+    		
+    		// See if the detected loop only consists of repetitions of loops with same ID.
+    		// If so, will merge those loops together under one loop node
+    		if ((numRepCat == 1) && (trace.getChild(records[firstIdx].firstOccur) instanceof RawLoop)) {
+    			AbstractTreeNode child = trace.getChild(records[firstIdx].firstOccur);
+    			loop = new RawLoop(child.getID(), child.getName(), child.getDepth());
+    		}
+    		// If not, allocate a new loop node
+    		else {
+    	    	if (trace.getMinDuration() <= detectionCutoff) return ProfileNode.toProfile(trace);
+    			//TODO assigning an appropriate loop ID
+    			loop = new RawLoop(--detectedLoopID, "LOOP", trace.getDepth()+1);
+    		}
+    		
+    		loop.getTime().setStartTimeInclusive(trace.getChildTime(firstChild).getStartTimeInclusive());
+    		loop.getTime().setStartTimeExclusive(trace.getChildTime(firstChild).getStartTimeExclusive());
+    		loop.getTime().setEndTimeInclusive(trace.getChildTime(lastChild).getEndTimeInclusive());
+    		loop.getTime().setEndTimeExclusive(trace.getChildTime(lastChild).getEndTimeExclusive());
     		for (int i = firstChild; i <= lastChild; i++)
-    			loop.addChild(node.getChild(i));
-    		loop.setDepth(node.getDepth()+1);
+    			// This branch will always be taken when a new loop is allocated.
+    			if (trace.getChild(i).getID() != loop.getID())
+    				loop.addChild(trace.getChild(i), trace.getChildTime(i));
+    			// This branch will only be taken when the existing loops should be merged.
+    		    // Merge the repetitions of the same loop under a single loop node
+    			else {
+    				RawLoop oldLoop = (RawLoop)trace.getChild(i);
+    				for (int j = 0; j < oldLoop.getNumOfChildren(); j++)
+    					loop.addChild(oldLoop.getChild(j), oldLoop.getChildTime(j));
+    			}
+    			
+    		
+    		loop.setDepth(loop.getDepth());
     		newChildren.add(loop);
+    		newChildrenTime.add(loop.getTime());
     	}
     	
-    	node.clearChildren();
-    	for (AbstractTraceTreeNode child : newChildren) {
-    		RawLoopWithIteration loop = detectLoop(child);
-    		if (loop != null) child = loop;
-    		node.addChild(child);
+    	trace.clearChildren();
+    	for (int i = 0; i < newChildren.size(); i++) {
+    		AbstractTreeNode child = detectLoop(newChildren.get(i));
+    		if (child == null) child = newChildren.get(i);
+    		trace.addChild(child, newChildrenTime.get(i));
     	}
-    	
     	return null;
     }
 }
