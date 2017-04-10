@@ -1,8 +1,10 @@
 package edu.rice.cs.hpc.traceAnalysis.data.tree;
 
 abstract public class AbstractTreeNode {
+	static protected int printDivisor = 1;
+	
 	final protected int ID;
-	final protected String name;
+	protected String name;
     protected int depth;
 
 	public AbstractTreeNode(int ID, String name, int depth) {
@@ -25,6 +27,10 @@ abstract public class AbstractTreeNode {
 		return name;
 	}
 	
+	public void setName(String name){
+		this.name = name;
+	}
+	
 	public int getDepth() {
 		return depth;
 	}
@@ -36,6 +42,10 @@ abstract public class AbstractTreeNode {
 	abstract public boolean isLeaf();
 	
 	abstract public void clearChildren();
+	
+	public long getDuration() {
+		return Math.max(getMinDuration(), 0);
+	}
 	
 	abstract public long getMinDuration();
 	

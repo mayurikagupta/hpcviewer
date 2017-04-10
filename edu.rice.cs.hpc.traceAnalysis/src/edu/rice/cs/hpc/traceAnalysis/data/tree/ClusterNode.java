@@ -3,25 +3,48 @@ package edu.rice.cs.hpc.traceAnalysis.data.tree;
 import edu.rice.cs.hpc.traceAnalysis.cluster.Cluster;
 
 public class ClusterNode extends AbstractTreeNode {
-	protected final AbstractTraceNode origin;
+	final protected long minDuration;
+	final protected long maxDuration;
 
 	protected Cluster[] clusters;
+	final protected int numInstance;
 	
 	public ClusterNode(AbstractTraceNode origin, Cluster[] clusters) {
 		super(origin.ID, "Cluster of " + origin.name, origin.depth);
-		this.origin = (AbstractTraceNode)origin.duplicate();
+		
+		this.minDuration = origin.getMinDuration();
+		this.maxDuration = origin.getMaxDuration();
 		
 		this.clusters = clusters;
+		for (int i = 0; i < clusters.length; i++)
+			clusters[i].getRep().setName("Cluster #" + i);
+		
+		this.numInstance = 1;
 	}
 	
 	public ClusterNode(ClusterNode other) {
 		super(other.ID, other.name, other.depth);
-		this.origin = (AbstractTraceNode)other.origin.duplicate();
+		this.minDuration = other.minDuration;
+		this.maxDuration = other.maxDuration;
 		this.clusters = new Cluster[other.clusters.length];
 		for (int i = 0; i < clusters.length; i++)
 			clusters[i] = new Cluster(other.clusters[i]);
+		
+		this.numInstance = other.numInstance;
 	}
-
+	
+	public ClusterNode(ClusterNode other1, ClusterNode other2, Cluster[] clusters, long minDuration, long maxDuration) {
+		super(other1.ID, other1.name, other1.depth);
+		this.minDuration = minDuration;
+		this.maxDuration = maxDuration;
+		
+		this.clusters = clusters;
+		for (int i = 0; i < clusters.length; i++)
+			clusters[i].getRep().setName("Cluster #" + i);
+		
+		this.numInstance = other1.numInstance + other2.numInstance;
+	}
+	
 	public int getNumOfClusters() {
 		return clusters.length;
 	}
@@ -30,6 +53,10 @@ public class ClusterNode extends AbstractTreeNode {
 		return clusters[index];
 	}
 
+	public int getNumInstance() {
+		return numInstance;
+	}
+	
 	public boolean isLeaf() {
 		return false;
 	}
@@ -39,15 +66,20 @@ public class ClusterNode extends AbstractTreeNode {
 	}
 
 	public long getMinDuration() {
-		return origin.getMinDuration();
+		return minDuration;
 	}
 
 	public long getMaxDuration() {
-		return origin.getMaxDuration();
+		return maxDuration;
 	}
 
 	public AbstractTreeNode duplicate() {
 		return new ClusterNode(this);
+	}
+	
+	public void addLabel(int ID) {
+		for (Cluster cluster : clusters) 
+			cluster.addLabel(ID);
 	}
 
 	public String print(int maxDepth, long durationCutoff) {
@@ -55,12 +87,11 @@ public class ClusterNode extends AbstractTreeNode {
 		
 		for (int i = 0; i < depth; i++) ret += "    ";
 
-		String copy = "C--" + ret.substring(1);
+		String copy = "C----" + ret.substring(1);
 		
 		ret += name + "(" + ID + ")";
 		
-		ret += " " + origin.time.startTimeExclusive / 1000 + "/" + origin.time.startTimeInclusive / 1000 + 
-				" ~ " + origin.time.endTimeInclusive / 1000 + "/" + + origin.time.endTimeExclusive / 1000 + "\n";
+		ret += " " + minDuration / printDivisor + " ~ " + maxDuration / printDivisor + "\n";
 		
 		for (int i = 0; i < clusters.length; i++) {
 			ret += copy + clusters[i].toString() + "\n";

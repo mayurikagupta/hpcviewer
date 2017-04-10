@@ -12,7 +12,9 @@ import edu.rice.cs.hpc.data.util.Util;
 import edu.rice.cs.hpc.traceAnalysis.cluster.ClusterIdentifier;
 import edu.rice.cs.hpc.traceAnalysis.data.reader.HPCToolkitTraceReader;
 import edu.rice.cs.hpc.traceAnalysis.data.tree.AbstractTraceNode;
+import edu.rice.cs.hpc.traceAnalysis.data.tree.ClusterNode;
 import edu.rice.cs.hpc.traceAnalysis.data.tree.ProfileNode;
+import edu.rice.cs.hpc.traceAnalysis.data.tree.RootTrace;
 import edu.rice.cs.hpc.traceAnalysis.data.tree.TraceTree;
 import edu.rice.cs.hpc.traceAnalysis.iteration.IterationClassifier;
 import edu.rice.cs.hpc.traceAnalysis.iteration.LoopDetector;
@@ -22,10 +24,20 @@ public class Application {
 		if (!objFile.canRead()) return false;
 		
 		HPCToolkitTraceReader traceReader = new HPCToolkitTraceReader(objFile, objPrint, objError);
-		/*for (int i = 0; i < traceReader.getNumberOfRanks(); i++) {
-			//traceReader.readRank(i);
-			objPrint.println(traceReader.buildTraceTree(i).toString());
-		}*/
+		
+		/*
+		RootTrace root = new RootTrace();
+		for (int i = 0; i < 2; i++) {
+			TraceTree tree = traceReader.buildTraceTree(i);
+			LoopDetector detector = new LoopDetector(tree);
+			detector.detectLoop(tree.root);
+			IterationClassifier.ClasifyLoops(tree.root);
+			root.addChild(tree.root.getChild(0), tree.root.getChildTime(0));
+		}
+		
+		ClusterNode cluster = ClusterIdentifier.findCluster(root);
+		objPrint.println(cluster.print(3, 0));
+		*/
 		
 		//traceReader.readRank(0);
 		TraceTree tree = traceReader.buildTraceTree(0);
@@ -40,9 +52,9 @@ public class Application {
 		//objPrint.println(((AbstractTraceNode)tree.root.getChild(0)).getChild(1).print(4, 0));
 		//objPrint.println(prof.print(7, 1000));
 		
-		ClusterIdentifier.testDiff(tree.root);
-		System.out.println("***********************************************");
+		//System.out.println("***********************************************");
 		IterationClassifier.ClasifyLoops(tree.root);
+		objPrint.println(tree.print(6));
 		
 		return true;
 	}

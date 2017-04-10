@@ -2,6 +2,8 @@ package edu.rice.cs.hpc.traceAnalysis.data.tree;
 
 import java.util.HashMap;
 
+import edu.rice.cs.hpc.traceAnalysis.cluster.Cluster;
+
 public class ProfileNode extends AbstractTreeNode {
 	protected long minDurationInclusive = 0;
 	protected long maxDurationInclusive = 0;
@@ -14,10 +16,14 @@ public class ProfileNode extends AbstractTreeNode {
 	
 	static public ProfileNode toProfile(AbstractTreeNode node) {
 		if (node instanceof ProfileNode) return new ProfileNode((ProfileNode)node);
-		if (node instanceof ClusterNode) return toProfile(((ClusterNode)node).origin);
+		if (node instanceof ClusterNode) return new ProfileNode((ClusterNode)node);
 		if (node instanceof IteratedLoop) return toProfile(((IteratedLoop)node).rawLoop);
 		
 		return new ProfileNode((AbstractTraceNode)node);
+	}
+	
+	public ProfileNode(int ID, String name, int depth) {
+		super(ID, name, depth);
 	}
 	
 	public ProfileNode(AbstractTraceNode trace) {
@@ -25,17 +31,47 @@ public class ProfileNode extends AbstractTreeNode {
 
 		this.minDurationInclusive = trace.getMinDuration();
 		this.maxDurationInclusive = trace.getMaxDuration();
+		
+		this.minDurationExclusive = this.minDurationInclusive;
+		this.maxDurationExclusive = this.maxDurationInclusive;
 		for (int k = 0; k < trace.getNumOfChildren(); k++) {
 			ProfileNode profile = toProfile(trace.getChild(k));
 			if (childMap.containsKey(profile.ID)) childMap.get(profile.ID).merge(profile);
 			else childMap.put(profile.ID, profile);
-			this.minDurationExclusive += trace.getMinGapDurationBeforeChild(k);
-			this.maxDurationExclusive += trace.getMaxGapDurationBeforeChild(k);
+			
+			this.minDurationExclusive -= profile.maxDurationInclusive;
+			this.maxDurationExclusive -= profile.minDurationInclusive;
+			//this.minDurationExclusive += trace.getMinGapDurationBeforeChild(k);
+			//this.maxDurationExclusive += trace.getMaxGapDurationBeforeChild(k);
 		}
-		this.minDurationExclusive += trace.getMinGapDurationBeforeChild(trace.getNumOfChildren());
-		this.maxDurationExclusive += trace.getMaxGapDurationBeforeChild(trace.getNumOfChildren());
+		//this.minDurationExclusive += trace.getMinGapDurationBeforeChild(trace.getNumOfChildren());
+		//this.maxDurationExclusive += trace.getMaxGapDurationBeforeChild(trace.getNumOfChildren());
+		this.minDurationExclusive = Math.max(0, this.minDurationExclusive);
+		this.maxDurationExclusive = Math.max(0, this.maxDurationExclusive);
 		
 		setDepth(depth);
+	}
+	
+	public ProfileNode(ClusterNode cluster) {
+		super(cluster.ID, cluster.name, cluster.depth);
+		
+		for (Cluster c: cluster.clusters) {
+			ProfileNode prof = toProfile(c.getRep());
+			prof.stretch(c.getNumOfMembers(), 1);
+			this.merge(prof);
+		}
+		
+		this.stretch(1, cluster.numInstance);
+		
+		/*
+		this.minDurationInclusive = cluster.minDuration;
+		this.maxDurationInclusive = cluster.maxDuration;
+		
+		this.minDurationExclusive += cluster.minDuration;
+		this.maxDurationExclusive += cluster.maxDuration;
+		
+		this.minDurationExclusive = Math.max(0, this.minDurationExclusive);
+		this.maxDurationExclusive = Math.max(0, this.maxDurationExclusive);*/
 	}
 	
 	public ProfileNode(ProfileNode profile) {
@@ -63,6 +99,25 @@ public class ProfileNode extends AbstractTreeNode {
 			else childMap.put(child.ID, child);
 		
 		setDepth(depth);
+	}
+	
+	public void stretch(int multiplier, int divisor) {
+		this.minDurationInclusive *= multiplier;
+		this.maxDurationInclusive *= multiplier;
+		this.minDurationInclusive = (this.minDurationInclusive + divisor / 2) / divisor;
+		this.maxDurationInclusive = (this.maxDurationInclusive + divisor / 2) / divisor;
+		
+		this.minDurationExclusive = minDurationInclusive;
+		this.maxDurationExclusive = maxDurationInclusive;
+		
+		for (ProfileNode child : childMap.values()) {
+			child.stretch(multiplier, divisor);
+			this.minDurationExclusive -= child.maxDurationInclusive;
+			this.maxDurationExclusive -= child.minDurationInclusive;
+		}
+		
+		this.minDurationExclusive = Math.max(0, this.minDurationExclusive);
+		this.maxDurationExclusive = Math.max(0, this.maxDurationExclusive);
 	}
 	
 	private int getNumOfChildren() {
@@ -116,9 +171,9 @@ public class ProfileNode extends AbstractTreeNode {
 
 		ret += name + "(" + ID + ")";
 		
-		ret += " " + minDurationInclusive / 1000 + " ~ " + maxDurationInclusive / 1000 + ", " + minDurationExclusive / 1000 + " ~ " + maxDurationExclusive / 1000 + "\n";
+		ret += " " + minDurationInclusive / printDivisor + " ~ " + maxDurationInclusive / printDivisor + ", " + minDurationExclusive / printDivisor + " ~ " + maxDurationExclusive / printDivisor + "\n";
 		
-		if (getNumOfChildren() != 0 && this.getMinDuration() >= durationCutoff && this.depth < maxDepth)
+		if (getNumOfChildren() != 0 && this.getDuration() >= durationCutoff && this.depth < maxDepth)
 			for (ProfileNode child : childMap.values()) 
 				ret += child.print(maxDepth, durationCutoff);
 		

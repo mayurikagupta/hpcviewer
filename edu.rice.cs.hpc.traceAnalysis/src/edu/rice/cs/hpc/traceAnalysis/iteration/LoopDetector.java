@@ -34,6 +34,7 @@ public class LoopDetector {
 		this.noiseLowerCutoff = this.traceTree.sampleFrequency * noiseLowerCutoffRatio;
 	}
 	
+	// fully tested
     private OccurrenceRecord[] getOccurrenceRecord(AbstractTraceNode node, int startChild/*inclusive*/, int endChild/*exclusive*/) {
     	// ID -> Occurrence Record
         HashMap<Integer, OccurrenceRecord> map = new HashMap<Integer, OccurrenceRecord>();
@@ -52,8 +53,8 @@ public class LoopDetector {
         	OccurrenceRecord record = map.get(curID);
         	record.lastOccur = k;
         	record.occurrence++;
-        	record.totalDuration += node.getChild(k).getMinDuration();
-        	record.minDuration = Math.min(record.minDuration, node.getChild(k).getMinDuration());
+        	record.totalDuration += node.getChild(k).getDuration();
+        	record.minDuration = Math.min(record.minDuration, node.getChild(k).getDuration());
         	if (predID != -1) {
         		record.pred.add(predID);
         		map.get(predID).post.add(curID);
@@ -74,6 +75,7 @@ public class LoopDetector {
      * @param isBeginFrontier TRUE if deriving a begin frontier, FALSE if deriving an end frontier.
      * @return
      */
+    // tested and generated expecting output
     private HashSet<Integer> getFrontier(int rootID, HashMap<Integer, OccurrenceRecord> map, boolean isBeginFrontier) {
 		HashSet<Integer> frontier = new HashSet<Integer>();
 		HashSet<Integer> set = new HashSet<Integer>();
@@ -119,6 +121,7 @@ public class LoopDetector {
     	return frontier;
     }
     
+    // tested and generated expecting output
     private IteratedLoop detectIterations(RawLoop rawLoop)  {
     	// Get occurrence records ranked by their first occurred child index.
     	OccurrenceRecord[] records = getOccurrenceRecord(rawLoop, 0, rawLoop.getNumOfChildren());
@@ -240,6 +243,7 @@ public class LoopDetector {
      * @param node the input node, which can be a FunctionTrace or RawLoop node.
      * @return the updated node, which can be a ProfileNode, FunctionTrace, or IteratedLoop node.
      */
+    // tested and generated expecting output
     public AbstractTreeNode detectLoop(AbstractTreeNode node) {
     	if (node.getName().length()>=4 && node.getName().substring(0, 4).equals("PMPI"))
     		node.clearChildren();
@@ -319,7 +323,7 @@ public class LoopDetector {
     		}
     		// If not, allocate a new loop node
     		else {
-    	    	if (trace.getMinDuration() <= detectionCutoff) return ProfileNode.toProfile(trace);
+    	    	if (trace.getDuration() <= detectionCutoff) return ProfileNode.toProfile(trace);
     			//TODO assigning an appropriate loop ID
     			loop = new RawLoop(--detectedLoopID, "LOOP", trace.getDepth()+1);
     		}

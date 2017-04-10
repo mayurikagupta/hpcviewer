@@ -20,6 +20,13 @@ public class TraceTimeStruct {
 		endTimeExclusive = other.endTimeExclusive;
 	}
 	
+	public void shiftTime(long variable) {
+		startTimeExclusive += variable;
+		startTimeInclusive += variable;
+		endTimeInclusive += variable;
+		endTimeExclusive += variable;
+	}
+	
 	public long getStartTimeExclusive() {
 		return startTimeExclusive;
 	}

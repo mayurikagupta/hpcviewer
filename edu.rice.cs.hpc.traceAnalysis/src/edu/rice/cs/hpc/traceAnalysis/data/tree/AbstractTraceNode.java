@@ -37,6 +37,10 @@ abstract public class AbstractTraceNode extends AbstractTreeNode {
 		return time;
 	}
 	
+	public void setTime(TraceTimeStruct time) {
+		this.time = time;
+	}
+	
 	public TraceTimeStruct getChildTime(int index) {
 		return childrenTime.get(index);
 	}
@@ -74,10 +78,74 @@ abstract public class AbstractTraceNode extends AbstractTreeNode {
 	public void addChild(AbstractTreeNode node, TraceTimeStruct time) {
 		children.add(node);
 		childrenTime.add(time);
+		
+		if (node instanceof AbstractTraceNode) 
+			assert (time == ((AbstractTraceNode)node).time);
+		
 	}
 	
 	public void updateChild(int index, AbstractTreeNode node) {
 		children.set(index, node);
+		
+		if (node instanceof AbstractTraceNode) 
+			assert (childrenTime.get(index) == ((AbstractTraceNode)node).time);
+	}
+	/*
+	public void moveChild(int origin, int dest) {
+		assert(origin > dest);
+		
+		long duration = childrenTime.get(origin).endTimeExclusive - childrenTime.get(origin-1).endTimeExclusive;
+		
+		long headEndTimeInclusive;
+		long headEndTimeExclusive;
+		long tailEndTimeInclusive = childrenTime.get(origin).endTimeInclusive;
+		long tailEndTimeExslusive = childrenTime.get(origin).endTimeExclusive;
+		
+		if (dest == 0) {
+			headEndTimeInclusive = time.startTimeExclusive;
+			headEndTimeExclusive = time.startTimeInclusive;
+		}
+		else {
+			headEndTimeInclusive = childrenTime.get(dest-1).endTimeInclusive;
+			headEndTimeExclusive = childrenTime.get(dest-1).endTimeExclusive;
+		}
+		
+		AbstractTreeNode child = children.get(origin);
+		TraceTimeStruct childTime = childrenTime.get(origin);
+		
+		// push children between dest and origin backward
+		for (int i = origin; i > dest; i--) {
+			children.set(i, children.get(i-1));
+			childrenTime.set(i, childrenTime.get(i-1));
+			
+			if (children.get(i) instanceof AbstractTraceNode) ((AbstractTraceNode)children.get(i)).shiftTime(duration);
+			else childrenTime.get(i).shiftTime(duration);
+		}
+		
+		//TODO adjust the endTimeExclusive of the last child.
+		
+		children.set(dest, child);
+		childrenTime.set(dest, childTime);
+		
+		long adjustment = headEndTimeExclusive + duration - childTime.endTimeExclusive;
+	}
+	
+	private void adjustStartTimeExclusive(long updated) {
+		if (childrenTime.get(0).startTimeExclusive == time.startTimeExclusive)
+			if (children.get(0) instanceof AbstractTraceNode) ((AbstractTraceNode)children.get(0)).adjustStartTimeExclusive(updated);
+			else childrenTime.get(0).startTimeExclusive = updated;
+		
+		time.startTimeExclusive = updated;
+	}
+	
+	*/
+	
+	
+	public void shiftTime(long variable) {
+		time.shiftTime(variable);
+		for (int i = 0; i < children.size(); i++)
+			if (children.get(i) instanceof AbstractTraceNode) ((AbstractTraceNode)children.get(i)).shiftTime(variable);
+			else childrenTime.get(i).shiftTime(variable);
 	}
 	
 	public void setDepth(int depth) {
@@ -96,10 +164,12 @@ abstract public class AbstractTraceNode extends AbstractTreeNode {
 	}
 	
 	public long getMinDuration() {
+		if (time.endTimeInclusive == time.startTimeExclusive) return 0; // for dummey trace nodes
 		return time.endTimeInclusive - time.startTimeInclusive + 1;
 	}
 	
 	public long getMaxDuration() {
+		if (time.endTimeInclusive == time.startTimeExclusive) return 0; // for dummey trace nodes
 		return time.endTimeExclusive - time.startTimeExclusive - 1;
 	}
 	
@@ -110,10 +180,10 @@ abstract public class AbstractTraceNode extends AbstractTreeNode {
 
 		ret += name + "(" + ID + ")";
 		
-		ret += " " + time.startTimeExclusive / 1000 + "/" +time.startTimeInclusive / 1000 + 
-				" ~ " + time.endTimeInclusive / 1000 + "/" + + time.endTimeExclusive / 1000 + "\n";
+		ret += " " + time.startTimeExclusive / printDivisor + "/" +time.startTimeInclusive / printDivisor + 
+				" ~ " + time.endTimeInclusive / printDivisor + "/" + + time.endTimeExclusive / printDivisor + "\n";
 		
-		if (getNumOfChildren() != 0 && this.getMinDuration() >= durationCutoff && this.depth < maxDepth)
+		if (getNumOfChildren() != 0 && this.getDuration() >= durationCutoff && this.depth < maxDepth)
 			for (int i = 0; i < getNumOfChildren(); i++)
 				ret += getChild(i).print(maxDepth, durationCutoff);
 		
