@@ -33,26 +33,28 @@ protected ProcedureScope procScope;
 
 protected CallSiteScopeType type;
 
+private final long ra;
 
 //////////////////////////////////////////////////////////////////////////
 //INITIALIZATION	
 //////////////////////////////////////////////////////////////////////////
 
 public CallSiteScope(LineScope scope, ProcedureScope scope2, 
-		CallSiteScopeType csst, int cct_id, int flat_id) 
+		CallSiteScopeType csst, int cct_id, int flat_id, long ra) 
 {
 	super(scope2.root, scope2.sourceFile,scope2.firstLineNumber,
 			scope2.lastLineNumber, cct_id, flat_id);
 	this.lineScope = scope;
 	this.procScope = scope2;
 	this.type = csst;
+	this.ra = ra;
 }
 
 public Scope duplicate() {
     return new CallSiteScope(
     		(LineScope) lineScope.duplicate(), 
     		(ProcedureScope) procScope.duplicate(), 
-    		type, getCCTIndex(), this.flat_node_index);
+    		type, getCCTIndex(), this.flat_node_index, this.ra);
 }
 
 
@@ -60,6 +62,9 @@ public Scope duplicate() {
 //SCOPE DISPLAY	
 //////////////////////////////////////////////////////////////////////////
 
+public long getRA() {
+	return this.ra;
+}
 
 /*************************************************************************
  *	Returns the user visible name for this scope.

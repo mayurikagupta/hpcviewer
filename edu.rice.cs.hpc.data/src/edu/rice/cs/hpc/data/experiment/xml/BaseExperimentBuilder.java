@@ -70,6 +70,9 @@ public class BaseExperimentBuilder extends Builder {
 	/** The current source file while parsing. */
 	protected Stack<SourceFile> srcFileStack;
 
+	/** RA address of the last parsed callsite **/
+	private long ra = 0;
+	
 	private boolean csviewer;
 	
 	final private IUserData<String, String> userData;
@@ -665,7 +668,8 @@ public class BaseExperimentBuilder extends Builder {
 					callsiteID = this.getCallSiteID(ls, procScope);  
 				}
 				CallSiteScope csn = new CallSiteScope( ls, procScope, 
-						CallSiteScopeType.CALL_TO_PROCEDURE, cct_id, callsiteID );
+						CallSiteScopeType.CALL_TO_PROCEDURE, cct_id, callsiteID, this.ra);
+				this.ra = 0;
 
 				// beginScope pushes csn onto the node stack and connects it with its parent
 				// this is done while the ls is off the stack so the parent of csn is ls's parent. 
@@ -834,6 +838,7 @@ public class BaseExperimentBuilder extends Builder {
 		int cct_id = 0, flat_id = 0;
 		int firstLn = 0;
 		int lastLn = 0;
+		long vma = 0;
 		SourceFile sourceFile = null;
 		
 		for(int i=0; i<attributes.length; i++) {
@@ -852,7 +857,9 @@ public class BaseExperimentBuilder extends Builder {
 				sourceFile = getSourceFile(fileIdString);
 			} else if(attributes[i].equals(ID_ATTRIBUTE)) {
 				cct_id = Integer.parseInt(values[i]);
-			} 
+			} else if(attributes[i].equals(VALUE_ATTRIBUTE)) {
+				vma = Long.decode(values[i]);
+			}
 		}
 		
 		if (sourceFile == null) {	
@@ -870,7 +877,7 @@ public class BaseExperimentBuilder extends Builder {
 				sourceFile = frameScope.getSourceFile();
 			}
 		}
-		Scope loopScope = new LoopScope(this.viewRootScope, sourceFile, firstLn-1, lastLn-1, cct_id, flat_id);
+		Scope loopScope = new LoopScope(this.viewRootScope, sourceFile, firstLn-1, lastLn-1, cct_id, flat_id, vma);
 
 		this.beginScope(loopScope);
 	}
@@ -920,6 +927,8 @@ public class BaseExperimentBuilder extends Builder {
 
 			} else if(attributes[i].equals("it")) { //the cpid
 				cpid = Integer.parseInt(values[i]);
+			} else if (attributes[i].equals(VALUE_ATTRIBUTE) && isCallSite) {
+				this.ra = Long.decode(values[i]);
 			}
 
 		}

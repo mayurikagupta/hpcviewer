@@ -35,8 +35,7 @@ import edu.rice.cs.hpc.data.experiment.source.SourceFile;
 public class LoopScope extends Scope
 {
 
-
-
+	private final long vma;
 
 //////////////////////////////////////////////////////////////////////////
 //	INITIALIZATION														//
@@ -49,15 +48,16 @@ public class LoopScope extends Scope
  *	Creates a LoopScope.
  ************************************************************************/
 	
-public LoopScope(RootScope root, SourceFile file, int first, int last, int cct_id, int flat_id)
+public LoopScope(RootScope root, SourceFile file, int first, int last, int cct_id, int flat_id, long vma)
 {
 	super(root, file, first, last, cct_id, flat_id);
+	this.vma = vma;
 }
 
 
 public Scope duplicate() {
     return new LoopScope(this.root,  this.sourceFile,  
-    		this.firstLineNumber,  this.lastLineNumber, getCCTIndex(), this.flat_node_index);
+    		this.firstLineNumber,  this.lastLineNumber, getCCTIndex(), this.flat_node_index, this.vma);
 }
 
 
@@ -65,7 +65,9 @@ public Scope duplicate() {
 //	SCOPE DISPLAY														//
 //////////////////////////////////////////////////////////////////////////
 
-
+public long getVMA() {
+	return this.vma;
+}
 
 
 /*************************************************************************

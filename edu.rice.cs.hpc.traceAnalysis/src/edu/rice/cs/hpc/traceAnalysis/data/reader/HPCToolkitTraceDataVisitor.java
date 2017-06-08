@@ -18,10 +18,10 @@ import edu.rice.cs.hpc.data.experiment.scope.visitors.IScopeVisitor;
 
 public class HPCToolkitTraceDataVisitor implements IScopeVisitor 
 {
-	final private HashMap<Integer, LineScope> map;
+	final private HashMap<Integer, LineScope> cpid2lineMap;
 
 	public HPCToolkitTraceDataVisitor() {
-		map = new HashMap<Integer, LineScope>();
+		cpid2lineMap = new HashMap<Integer, LineScope>();
 	}
 
 	//----------------------------------------------------
@@ -43,7 +43,7 @@ public class HPCToolkitTraceDataVisitor implements IScopeVisitor
 		if (vt == ScopeVisitType.PreVisit) {
 			int cpid = scope.getCpid();
 			if (cpid > 0)
-				this.map.put(cpid, scope);
+				this.cpid2lineMap.put(cpid, scope);
 		}
 	}
 	
@@ -53,6 +53,6 @@ public class HPCToolkitTraceDataVisitor implements IScopeVisitor
 	 */
 	public HashMap<Integer, LineScope> getMap()
 	{
-		return map;
+		return cpid2lineMap;
 	}
 }

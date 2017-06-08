@@ -10,6 +10,7 @@ import edu.rice.cs.hpc.data.util.Constants;
 import edu.rice.cs.hpc.data.util.Util;
 
 import edu.rice.cs.hpc.traceAnalysis.cluster.ClusterIdentifier;
+import edu.rice.cs.hpc.traceAnalysis.data.reader.CFGReader;
 import edu.rice.cs.hpc.traceAnalysis.data.reader.HPCToolkitTraceReader;
 import edu.rice.cs.hpc.traceAnalysis.data.tree.AbstractTraceNode;
 import edu.rice.cs.hpc.traceAnalysis.data.tree.ClusterNode;
@@ -39,6 +40,7 @@ public class Application {
 		objPrint.println(cluster.print(3, 0));
 		*/
 		
+		/*
 		//traceReader.readRank(0);
 		TraceTree tree = traceReader.buildTraceTree(0);
 		
@@ -55,6 +57,7 @@ public class Application {
 		//System.out.println("***********************************************");
 		IterationClassifier.ClasifyLoops(tree.root);
 		objPrint.println(tree.print(6));
+		*/
 		
 		return true;
 	}

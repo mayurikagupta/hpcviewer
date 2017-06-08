@@ -42,6 +42,8 @@ public class HPCToolkitTraceReader {
     private BaseData dataTrace;
     HashMap<Integer, LineScope> scopeMap;
     
+    private CFGReader cfg;
+    
     int maxDepth;
     long minTime;
     long frequency;
@@ -99,8 +101,17 @@ public class HPCToolkitTraceReader {
 			return;
 		}
 		
+		cfg = new CFGReader(exp.getDefaultDirectory() + File.separator + "cfg.dot");
+		if (!cfg.read(objError)) {
+			objError.println("Error while processing CFG graphviz file.");
+			return;
+		}
+		objPrint.println(cfg);
+		
 		dataTrace = new BaseData(fileDB);
 	}
+	
+	
 	
 	/*********************
 	 * get the absolute path of the trace file (experiment.mt).

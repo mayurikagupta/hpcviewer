@@ -5,5 +5,6 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/edu.rice.cs.hpc.common"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/edu.rice.cs.hpc.data"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/edu.rice.cs.hpc.traceviewer.data"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/com.alexmerz.graphviz"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
