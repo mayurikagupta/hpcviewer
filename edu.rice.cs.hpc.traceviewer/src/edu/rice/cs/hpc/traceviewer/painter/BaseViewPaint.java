@@ -14,7 +14,9 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.ISchedulingRule;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.graphics.Device;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchWindow;
 import edu.rice.cs.hpc.common.ui.Util;
 import edu.rice.cs.hpc.data.util.OSValidator;
@@ -262,12 +264,14 @@ public abstract class BaseViewPaint extends Job
 	private boolean waitDataPreparationThreads(ExecutorCompletionService<Integer> ecs, 
 			ArrayList<Integer> result, int launch_threads, IProgressMonitor monitor)
 	{
+		int num_invalid_samples = 0;
 		for (int i=0; i<launch_threads; i++)
 		{
 			try {
 				Integer linenum = ecs.take().get();
 				if (linenum == null)
 					return false;
+				num_invalid_samples += linenum.intValue();
 				
 				result.add(linenum);
 				Debugger.printDebug(1, getClass() + " thread " + i + "/" + launch_threads + " finish " + linenum);
@@ -277,6 +281,14 @@ public abstract class BaseViewPaint extends Job
 					e.printStackTrace();
 				return false;
 			}
+		}
+		if (num_invalid_samples > 0) {
+			final Shell shell = window.getShell();
+			final String message = "There are " + num_invalid_samples + 
+					" samples with invalid call-path ID.\n"
+					+ "The displayed traces may be incorrect.";
+			DisplayMessage dlg = new DisplayMessage(shell, message);
+			shell.getDisplay().asyncExec(dlg);
 		}
 		return true;
 	}
@@ -316,6 +328,24 @@ public abstract class BaseViewPaint extends Job
 		return true;
 	}
 	
+	/**
+	 * helper class to show a dialog box message
+	 *
+	 */
+	static private class DisplayMessage implements Runnable
+	{
+		private final Shell shell;
+		private final String message;
+		
+		public DisplayMessage(Shell shell, String message) {
+			this.shell = shell;
+			this.message = message;
+		}
+		@Override
+		public void run() {
+			MessageDialog.openWarning(shell, "Warning", message);
+		}
+	}
 
 	/*********************************
 	 * 

@@ -19,7 +19,8 @@ import edu.rice.cs.hpc.traceviewer.data.timeline.ProcessTimeline;
  * 
  * Abstract class for handling data collection
  * The class is based on Java Callable, and returns the number of
- * traces the thread has been processed
+ * invalid samples (like samples that have no cpid or incorrect cpid). 
+ * 
  *
  * @author Michael Franco 
  * 	modified by Laksono and Philip
@@ -64,9 +65,9 @@ public abstract class BaseTimelineThread implements Callable<Integer> {
 	public Integer call() throws Exception {
 
 		ProcessTimeline trace = getNextTrace(currentLine);
-		Integer numTraces = 0;
 		final double pixelLength = (attributes.getTimeInterval())/(double)attributes.numPixelsH;
 		final long timeBegin = attributes.getTimeBegin();
+		int num_invalid_samples = 0;
 		
 		while (trace != null)
 		{
@@ -92,7 +93,7 @@ public abstract class BaseTimelineThread implements Callable<Integer> {
 						trace, timeBegin, trace.line(),
 						imageHeight, pixelLength, usingMidpoint);
 				
-				data.collect();
+				num_invalid_samples += data.collect();
 				
 				final TimelineDataSet dataSet = data.getList();
 				queue.add(dataSet);				
@@ -100,7 +101,6 @@ public abstract class BaseTimelineThread implements Callable<Integer> {
 				// empty trace, we need to notify the BasePaintThread class
 				// of this anomaly by adding NullTimeline
 				queue.add(TimelineDataSet.NULLTimeline);
-				//System.out.println("init incorrect at " + trace.line());
 			}
 			if (monitor.isCanceled())
 				return null;
@@ -108,7 +108,6 @@ public abstract class BaseTimelineThread implements Callable<Integer> {
 			monitor.worked(1);
 			
 			trace = getNextTrace(currentLine);
-			numTraces++;
 			
 			// ---------------------------------
 			// finalize
@@ -118,9 +117,11 @@ public abstract class BaseTimelineThread implements Callable<Integer> {
 		//System.out.println("BTT q: " + queue.size() + " line:" + currentLine.get() +" tot: " + numTraces);
 		// terminate the monitor progress bar (if any) when there's no more work to do 
 		//monitor.done();
-		return numTraces;
+		return Integer.valueOf(num_invalid_samples);
 	}
 
+
+	
 	/****
 	 * Retrieve the next available trace, null if no more trace available 
 	 * 

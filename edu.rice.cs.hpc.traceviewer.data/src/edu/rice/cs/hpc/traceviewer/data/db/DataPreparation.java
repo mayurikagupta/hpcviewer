@@ -49,27 +49,32 @@ public abstract class DataPreparation
 		this.usingMidpoint = _usingMidpoint;
 	}
 	
-	/**Painting action*/
-	public void collect()
+	/**Painting action
+	 * @return zero if everything works just fine,<br/> 
+	 * 		  number of invalid cpid in case of corrupt data
+	 * */
+	public int collect()
 	{
 		if (depth < 0) // eclipse Linux bug: it's possible to force the depth to be negative by typing a character on the table 
-			return;
+			return 0;
 		
 		int succSampleMidpoint = (int) Math.max(0, (ptl.getTime(0)-begTime)/pixelLength);
 
 		CallPath cp = ptl.getCallPath(0, depth);
 		if (cp==null)
-			return;
+			return 0;
 		
 		String succFunction = cp.getScopeAt(depth).getName(); 
 		Color succColor = colorTable.getColor(succFunction);
 		int last_ptl_index = ptl.size() - 1;
 
+		int num_invalid_cp = 0;
+		
 		for (int index = 0; index < ptl.size(); index++)
 		{
 			// in case of bad cpid, we just quit painting the view
 			if (cp==null)
-				return;		// throwing an exception is more preferable, but it will make
+				return num_invalid_cp;		// throwing an exception is more preferable, but it will make
 							// more complexity to handle inside a running thread
 
 			final int currDepth = cp.getMaxDepth(); 
@@ -103,6 +108,8 @@ public abstract class DataPreparation
 					still_the_same = (succColor.equals(currColor)) && currDepth == cp.getMaxDepth();
 					if (still_the_same)
 						end = indexSucc;
+				} else {
+					num_invalid_cp++;
 				}
 			}
 			
@@ -135,7 +142,8 @@ public abstract class DataPreparation
 			
 			finishLine(currSampleMidpoint, succSampleMidpoint, currDepth, currColor, end - index + 1);
 			index = end;
-		}			
+		}
+		return num_invalid_cp;
 	}
 	 //This is potentially vulnerable to overflows but I think we are safe for now.
 	/**Returns the midpoint between x1 and x2*/

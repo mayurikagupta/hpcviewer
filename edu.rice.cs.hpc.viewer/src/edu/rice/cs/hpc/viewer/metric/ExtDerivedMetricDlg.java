@@ -451,7 +451,7 @@ public class ExtDerivedMetricDlg extends TitleAreaDialog {
 					MessageDialog.openError(getShell(), "Error: " + e.getMessage(), e.getMessage());
 				}
 			} else {
-				MessageDialog.openError(this.getShell(), "Error: empty expression", 
+				MessageDialog.openError(getShell(), "Error: empty expression", 
 					"An expression can not be empty.");
 			}
 		  return bResult;

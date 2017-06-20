@@ -109,9 +109,6 @@ public class ProcessTimeline {
 		int cpid = getCpid(sample);
 
 		CallPath cp = scopeMap.get(cpid);
-		if (cp == null && sample > 0) {
-			System.err.println("[" + processNumber +"] ERROR: No callpath for cpid " + cpid);
-		}
  		return cp;
 	}
 /**
