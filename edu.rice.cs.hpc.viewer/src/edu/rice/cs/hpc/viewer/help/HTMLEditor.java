@@ -178,7 +178,7 @@ public class HTMLEditor extends EditorPart {
 			IWebBrowser browser = PlatformUI.getWorkbench().getBrowserSupport().getExternalBrowser();
 			if (browser != null) 
 				browser.openURL(url);
-		} catch (PartInitException | MalformedURLException e) {
+		} catch (Exception e) {
 			MessageDialog.openError(getSite().getShell(), "Unable to display HTML page", 
 					"HPCViewer is unable to open HTML page to display the help file\n"
 					+ "Please refer to the manual in HPCToolkit website (http://hpctoolkit.org)\n" 
