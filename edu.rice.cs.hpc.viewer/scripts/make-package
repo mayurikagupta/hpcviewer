@@ -5,22 +5,20 @@
 # a set of directories named linux.xxx, macos.yyy, etc.
 # copy this script into export directory, and then run in inside export/hpcviewer 
 # as follows:
-#   ../make-package hpcviewer release_number revision_number
+#   ../make-package hpcviewer release_number
 # (it's ugly, but it works)
 
 # example of variable initialization
 viewer="hpctraceviewer"
-rev="1496"
-release="5.3.2"
+release="2017.07"
 
-if [ $# -eq 3 ]; then
+if [ $# -eq 2 ]; then
   viewer=$1
   release=$2
-  rev=$3
 else
-  echo "Syntax: $0 viewer_name release_number revision_number"
+  echo "Syntax: $0 viewer_name release_number"
   echo "viewer_name is either 'hpcviewer' or 'hpctraceviewer'"
-  echo "Example: $0 $viewer $release $rev "
+  echo "Example: $0 $viewer $release "
   exit
 fi
 
@@ -44,9 +42,9 @@ for i in *; do echo $i
      mv ${f}/scripts . 
      cd scripts 
      bash make-dist ../$viewer >/tmp/out
-     mv $viewer.tar.gz ../../$viewer-$release.$rev-$i.tgz
+     mv $viewer.tar.gz ../../$viewer-$release-$i.tgz
      cd ../../ 
-     ls -l $viewer-$release.$rev-$i.tgz
+     ls -l $viewer-$release-$i.tgz
   else
      echo "Plugin does not exist: $f"
      exit
