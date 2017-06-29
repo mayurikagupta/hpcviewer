@@ -61,12 +61,14 @@ zipper ()
   mkdir tmp
   cd tmp
   for f in ../*."$1".*.tgz; do echo $f
-    tar xzf $f
-    z=`echo $f | sed -e "s/tgz/zip/g" `
-    echo "new file: $z"
-    zip -r $z $viewer/*
-    ls -l $z
-    rm -rf $viewer $f
+    if [ -e $f ]; then
+      tar xzf $f
+      z=`echo $f | sed -e "s/tgz/zip/g" `
+      echo "new file: $z"
+      zip -r $z $viewer/*
+      ls -l $z
+      rm -rf $viewer $f
+    fi;
   done
   cd ..
   rmdir tmp
