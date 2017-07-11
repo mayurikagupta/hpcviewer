@@ -351,7 +351,11 @@ public class FlatViewScopeVisitor implements IScopeVisitor {
 
 		FlatScopeInfo objFlat = this.getFlatScope(cct_s);
 
-		if (flat_enc_s != null) {
+		// it is possible that hpcrun database is corrupt.
+		// for instance, a line statement can be a child of a program root like: <program root> --> main.c:0
+		//  in this case, objFlat (the flat place holder) is becoming null since <program root> is a fake procedure
+		
+		if (flat_enc_s != null && objFlat != null) {
 			if (!isCyclicDependency(flat_enc_s, objFlat.flat_s)) {
 				// normal case: no cyclic dependency between the child and the ancestors
 				this.addToTree(flat_enc_s, objFlat.flat_s);
