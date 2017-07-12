@@ -1,16 +1,15 @@
 package edu.rice.cs.hpc.traceAnalysis.data.tree;
 
-import edu.rice.cs.hpc.traceAnalysis.cluster.Cluster;
 
-public class ClusterNode extends AbstractTreeNode {
+public class ClusterTreeNode extends AbstractTreeNode {
 	final protected long minDuration;
 	final protected long maxDuration;
 
 	protected Cluster[] clusters;
-	final protected int numInstance;
 	
-	public ClusterNode(AbstractTraceNode origin, Cluster[] clusters) {
-		super(origin.ID, "Cluster of " + origin.name, origin.depth);
+	public ClusterTreeNode(AbstractTraceNode origin, Cluster[] clusters) {
+		super(origin);
+		this.name = "Cluster of " + origin.name;
 		
 		this.minDuration = origin.getMinDuration();
 		this.maxDuration = origin.getMaxDuration();
@@ -18,31 +17,26 @@ public class ClusterNode extends AbstractTreeNode {
 		this.clusters = clusters;
 		for (int i = 0; i < clusters.length; i++)
 			clusters[i].getRep().setName("Cluster #" + i);
-		
-		this.numInstance = 1;
 	}
 	
-	public ClusterNode(ClusterNode other) {
-		super(other.ID, other.name, other.depth);
+	public ClusterTreeNode(ClusterTreeNode other) {
+		super(other);
 		this.minDuration = other.minDuration;
 		this.maxDuration = other.maxDuration;
 		this.clusters = new Cluster[other.clusters.length];
 		for (int i = 0; i < clusters.length; i++)
 			clusters[i] = new Cluster(other.clusters[i]);
-		
-		this.numInstance = other.numInstance;
 	}
 	
-	public ClusterNode(ClusterNode other1, ClusterNode other2, Cluster[] clusters, long minDuration, long maxDuration) {
-		super(other1.ID, other1.name, other1.depth);
+	public ClusterTreeNode(ClusterTreeNode other1, ClusterTreeNode other2, Cluster[] clusters, long minDuration, long maxDuration) {
+		super(other1);
+		this.weight = other1.weight + other2.weight;
 		this.minDuration = minDuration;
 		this.maxDuration = maxDuration;
 		
 		this.clusters = clusters;
 		for (int i = 0; i < clusters.length; i++)
 			clusters[i].getRep().setName("Cluster #" + i);
-		
-		this.numInstance = other1.numInstance + other2.numInstance;
 	}
 	
 	public int getNumOfClusters() {
@@ -52,17 +46,13 @@ public class ClusterNode extends AbstractTreeNode {
 	public Cluster getCluster(int index) {
 		return clusters[index];
 	}
-
-	public int getNumInstance() {
-		return numInstance;
-	}
 	
 	public boolean isLeaf() {
 		return false;
 	}
 
 	public void clearChildren() {
-		// TODO Auto-generated method stub
+		assert(false);
 	}
 
 	public long getMinDuration() {
@@ -74,7 +64,7 @@ public class ClusterNode extends AbstractTreeNode {
 	}
 
 	public AbstractTreeNode duplicate() {
-		return new ClusterNode(this);
+		return new ClusterTreeNode(this);
 	}
 	
 	public void addLabel(int ID) {
@@ -82,21 +72,32 @@ public class ClusterNode extends AbstractTreeNode {
 			cluster.addLabel(ID);
 	}
 
-	public String print(int maxDepth, long durationCutoff) {
-		String ret = "C";
+	public String toString(int maxDepth, long durationCutoff) {
+		String ret = "C               ";
 		
 		for (int i = 0; i < depth; i++) ret += "    ";
 
-		String copy = "C----" + ret.substring(1);
-		
 		ret += name + "(" + ID + ")";
 		
-		ret += " " + minDuration / printDivisor + " ~ " + maxDuration / printDivisor + "\n";
+		ret += " " + minDuration / printDivisor + " ~ " + maxDuration / printDivisor;
 		
-		for (int i = 0; i < clusters.length; i++) {
-			ret += copy + clusters[i].toString() + "\n";
-			ret += clusters[i].getRep().print(maxDepth+1, durationCutoff);
+		if (inclusiveDiffScore != 0) {
+			/*
+			long t = inclusiveDiffScore * 10000 / this.getMaxDuration() / weight;
+			ret += "  In-diff = " + t/100 + "." + t/1000%100 + t%1000 + "%";
+			t = exclusiveDiffScore * 10000 / this.getMaxDuration() / weight;
+			ret += "  Ex-diff = " + t/100 + "." + t/1000%100 + t%1000 + "%";*/
+			
+			long t = inclusiveDiffScore / printDivisor;
+			ret += "  In-diff = " + t;
+			t = exclusiveDiffScore / printDivisor;
+			ret += "  Ex-diff = " + t;
 		}
+		
+		ret += '\n';
+		
+		for (int i = 0; i < clusters.length; i++) 
+			ret += clusters[i].toString(maxDepth, durationCutoff);
 		
 		return ret;
 	}

@@ -36,7 +36,7 @@ public class CallSiteScopeCallerView extends CallSiteScope implements IMergedSco
 	 */
 	public CallSiteScopeCallerView(LineScope scope, ProcedureScope scope2,
 			CallSiteScopeType csst, int id, Scope cct, Scope s_cost) {
-		super(scope, scope2, csst, id, cct.getFlatIndex(), 0);
+		super(scope, scope2, csst, id, cct.getFlatIndex());
 
 		this.scopeCCT = cct;
 		this.scopeCost = s_cost;

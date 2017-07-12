@@ -2,7 +2,7 @@ package edu.rice.cs.hpc.traceAnalysis.data.tree;
 
 public class RootTrace extends FunctionTrace {
 	public RootTrace() {
-		super(0, "ROOT", 0);
+		super(0, "ROOT", 0, null, null);
 	}
 	
 	public RootTrace(RootTrace other) {

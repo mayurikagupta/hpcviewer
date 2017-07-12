@@ -1,13 +1,13 @@
 package edu.rice.cs.hpc.traceAnalysis.data.cfg;
 
 public abstract class CFGNode {
-	public final long addr;
+	public final long vma;
 	
-	public CFGNode(long addr) {
-		this.addr = addr;
+	public CFGNode(long vma) {
+		this.vma = vma;
 	}
 	
 	public String toString() {
-		return "0x" + Long.toHexString(addr);
+		return "0x" + Long.toHexString(vma);
 	}
 }

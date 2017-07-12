@@ -13,7 +13,7 @@ import edu.rice.cs.hpc.traceAnalysis.cluster.ClusterIdentifier;
 import edu.rice.cs.hpc.traceAnalysis.data.reader.CFGReader;
 import edu.rice.cs.hpc.traceAnalysis.data.reader.HPCToolkitTraceReader;
 import edu.rice.cs.hpc.traceAnalysis.data.tree.AbstractTraceNode;
-import edu.rice.cs.hpc.traceAnalysis.data.tree.ClusterNode;
+import edu.rice.cs.hpc.traceAnalysis.data.tree.ClusterTreeNode;
 import edu.rice.cs.hpc.traceAnalysis.data.tree.ProfileNode;
 import edu.rice.cs.hpc.traceAnalysis.data.tree.RootTrace;
 import edu.rice.cs.hpc.traceAnalysis.data.tree.TraceTree;
@@ -26,16 +26,19 @@ public class Application {
 		
 		HPCToolkitTraceReader traceReader = new HPCToolkitTraceReader(objFile, objPrint, objError);
 		
-		/*
-		RootTrace root = new RootTrace();
-		for (int i = 0; i < 2; i++) {
+		
+		//RootTrace root = new RootTrace();
+		for (int i = 0; i < 1; i++) {
 			TraceTree tree = traceReader.buildTraceTree(i);
+			
 			LoopDetector detector = new LoopDetector(tree);
 			detector.detectLoop(tree.root);
+			
 			IterationClassifier.ClasifyLoops(tree.root);
-			root.addChild(tree.root.getChild(0), tree.root.getChildTime(0));
+			System.out.println(tree.toString(5));
+			//root.addChild(tree.root.getChild(0), tree.root.getChildTime(0));
 		}
-		
+		/*
 		ClusterNode cluster = ClusterIdentifier.findCluster(root);
 		objPrint.println(cluster.print(3, 0));
 		*/

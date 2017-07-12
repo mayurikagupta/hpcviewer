@@ -40,21 +40,21 @@ private final long ra;
 //////////////////////////////////////////////////////////////////////////
 
 public CallSiteScope(LineScope scope, ProcedureScope scope2, 
-		CallSiteScopeType csst, int cct_id, int flat_id, long ra) 
+		CallSiteScopeType csst, int cct_id, int flat_id) 
 {
 	super(scope2.root, scope2.sourceFile,scope2.firstLineNumber,
 			scope2.lastLineNumber, cct_id, flat_id);
 	this.lineScope = scope;
 	this.procScope = scope2;
 	this.type = csst;
-	this.ra = ra;
+	this.ra = scope.ra;
 }
 
 public Scope duplicate() {
     return new CallSiteScope(
     		(LineScope) lineScope.duplicate(), 
     		(ProcedureScope) procScope.duplicate(), 
-    		type, getCCTIndex(), this.flat_node_index, this.ra);
+    		type, getCCTIndex(), this.flat_node_index);
 }
 
 
@@ -64,6 +64,10 @@ public Scope duplicate() {
 
 public long getRA() {
 	return this.ra;
+}
+
+public long getVMA() {
+	return this.procScope.vma;
 }
 
 /*************************************************************************

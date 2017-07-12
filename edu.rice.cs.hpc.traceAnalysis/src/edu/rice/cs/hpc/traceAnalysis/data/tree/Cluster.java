@@ -1,16 +1,15 @@
-package edu.rice.cs.hpc.traceAnalysis.cluster;
+package edu.rice.cs.hpc.traceAnalysis.data.tree;
 
 import java.util.Collections;
 import java.util.Vector;
 
-import edu.rice.cs.hpc.traceAnalysis.data.tree.AbstractTreeNode;
-import edu.rice.cs.hpc.traceAnalysis.data.tree.AbstractTraceNode;
 
-public class Cluster {
+public class Cluster extends AbstractTreeNode {
 	private AbstractTreeNode rep; // representative
 	private Vector<ClusterMemberID> members = new Vector<ClusterMemberID>();
 	
 	public Cluster(AbstractTreeNode node, int id) {
+		super(node);
 		this.rep = node.duplicate();
 		if (this.rep instanceof AbstractTraceNode) {
 			((AbstractTraceNode) this.rep).shiftTime(-((AbstractTraceNode) this.rep).getTime().getStartTimeExclusive());
@@ -19,11 +18,13 @@ public class Cluster {
 	}
 	
 	public Cluster(AbstractTreeNode node, Vector<ClusterMemberID> members) {
+		super(node);
 		this.rep = node.duplicate();
 		this.members.addAll(members);
 	}
 	
 	public Cluster(Cluster other) {
+		super(other);
 		this.rep = other.rep.duplicate();
 		for (ClusterMemberID otherMember : other.members)
 			this.members.add(otherMember.duplicate());
@@ -32,9 +33,11 @@ public class Cluster {
 	public AbstractTreeNode getRep() {
 		return rep;
 	}
-	
-	public int getNumOfMembers() {
-		return members.size();
+
+	@Override
+	public int getWeight() {
+		if (members.size() != rep.weight) System.err.println("Error: cluster member size != weight");
+		return rep.weight;
 	}
 	
 	public Vector<ClusterMemberID> getMembers() {
@@ -50,9 +53,33 @@ public class Cluster {
 			member.append(ID);
 	}
 	
-	public String toString() {
+	public String toString(int maxDepth, long durationCutoff) {
+		String ret = "                ";
+		
+		for (int i = 0; i < depth; i++) ret += "    ";
+		
 		Collections.sort(members);
-		return "Members in cluster : " + members.toString();
+		return ret + "Members in " + rep.getName() + " : " + members.toString() + "\n" + rep.toString(maxDepth, durationCutoff);
+	}
+
+	public boolean isLeaf() {
+		return rep.isLeaf();
+	}
+
+	public void clearChildren() {
+		assert(false);
+	}
+
+	public long getMinDuration() {
+		return rep.getMinDuration();
+	}
+
+	public long getMaxDuration() {
+		return rep.getMaxDuration();
+	}
+
+	public AbstractTreeNode duplicate() {
+		return new Cluster(this);
 	}
 	
 	public class ClusterMemberID implements Comparable<ClusterMemberID> {
@@ -101,5 +128,6 @@ public class Cluster {
 			return 0;
 		}
 	}
+
 }
 

@@ -3,8 +3,8 @@ package edu.rice.cs.hpc.traceAnalysis.iteration;
 import edu.rice.cs.hpc.traceAnalysis.cluster.ClusterIdentifier;
 import edu.rice.cs.hpc.traceAnalysis.data.tree.AbstractTraceNode;
 import edu.rice.cs.hpc.traceAnalysis.data.tree.AbstractTreeNode;
-import edu.rice.cs.hpc.traceAnalysis.data.tree.ClusterNode;
-import edu.rice.cs.hpc.traceAnalysis.data.tree.IteratedLoop;
+import edu.rice.cs.hpc.traceAnalysis.data.tree.ClusterTreeNode;
+import edu.rice.cs.hpc.traceAnalysis.data.tree.IteratedLoopTrace;
 import edu.rice.cs.hpc.traceAnalysis.data.tree.ProfileNode;
 
 public class IterationClassifier {
@@ -17,8 +17,8 @@ public class IterationClassifier {
 			if (newNode != null) trace.updateChild(i, newNode);
 		}
 		
-		if (trace instanceof IteratedLoop) {
-			ClusterNode cluster = ClusterIdentifier.findCluster(trace);
+		if (trace instanceof IteratedLoopTrace) {
+			ClusterTreeNode cluster = ClusterIdentifier.findCluster(trace);
 			
 			/*if (trace.getID() == 69617 || trace.getID() == 23299) {
 				if (cluster != null) 

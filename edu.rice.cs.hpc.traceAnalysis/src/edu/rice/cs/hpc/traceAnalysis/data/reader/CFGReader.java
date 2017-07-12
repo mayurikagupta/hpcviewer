@@ -5,6 +5,7 @@ import java.io.FileReader;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map.Entry;
 
 import com.alexmerz.graphviz.ParseException;
@@ -129,6 +130,7 @@ public class CFGReader {
 					break;
 				}
 			if (nextNode == null) {
+				System.err.println("Unexpected backedge detected while reading DOT file for " + g.getId().getId());
 				int minDist = Integer.MAX_VALUE;
 				for (Entry<Node, Integer> e : nodeDist.entrySet())
 					if (e.getValue() < minDist) {
@@ -169,5 +171,62 @@ public class CFGReader {
 			CFGFuncMap.put(addr, new CFGFunc(addr, label, nodes, null));
 		else
 			CFGLoopMap.put(addr, new CFGLoop(addr, label, nodes, null));
+		
+		/* verifying code
+		if (addr == 0x410989) {
+			long list[] = {0x411712, 0x411cc0, 0x4114fd, 0x410dac, 0x410ea7, 0x411515, 0x4111d6, 0x411522};
+			HashSet<String> idSet = new HashSet<String>();
+			idSet.add("begin_loop_0x410989");
+			for (int i = 0; i < list.length; i++)
+				idSet.add("call_0x" + Long.toHexString(list[i]));
+		
+			System.out.println(idSet);
+			
+			ArrayList<Node> allNodes = g.getNodes(false);
+			
+			ArrayList<HashSet<Integer>> inNodes = new ArrayList<HashSet<Integer>>();
+			ArrayList<HashSet<Integer>> outNodes = new ArrayList<HashSet<Integer>>();
+			HashMap<Node, Integer> indexMap = new HashMap<Node, Integer>();
+			
+			for (int i = 0; i < allNodes.size(); i++) {
+				indexMap.put(allNodes.get(i), i);
+				inNodes.add(new HashSet<Integer>());
+				outNodes.add(new HashSet<Integer>());
+			}
+			
+			for (Edge e : edgeList) {
+				Node srcNode = e.getSource().getNode();
+				Node trgNode = e.getTarget().getNode();
+				
+				int srcIdx = indexMap.get(srcNode);
+				int trgIdx = indexMap.get(trgNode);
+				
+				outNodes.get(srcIdx).add(trgIdx);
+				inNodes.get(trgIdx).add(srcIdx);
+			}
+			
+			for (int i = 0; i < allNodes.size(); i++)
+				if (!idSet.contains(allNodes.get(i).getId().getId())) {
+					inNodes.get(i).remove(i);
+					outNodes.get(i).remove(i);
+					
+					for (Integer k : inNodes.get(i)) {
+						outNodes.get(k).addAll(outNodes.get(i));
+						outNodes.get(k).remove(i);
+					}
+					
+					for (Integer k : outNodes.get(i)) {
+						inNodes.get(k).addAll(inNodes.get(i));
+						inNodes.get(k).remove(i);
+					}
+					
+					inNodes.get(i).clear();
+					outNodes.get(i).clear();
+				}
+			
+			for (int i = 0; i < allNodes.size(); i++)
+				if (idSet.contains(allNodes.get(i).getId().getId()))
+					System.out.println(i + " " + allNodes.get(i).getId().getId() + " -> " + outNodes.get(i));
+		}*/
 	}
 }

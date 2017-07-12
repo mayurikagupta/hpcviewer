@@ -2,15 +2,16 @@ package edu.rice.cs.hpc.traceAnalysis.iteration;
 
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.Vector;
 
+import edu.rice.cs.hpc.traceAnalysis.data.cfg.CFGNode;
 import edu.rice.cs.hpc.traceAnalysis.data.tree.AbstractTraceNode;
 import edu.rice.cs.hpc.traceAnalysis.data.tree.AbstractTreeNode;
-import edu.rice.cs.hpc.traceAnalysis.data.tree.IteratedLoop;
-import edu.rice.cs.hpc.traceAnalysis.data.tree.Iteration;
+import edu.rice.cs.hpc.traceAnalysis.data.tree.FunctionTrace;
+import edu.rice.cs.hpc.traceAnalysis.data.tree.IteratedLoopTrace;
+import edu.rice.cs.hpc.traceAnalysis.data.tree.IterationTrace;
 import edu.rice.cs.hpc.traceAnalysis.data.tree.ProfileNode;
-import edu.rice.cs.hpc.traceAnalysis.data.tree.RawLoop;
+import edu.rice.cs.hpc.traceAnalysis.data.tree.RawLoopTrace;
 import edu.rice.cs.hpc.traceAnalysis.data.tree.TraceTimeStruct;
 import edu.rice.cs.hpc.traceAnalysis.data.tree.TraceTree;
 import edu.rice.cs.hpc.traceAnalysis.utils.TraceAnalysisUtils;
@@ -45,7 +46,7 @@ public class LoopDetector {
         	int curID = node.getChild(k).getID();
         	if (!map.containsKey(curID)) {
         		OccurrenceRecord record = new OccurrenceRecord(curID, k);
-        		if (node.getChild(k) instanceof RawLoop)
+        		if (node.getChild(k) instanceof RawLoopTrace)
         			record.minDuration = 0;
         		records.add(record);
         		map.put(curID, record);
@@ -67,7 +68,7 @@ public class LoopDetector {
         return array;
     }
     
-    /**
+    /*
      * Derive a frontier, which consists of a set of CCT nodes that indicates the start or end of an iteration in the loop.
      * To filter the noise introduced by sampling, every instance of the CCT node in the frontier must has a number of samples of more than an adaptively adjusted threshold.
      * @param rootID ID of the CCT node that indicates the start or end of the loop.
@@ -75,6 +76,7 @@ public class LoopDetector {
      * @param isBeginFrontier TRUE if deriving a begin frontier, FALSE if deriving an end frontier.
      * @return
      */
+    /*
     // tested and generated expecting output
     private HashSet<Integer> getFrontier(int rootID, HashMap<Integer, OccurrenceRecord> map, boolean isBeginFrontier) {
 		HashSet<Integer> frontier = new HashSet<Integer>();
@@ -120,9 +122,10 @@ public class LoopDetector {
 		if (noiseCufoff == noiseLowerCutoff) frontier.clear();
     	return frontier;
     }
+
     
     // tested and generated expecting output
-    private IteratedLoop detectIterations(RawLoop rawLoop)  {
+    private IteratedLoop detectIterations(RawLoopTrace rawLoop)  {
     	// Get occurrence records ranked by their first occurred child index.
     	OccurrenceRecord[] records = getOccurrenceRecord(rawLoop, 0, rawLoop.getNumOfChildren());
     	if (records.length == rawLoop.getNumOfChildren()) return null;
@@ -185,7 +188,7 @@ public class LoopDetector {
 		int lastFrontierID = 0;
 		for (int i = 0; i < rawLoop.getNumOfChildren(); i++) {
 			if (!isBeginFrontier) // If end frontier, add the current child before terminating this iteration
-				iter.addChild(rawLoop.getChild(i), rawLoop.getChildTime(i));
+				iter.addChild(rawLoop.getChild(i), rawLoop.getChildTime(i), rawLoop.getChildCFGNode(i));
 			
 			// determine if the iteration should be terminated.
 			if (frontier.contains(rawLoop.getChild(i).getID())) {
@@ -210,7 +213,7 @@ public class LoopDetector {
 						iter.getTime().setEndTimeExclusive(startTimeInclusive);
 						iter.getTime().setEndTimeInclusive(startTimeExclusive);
 
-						retLoop.addChild(iter, iter.getTime());
+						retLoop.addChild(iter, iter.getTime(), null);
 						iter.setDepth(retLoop.getDepth()+1);
 						iter = new Iteration(retLoop, retLoop.getNumOfChildren());
 					}
@@ -222,7 +225,7 @@ public class LoopDetector {
 			}
 			
 			if (isBeginFrontier) // if begin frontier, add the current child after terminating the previous iteration
-				iter.addChild(rawLoop.getChild(i), rawLoop.getChildTime(i));
+				iter.addChild(rawLoop.getChild(i), rawLoop.getChildTime(i), rawLoop.getChildCFGNode(i));
 		}
 		
 		if (iter.getNumOfChildren() > 0) {
@@ -230,13 +233,84 @@ public class LoopDetector {
 			iter.getTime().setStartTimeInclusive(startTimeInclusive);
 			iter.getTime().setEndTimeExclusive(rawLoop.getTime().getEndTimeExclusive());
 			iter.getTime().setEndTimeInclusive(rawLoop.getTime().getEndTimeInclusive());
-			retLoop.addChild(iter, iter.getTime());
+			retLoop.addChild(iter, iter.getTime(), null);
 			iter.setDepth(retLoop.getDepth()+1);
 		}
 		
 		return retLoop;
     }
+*/
+    
+    private AbstractTraceNode detectIterations(RawLoopTrace rawLoop) {
+    	// First, check if the rawLoop does contain a loop.
+    	// Contains a loop = exist at least one child that occurs more than once.
+    	
+    	OccurrenceRecord[] records = getOccurrenceRecord(rawLoop, 0, rawLoop.getNumOfChildren());
+    	// If doesn't contain a loop, convert this rawLoop to functionTrace
+    	if (records.length == rawLoop.getNumOfChildren()) {
+    		FunctionTrace trace = new FunctionTrace(rawLoop);
+    		return trace;
+    	}
+    	
+    	// When a rawloop don't have a cfgNode reference, return null.
+    	if (rawLoop.cfgNode == null) {
+    		return null;
+    	}
+    	
+    	// If it has, try to identify all iterations using cfgNode.
+		IteratedLoopTrace retLoop = new IteratedLoopTrace(rawLoop);
 
+		IterationTrace iter = new IterationTrace(retLoop, retLoop.getNumOfChildren());
+		iter.getTime().setStartTimeExclusive(rawLoop.getTime().getStartTimeExclusive());
+	    iter.getTime().setStartTimeInclusive(rawLoop.getTime().getStartTimeInclusive());
+		
+		int lastIndex = -1;
+		
+		for (int i = 0; i < rawLoop.getNumOfChildren(); i++) {
+			int curIndex = rawLoop.cfgNode.getChildIndex(rawLoop.getChildCFGNode(i));
+			if (curIndex == -1) { 
+				/* When we are unable to locate a child within the cfgNode, we will omit it.
+				 */
+				System.err.println("Ignored: unexpected CFG ID " + rawLoop.getChildCFGNode(i) + " in loop 0x" + Long.toHexString(rawLoop.cfgNode.vma));
+				continue;
+			}
+			
+			// forward flow, simply proceed and add the current child to current iteration
+			if (curIndex > lastIndex)
+				iter.addChild(rawLoop.getChild(i), rawLoop.getChildTime(i), rawLoop.getChildCFGNode(i));
+			// backward flow means end of iteration, end the current iteration and generates a new one.
+			else {
+				long startTimeExclusive = rawLoop.getChildTime(i).getStartTimeExclusive();
+				long startTimeInclusive = rawLoop.getChildTime(i).getStartTimeInclusive();
+				
+				// end time for the current iteration
+				iter.getTime().setEndTimeExclusive(startTimeInclusive);
+				iter.getTime().setEndTimeInclusive(startTimeExclusive);
+
+				retLoop.addChild(iter, iter.getTime(), null);
+				iter.setDepth(retLoop.getDepth()+1);
+				
+				// new iteration
+				iter = new IterationTrace(retLoop, retLoop.getNumOfChildren());
+				iter.getTime().setStartTimeExclusive(startTimeExclusive);
+				iter.getTime().setStartTimeInclusive(startTimeInclusive);
+				
+				iter.addChild(rawLoop.getChild(i), rawLoop.getChildTime(i), rawLoop.getChildCFGNode(i));
+			}
+		
+			lastIndex = curIndex;
+		}
+		
+		if (iter.getNumOfChildren() > 0) {
+			iter.getTime().setEndTimeExclusive(rawLoop.getTime().getEndTimeExclusive());
+			iter.getTime().setEndTimeInclusive(rawLoop.getTime().getEndTimeInclusive());
+			retLoop.addChild(iter, iter.getTime(), null);
+			iter.setDepth(retLoop.getDepth()+1);
+		}
+		
+		return retLoop;
+    }
+    
     /**
      * Input: trace tree containing only FunctionTrace and RawLoop nodes.
      * Output: trace tree containing ProfileNode, FunctionTrace, and IteratedLoop nodes.
@@ -252,32 +326,38 @@ public class LoopDetector {
 
     	AbstractTraceNode trace = (AbstractTraceNode) node;
    
-		if (trace instanceof RawLoop) {
-			IteratedLoop loop = detectIterations((RawLoop)trace);
-			if (loop != null)  {
-				for (int i = 0; i < loop.getNumOfChildren(); i++) {
-					AbstractTreeNode iter = detectLoop(loop.getChild(i));
-	    			if (iter != null) loop.updateChild(i, iter);
+    	// For loops, try to divide them into iterations. If can't, turn them into profile nodes.
+		if (trace instanceof RawLoopTrace) {
+			AbstractTraceNode newTrace = detectIterations((RawLoopTrace)trace);
+			if (newTrace != null)  {
+				for (int i = 0; i < newTrace.getNumOfChildren(); i++) {
+					AbstractTreeNode iter = detectLoop(newTrace.getChild(i));
+	    			if (iter != null) newTrace.updateChild(i, iter);
 	    		}
-				return loop;
+				return newTrace;
 			}
 			else
 				return ProfileNode.toProfile(trace);
 		}
+		
+		// For functions, make sure there are no multiple occurrence of the same node (which implies a loop)
 
     	// Get occurrence records ranked by their first occurred child index.
     	OccurrenceRecord[] records = getOccurrenceRecord(trace, 0, trace.getNumOfChildren());
     	
     	// No loop exists
     	if (records.length == trace.getNumOfChildren()) {
-    		for (int i = 0; i < records.length; i++) {
+    		for (int i = 0; i < trace.getNumOfChildren(); i++) {
     			AbstractTreeNode child = detectLoop(trace.getChild(i));
     			if (child != null) trace.updateChild(i, child);
     		}
     		return null;
     	}
-    	
-    	/**
+
+//TODO while adjusting loops in the code below, some calls with be migrated into certain loops 
+   // and lose the CFG connection with its parent. 
+    		
+    	/*
     	 * A loop exists = at least one node occurred more than once 
     	 * = number of occurrence record is smaller than the number of children.
     	 * 
@@ -286,14 +366,16 @@ public class LoopDetector {
 
     	Vector<AbstractTreeNode> newChildren = new Vector<AbstractTreeNode>();
     	Vector<TraceTimeStruct> newChildrenTime = new Vector<TraceTimeStruct>();
+    	Vector<CFGNode> newChildrenCFGNode = new Vector<CFGNode>();
     	
     	int k = 0;
     	while (k < records.length) {
-    		// For every child that occurred once and not overlapped with a loop, 
+    		// For child that occurred once and not overlapped with a loop, 
     		// they will remain the child of the current node.
     		while (k < records.length && records[k].occurrence == 1) {
     			newChildren.add(trace.getChild(records[k].firstOccur));
     			newChildrenTime.add(trace.getChildTime(records[k].firstOccur));
+    			newChildrenCFGNode.add(trace.getChildCFGNode(records[k].firstOccur));
 				k++;
     		}
     		
@@ -313,19 +395,19 @@ public class LoopDetector {
     			k++;
     		}
     		
-    		RawLoop loop = null;
+    		RawLoopTrace loop = null;
     		
     		// See if the detected loop only consists of repetitions of loops with same ID.
     		// If so, will merge those loops together under one loop node
-    		if ((numRepCat == 1) && (trace.getChild(records[firstIdx].firstOccur) instanceof RawLoop)) {
-    			AbstractTreeNode child = trace.getChild(records[firstIdx].firstOccur);
-    			loop = new RawLoop(child.getID(), child.getName(), child.getDepth());
+    		if ((numRepCat == 1) && (trace.getChild(records[firstIdx].firstOccur) instanceof RawLoopTrace)) {
+    			RawLoopTrace child = (RawLoopTrace)trace.getChild(records[firstIdx].firstOccur);
+    			loop = new RawLoopTrace(child.getID(), child.getName(), child.getDepth(), child.cfgNode);
     		}
     		// If not, allocate a new loop node
     		else {
     	    	if (trace.getDuration() <= detectionCutoff) return ProfileNode.toProfile(trace);
     			//TODO assigning an appropriate loop ID
-    			loop = new RawLoop(--detectedLoopID, "LOOP", trace.getDepth()+1);
+    			loop = new RawLoopTrace(--detectedLoopID, "LOOP", trace.getDepth()+1, null);
     		}
     		
     		loop.getTime().setStartTimeInclusive(trace.getChildTime(firstChild).getStartTimeInclusive());
@@ -335,26 +417,27 @@ public class LoopDetector {
     		for (int i = firstChild; i <= lastChild; i++)
     			// This branch will always be taken when a new loop is allocated.
     			if (trace.getChild(i).getID() != loop.getID())
-    				loop.addChild(trace.getChild(i), trace.getChildTime(i));
+    				loop.addChild(trace.getChild(i), trace.getChildTime(i), trace.getChildCFGNode(i));
     			// This branch will only be taken when the existing loops should be merged.
     		    // Merge the repetitions of the same loop under a single loop node
     			else {
-    				RawLoop oldLoop = (RawLoop)trace.getChild(i);
+    				RawLoopTrace oldLoop = (RawLoopTrace)trace.getChild(i);
     				for (int j = 0; j < oldLoop.getNumOfChildren(); j++)
-    					loop.addChild(oldLoop.getChild(j), oldLoop.getChildTime(j));
+    					loop.addChild(oldLoop.getChild(j), oldLoop.getChildTime(j), oldLoop.getChildCFGNode(j));
     			}
     			
     		
     		loop.setDepth(loop.getDepth());
     		newChildren.add(loop);
     		newChildrenTime.add(loop.getTime());
+    		newChildrenCFGNode.add(loop.cfgNode);
     	}
     	
     	trace.clearChildren();
     	for (int i = 0; i < newChildren.size(); i++) {
     		AbstractTreeNode child = detectLoop(newChildren.get(i));
     		if (child == null) child = newChildren.get(i);
-    		trace.addChild(child, newChildrenTime.get(i));
+    		trace.addChild(child, newChildrenTime.get(i), newChildrenCFGNode.get(i));
     	}
     	return null;
     }

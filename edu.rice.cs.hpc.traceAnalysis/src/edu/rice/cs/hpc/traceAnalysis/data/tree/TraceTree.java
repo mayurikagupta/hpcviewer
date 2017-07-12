@@ -19,7 +19,7 @@ public class TraceTree {
 		this.sampleFrequency = (int)((endTime - begTime) / (numSamples - 1));
 	}
 	
-	public String print(int maxDepth) {
-		return root.print(maxDepth, sampleFrequency * TraceAnalysisUtils.traceCutoffMultiplier);
+	public String toString(int maxDepth) {
+		return root.toString(maxDepth, sampleFrequency * TraceAnalysisUtils.traceCutoffMultiplier);
 	}
 }

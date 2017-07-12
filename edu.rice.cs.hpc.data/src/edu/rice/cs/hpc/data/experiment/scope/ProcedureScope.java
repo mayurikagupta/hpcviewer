@@ -47,6 +47,8 @@ protected LoadModuleScope objLoadModule;
 
 final static public String INLINE_NOTATION = "[I] ";
 
+final long vma;
+
 /**
  * scope ID of the procedure frame. The ID is given by hpcstruct and hpcprof
  */
@@ -65,7 +67,7 @@ final static public String INLINE_NOTATION = "[I] ";
 	
 public ProcedureScope(RootScope root, SourceFile file, int first, int last, 
 		String proc, boolean _isalien, int cct_id, int flat_id, 
-		IUserData<String,String> userData, boolean isFalseProcedure)
+		IUserData<String,String> userData, boolean isFalseProcedure, long vma)
 {
 	super(root, file, first, last, cct_id, flat_id);
 	this.isalien = _isalien;
@@ -87,6 +89,7 @@ public ProcedureScope(RootScope root, SourceFile file, int first, int last,
 
 	this.objLoadModule 	  = null;
 	this.isFalseProcedure = isFalseProcedure;
+	this.vma = vma;
 }
 
 
@@ -102,9 +105,9 @@ public ProcedureScope(RootScope root, SourceFile file, int first, int last,
  */
 public ProcedureScope(RootScope root, LoadModuleScope loadModule, SourceFile file, 
 		int first, int last, String proc, boolean _isalien, int cct_id, int flat_id, 
-		IUserData<String,String> userData, boolean isFalseProcedure)
+		IUserData<String,String> userData, boolean isFalseProcedure, long vma)
 {
-	this(root, file, first, last,proc,_isalien, cct_id, flat_id, userData, isFalseProcedure);
+	this(root, file, first, last,proc,_isalien, cct_id, flat_id, userData, isFalseProcedure, vma);
 	//this.iScopeID = sid;
 	this.objLoadModule = loadModule;
 }
@@ -160,7 +163,8 @@ public Scope duplicate() {
 			getCCTIndex(), // Laks 2008.08.26: add the sequence ID
 			this.flat_node_index,
 			null,
-			this.isFalseProcedure);
+			this.isFalseProcedure,
+			this.vma);
 
 }
 

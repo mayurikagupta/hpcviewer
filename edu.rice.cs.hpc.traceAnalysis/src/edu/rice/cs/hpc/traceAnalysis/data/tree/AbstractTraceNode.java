@@ -2,9 +2,13 @@ package edu.rice.cs.hpc.traceAnalysis.data.tree;
 
 import java.util.Vector;
 
+import edu.rice.cs.hpc.traceAnalysis.data.cfg.CFGGraph;
+import edu.rice.cs.hpc.traceAnalysis.data.cfg.CFGNode;
+
 abstract public class AbstractTraceNode extends AbstractTreeNode {
 	protected TraceTimeStruct time = new TraceTimeStruct();
-
+	public final CFGGraph cfgNode;
+	
 	protected Vector<AbstractTreeNode> children = new Vector<AbstractTreeNode>();
 	
 	/**
@@ -14,12 +18,21 @@ abstract public class AbstractTraceNode extends AbstractTreeNode {
 	 */
 	protected Vector<TraceTimeStruct> childrenTime = new Vector<TraceTimeStruct>();
 	
-	public AbstractTraceNode(int ID, String name, int depth) {
+	/**
+	 * CFGNode references for children.
+	 * If a child represent a function call, the reference should be CFGCall
+	 * If a child represent a loop, the reference should be CFGLoop
+	 */
+	protected Vector<CFGNode> childrenCFGNode = new Vector<CFGNode>();
+	
+	public AbstractTraceNode(int ID, String name, int depth, CFGGraph cfgNode) {
 		super(ID, name, depth);
+		this.cfgNode = cfgNode;
 	}
 	
 	public AbstractTraceNode(AbstractTraceNode other) {
 		super(other);
+		cfgNode = other.cfgNode;
 		
 		time = other.time.duplicate();
 		for (int i = 0; i < other.getNumOfChildren(); i++)
@@ -27,9 +40,11 @@ abstract public class AbstractTraceNode extends AbstractTreeNode {
 				AbstractTraceNode child = (AbstractTraceNode)other.getChild(i).duplicate();
 				children.add(child);
 				childrenTime.add(child.time);
+				childrenCFGNode.add(other.getChildCFGNode(i));
 			} else {
 				children.add(other.getChild(i).duplicate());
 				childrenTime.add(other.getChildTime(i).duplicate());
+				childrenCFGNode.add(other.getChildCFGNode(i));
 			}
 	}
 
@@ -43,6 +58,10 @@ abstract public class AbstractTraceNode extends AbstractTreeNode {
 	
 	public TraceTimeStruct getChildTime(int index) {
 		return childrenTime.get(index);
+	}
+	
+	public CFGNode getChildCFGNode(int index) {
+		return childrenCFGNode.get(index);
 	}
 	
 	public long getMaxGapDurationBeforeChild(int index) {
@@ -75,9 +94,10 @@ abstract public class AbstractTraceNode extends AbstractTreeNode {
 		return children.get(index);
 	}
 	
-	public void addChild(AbstractTreeNode node, TraceTimeStruct time) {
+	public void addChild(AbstractTreeNode node, TraceTimeStruct time, CFGNode cfgNode) {
 		children.add(node);
 		childrenTime.add(time);
+		childrenCFGNode.add(cfgNode);
 		
 		if (node instanceof AbstractTraceNode) 
 			assert (time == ((AbstractTraceNode)node).time);
@@ -161,6 +181,7 @@ abstract public class AbstractTraceNode extends AbstractTreeNode {
 	public void clearChildren() {
 		children.clear();
 		childrenTime.clear();
+		childrenCFGNode.clear();
 	}
 	
 	public long getMinDuration() {
@@ -173,19 +194,36 @@ abstract public class AbstractTraceNode extends AbstractTreeNode {
 		return time.endTimeExclusive - time.startTimeExclusive - 1;
 	}
 	
-	public String print(int maxDepth, long durationCutoff) {
-		String ret = "T";
+	public String toString(int maxDepth, long durationCutoff) {
+		String ret;
+		if (cfgNode == null) ret = "       ";
+		else ret = Long.toHexString(cfgNode.vma) + " ";
 		
 		for (int i = 0; i < depth; i++) ret += "    ";
 
 		ret += name + "(" + ID + ")";
 		
 		ret += " " + time.startTimeExclusive / printDivisor + "/" +time.startTimeInclusive / printDivisor + 
-				" ~ " + time.endTimeInclusive / printDivisor + "/" + + time.endTimeExclusive / printDivisor + "\n";
+				" ~ " + time.endTimeInclusive / printDivisor + "/" + + time.endTimeExclusive / printDivisor;
+		
+		if (inclusiveDiffScore != 0) {
+			/*
+			long t = inclusiveDiffScore * 10000 / this.getMaxDuration() / weight;
+			ret += "  In-diff = " + t/100 + "." + t/1000%100 + t%1000 + "%";
+			t = exclusiveDiffScore * 10000 / this.getMaxDuration() / weight;
+			ret += "  Ex-diff = " + t/100 + "." + t/1000%100 + t%1000 + "%";*/
+			
+			long t = inclusiveDiffScore / printDivisor;
+			ret += "  In-diff = " + t;
+			t = exclusiveDiffScore / printDivisor;
+			ret += "  Ex-diff = " + t;
+		}
+		
+		ret += "\n";
 		
 		if (getNumOfChildren() != 0 && this.getDuration() >= durationCutoff && this.depth < maxDepth)
 			for (int i = 0; i < getNumOfChildren(); i++)
-				ret += getChild(i).print(maxDepth, durationCutoff);
+				ret += getChild(i).toString(maxDepth, durationCutoff);
 		
 		return ret;
 	}

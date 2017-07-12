@@ -69,9 +69,6 @@ public class BaseExperimentBuilder extends Builder {
 
 	/** The current source file while parsing. */
 	protected Stack<SourceFile> srcFileStack;
-
-	/** RA address of the last parsed callsite **/
-	private long ra = 0;
 	
 	private boolean csviewer;
 	
@@ -595,7 +592,7 @@ public class BaseExperimentBuilder extends Builder {
 					}
 				} else if (attributes[i].equals("p") ) {
 					// obsolete format: p is the name of the procedure
-					procAttribute = new ProcedureAttribute(values[i], false);
+					procAttribute = new ProcedureAttribute(values[i], false, 0);
 					
 				} else if(attributes[i].equals(NAME_ATTRIBUTE)) {
 					// new database format: n is the flat ID of the procedure
@@ -650,8 +647,8 @@ public class BaseExperimentBuilder extends Builder {
 			this.srcFileStack.add(srcFile);
 
 			ProcedureScope procScope  = new ProcedureScope(this.viewRootScope, objLoadModule, srcFile, 
-					firstLn-1, lastLn-1, 
-					procAttribute.name, isalien, cct_id, flat_id, userData, procAttribute.falseProcedure);
+					firstLn-1, lastLn-1, procAttribute.name, isalien, cct_id, flat_id, userData, 
+					procAttribute.falseProcedure, procAttribute.vma);
 
 			if ( (this.scopeStack.size()>1) && ( this.scopeStack.peek() instanceof LineScope)  ) {
 
@@ -668,9 +665,8 @@ public class BaseExperimentBuilder extends Builder {
 					callsiteID = this.getCallSiteID(ls, procScope);  
 				}
 				CallSiteScope csn = new CallSiteScope( ls, procScope, 
-						CallSiteScopeType.CALL_TO_PROCEDURE, cct_id, callsiteID, this.ra);
-				this.ra = 0;
-
+						CallSiteScopeType.CALL_TO_PROCEDURE, cct_id, callsiteID);
+				
 				// beginScope pushes csn onto the node stack and connects it with its parent
 				// this is done while the ls is off the stack so the parent of csn is ls's parent. 
 				// afterward, we rearrange the top of stack to tuck ls back underneath csn in case it is 
@@ -798,6 +794,7 @@ public class BaseExperimentBuilder extends Builder {
 		String sID = null;
 		String sData = null;
 		boolean isFalseProc = false;
+		long vma = 0;
 
 		for (int i=0; i<attributes.length; i++)
 		{
@@ -809,12 +806,13 @@ public class BaseExperimentBuilder extends Builder {
 				int val     = Integer.valueOf(values[i]);
 				if (val == 1)
 					isFalseProc = true;
+			} else if (attributes[i].equals(VALUE_ATTRIBUTE)) {
+				vma = Long.decode(values[i]);
 			}
-			
 		}
 		try {
 			Integer objID = Integer.parseInt(sID);
-			this.hashProcedureTable.put(objID, new ProcedureAttribute(sData, isFalseProc));
+			this.hashProcedureTable.put(objID, new ProcedureAttribute(sData, isFalseProc, vma));
 		} catch (java.lang.NumberFormatException e) {
 			e.printStackTrace();
 		}
@@ -911,6 +909,7 @@ public class BaseExperimentBuilder extends Builder {
 		int firstLn = 0;
 		int lastLn  = 0;
 		int cpid = 0;
+		long ra = 0;
 
 		for(int i=0; i<attributes.length; i++) {
 			if(attributes[i].equals(LINE_ATTRIBUTE)) {
@@ -927,8 +926,8 @@ public class BaseExperimentBuilder extends Builder {
 
 			} else if(attributes[i].equals("it")) { //the cpid
 				cpid = Integer.parseInt(values[i]);
-			} else if (attributes[i].equals(VALUE_ATTRIBUTE) && isCallSite) {
-				this.ra = Long.decode(values[i]);
+			} else if (attributes[i].equals(VALUE_ATTRIBUTE)) {
+				ra = Long.decode(values[i]);
 			}
 
 		}
@@ -938,7 +937,7 @@ public class BaseExperimentBuilder extends Builder {
 
 		Scope scope;
 		if( firstLn == lastLn )
-			scope = new LineScope(this.viewRootScope, srcFile, firstLn-1, cct_id, flat_id);
+			scope = new LineScope(this.viewRootScope, srcFile, firstLn-1, cct_id, flat_id, ra);
 		else
 			scope = new StatementRangeScope(this.viewRootScope, srcFile, 
 					firstLn-1, lastLn-1, cct_id, flat_id);
@@ -1285,7 +1284,7 @@ public class BaseExperimentBuilder extends Builder {
 			// the database of procedure doesn't exist. This can be a flat view.
 			sProcName = sProcIndex;
 		}
-		attribute = new ProcedureAttribute(sProcName, false);
+		attribute = new ProcedureAttribute(sProcName, false, 0);
 		return attribute;
 	}
 	
@@ -1322,11 +1321,13 @@ public class BaseExperimentBuilder extends Builder {
 	{
 		final public String name;
 		final public boolean falseProcedure;
+		final public long vma;
 		
-		public ProcedureAttribute(String name, boolean falseProcedure)
+		public ProcedureAttribute(String name, boolean falseProcedure, long vma)
 		{
 			this.name = name;
 			this.falseProcedure = falseProcedure;
+			this.vma = vma;
 		}
 	}
 }

@@ -35,7 +35,7 @@ public class LineScope extends Scope
 {
 
 
-
+	final long ra;
 
 //////////////////////////////////////////////////////////////////////////
 //	INITIALIZATION														//
@@ -51,7 +51,14 @@ public class LineScope extends Scope
 public LineScope(RootScope root, SourceFile sourceFile, int lineNumber, int cct_id, int flat_id)
 {
 	super(root, sourceFile, lineNumber, lineNumber, cct_id, flat_id);
+	ra = 0;
 //	this.id = "LineScope";
+}
+
+public LineScope(RootScope root, SourceFile sourceFile, int lineNumber, int cct_id, int flat_id, long ra)
+{
+	super(root, sourceFile, lineNumber, lineNumber, cct_id, flat_id);
+	this.ra = ra;
 }
 
 /*
@@ -138,7 +145,7 @@ public Scope duplicate() {
 		new LineScope(this.root, 
 				this.sourceFile, 
 				this.firstLineNumber,
-				getCCTIndex(), this.flat_node_index);
+				getCCTIndex(), this.flat_node_index, this.ra);
 
 	return duplicatedScope;
 }
