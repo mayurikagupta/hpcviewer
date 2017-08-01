@@ -420,7 +420,7 @@ public class Graph {
 		for(int i=0; i<nodes.size(); i++) {
 			n = nodes.get(i);
 			nid = n.getId();
-			if(nid.isEqual(id)) {
+			if(nid.equals(id)) {
 				return n;
 			}
 		}

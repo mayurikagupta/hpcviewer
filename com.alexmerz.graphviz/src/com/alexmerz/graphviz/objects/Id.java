@@ -95,10 +95,14 @@ public class Id {
 	 * @param eid
 	 * @return true if both Ids are equal
 	 */
-	public boolean isEqual(Id eid) {
-		if(eid==this) {
+	@Override
+	public boolean equals(Object obj) {
+		if(obj==this) {
 			return true;
-		} else {
+		} 
+		else {
+			if (!(obj instanceof Id)) return false;
+			Id eid = (Id) obj;
 			// Id and label are the same
 			if(eid.getId().equals(id) && eid.getLabel().equals(label)) {
 				return true;
@@ -111,5 +115,10 @@ public class Id {
 			}
 			return false;
 		}
+	}
+	
+	@Override
+	public int hashCode() {
+		return (id + label).hashCode();
 	}
 }

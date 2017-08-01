@@ -7,6 +7,7 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Stack;
 
@@ -27,7 +28,8 @@ public class Parser implements ParserConstants {
   private Stack<Graph> graphs = new Stack<Graph>();
   private ArrayList<Graph> graphGeneralList = new ArrayList<Graph>();
   private int direction = Graph.UNDIRECTED;
-  private ArrayList<Node> nodeList = new ArrayList<Node>();
+  //private ArrayList<Node> nodeList = new ArrayList<Node>();
+  private HashMap<Id, Node> nodeMap = new HashMap<Id, Node>();
   private ArrayList<Graph> graphList = new ArrayList<Graph>();
 
   /**
@@ -100,6 +102,12 @@ public class Parser implements ParserConstants {
         Id nid = new Id();
         nid.setId(id);
         nid.setLabel(label);
+        
+        if (nodeMap.containsKey(nid)) 
+        	return nodeMap.get(nid);
+        
+        /*
+         * 
         Node n = null;
         Id tid = null;
         for(int i=0; i<nodeList.size(); i++) {
@@ -108,10 +116,11 @@ public class Parser implements ParserConstants {
                 if(tid.isEqual(nid)) {
                         return n;
                 }
-        }
-        n = new Node();
+        }*/
+        Node n = new Node();
         n.setId(nid);
-        nodeList.add(n);
+        //nodeList.add(n);
+        nodeMap.put(nid, n);
         g.addNode(n);
         return n;
   }
@@ -125,7 +134,7 @@ public class Parser implements ParserConstants {
   protected void checkIfNodeIsSubgraph(Node n) {
         // check if node represents a cluster/subgraph		
         for(int i=0; i<graphList.size(); i++) {
-                if(graphList.get(i).getId().isEqual(n.getId())) {
+                if(graphList.get(i).getId().equals(n.getId())) {
                         n.representsSubgraph(true);
                         break;
                 }
