@@ -36,18 +36,19 @@ public class HPCToolkitTraceReader {
 	final static private int MIN_TRACE_SIZE = TraceDataByRank.HeaderSzMin + TraceDataByRank.RecordSzMin * 2;
 	final static public int RECORD_SIZE    = Constants.SIZEOF_LONG + Constants.SIZEOF_INT;
 	
-	PrintStream objPrint;
-	PrintStream objError;
+	private PrintStream objPrint;
+	private PrintStream objError;
 	
 	private String traceFilePath;
 	
     private ExperimentWithoutMetrics exp;
     private BaseData dataTrace;
-    HashMap<Integer, LineScope> scopeMap;
+    private HashMap<Integer, LineScope> scopeMap;
     
-    int maxDepth;
-    long minTime;
-    long frequency;
+    private int maxDepth;
+    private long minTime;
+    private long maxTime;
+    private long frequency;
 	
     private CFGReader cfgReader;
     
@@ -79,6 +80,7 @@ public class HPCToolkitTraceReader {
 			final int version = exp.getMajorVersion();
 			
 			minTime = trAttribute.dbTimeMin;
+			maxTime = trAttribute.dbTimeMax;
 			
 			if (version == 1 || version == 2)
 			{	// original format
@@ -109,7 +111,6 @@ public class HPCToolkitTraceReader {
 			objError.println("Error while processing CFG graphviz file.");
 			return;
 		}
-		objPrint.println(cfgReader);
 		
 		dataTrace = new BaseData(fileDB);
 	}
@@ -145,6 +146,10 @@ public class HPCToolkitTraceReader {
 		return dataTrace.getNumberOfRanks();
 	}
 	
+	public long getDurantion() {
+		return maxTime - minTime;
+	}
+	
 	private int computeLCADepth(CallPathWithLoop last, CallPathWithLoop cur) {
 		int depth = Math.min(last.getMaxDepth(), cur.getMaxDepth()) - 1;
 		while (depth >= 0 && last.getScopeAt(depth).getCCTIndex() != cur.getScopeAt(depth).getCCTIndex()) depth--;
@@ -167,7 +172,7 @@ public class HPCToolkitTraceReader {
 		long minloc = dataTrace.getMinLoc(rank);
 		long maxloc = dataTrace.getMaxLoc(rank);
 		
-		RootTrace root = new RootTrace();
+		RootTrace root = new RootTrace("Root for proc #" + rank);
 		
 		Stack<AbstractTraceNode> activeTraceStack = new Stack<AbstractTraceNode>();
 		activeTraceStack.add(root);

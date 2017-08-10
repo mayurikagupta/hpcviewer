@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.Date;
 
 import edu.rice.cs.hpc.data.util.Constants;
 import edu.rice.cs.hpc.data.util.Util;
@@ -24,20 +25,47 @@ public class Application {
 	private boolean openExperiment(PrintStream objPrint, PrintStream objError, File objFile) {
 		if (!objFile.canRead()) return false;
 		
+		objError.println("Start at " + (new Date()).toString());
+		
 		HPCToolkitTraceReader traceReader = new HPCToolkitTraceReader(objFile, objPrint, objError);
 		
+		objError.println("Init finished at " + (new Date()).toString());
 		
-		//RootTrace root = new RootTrace();
-		for (int i = 0; i < 1; i++) {
+		int printDepth = 10;
+		
+		RootTrace root = new RootTrace("Root for all procs");
+		root.getTime().setStartTimeExclusive(0);
+		root.getTime().setStartTimeInclusive(0);
+		root.getTime().setEndTimeInclusive(traceReader.getDurantion());
+		root.getTime().setEndTimeExclusive(traceReader.getDurantion());
+		
+		for (int i = 0; i < 24; i += 6) {
+			objError.println("\n\nProcessing traceline #" + i + ": ");
 			TraceTree tree = traceReader.buildTraceTree(i);
-			
+			objError.println("Build finished at " + (new Date()).toString());
+			//objPrint.println(tree.toString(printDepth));
 			LoopDetector detector = new LoopDetector(tree);
 			detector.detectLoop(tree.root);
-			
+			objError.println("Detect loop finished at " + (new Date()).toString());
+			//objPrint.println("*************************************************");
+			//objPrint.println(tree.toString(printDepth));
 			IterationClassifier.ClasifyLoops(tree.root);
-			System.out.println(tree.toString(5));
-			//root.addChild(tree.root.getChild(0), tree.root.getChildTime(0));
+			//objPrint.println("*************************************************");
+			//objPrint.println(tree.printLargeDiffNodes(printDepth));
+			
+			root.addChild(tree.root, tree.root.getTime(), null);
 		}
+		
+		objError.println("\n\nMerge all threads at " + (new Date()).toString());
+		root.setDepth(0);
+		//objPrint.println(root.toString(printDepth, 10000, 0));
+		
+		
+		ClusterTreeNode cluster = ClusterIdentifier.findCluster(root);
+		//objPrint.println(cluster.toString(3, 10000, 0));
+		objPrint.println(cluster.printLargeDiffNodes(printDepth, 100, null, Long.MIN_VALUE));
+		
+		objError.println("Exit at " + (new Date()).toString());
 		/*
 		ClusterNode cluster = ClusterIdentifier.findCluster(root);
 		objPrint.println(cluster.print(3, 0));

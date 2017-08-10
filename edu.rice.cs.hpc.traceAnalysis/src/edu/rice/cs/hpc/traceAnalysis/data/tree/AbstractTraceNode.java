@@ -4,6 +4,7 @@ import java.util.Vector;
 
 import edu.rice.cs.hpc.traceAnalysis.data.cfg.CFGGraph;
 import edu.rice.cs.hpc.traceAnalysis.data.cfg.CFGNode;
+import edu.rice.cs.hpc.traceAnalysis.utils.TraceAnalysisUtils;
 
 abstract public class AbstractTraceNode extends AbstractTreeNode {
 	protected TraceTimeStruct time = new TraceTimeStruct();
@@ -30,7 +31,7 @@ abstract public class AbstractTraceNode extends AbstractTreeNode {
 		this.cfgNode = cfgNode;
 	}
 	
-	public AbstractTraceNode(AbstractTraceNode other) {
+	protected AbstractTraceNode(AbstractTraceNode other) {
 		super(other);
 		cfgNode = other.cfgNode;
 		
@@ -174,6 +175,12 @@ abstract public class AbstractTraceNode extends AbstractTreeNode {
 			child.setDepth(depth+1);
 	}
 	
+	public void setWeight(int weight) {
+		super.setWeight(weight);
+		for (AbstractTreeNode node : children)
+			node.setWeight(weight);
+	}
+	
 	public boolean isLeaf() {
 		return children.size() == 0;
 	}
@@ -182,6 +189,18 @@ abstract public class AbstractTraceNode extends AbstractTreeNode {
 		children.clear();
 		childrenTime.clear();
 		childrenCFGNode.clear();
+	}
+	
+	public void clearDiffScore() {
+		super.clearDiffScore();
+		for (AbstractTreeNode node : children)
+			node.clearDiffScore();
+	}
+	
+	public void stretchDiffScore(int multiplier, int divisor) {
+		super.stretchDiffScore(multiplier, divisor);
+		for (AbstractTreeNode node : children)
+			node.stretchDiffScore(multiplier, divisor);
 	}
 	
 	public long getMinDuration() {
@@ -194,7 +213,31 @@ abstract public class AbstractTraceNode extends AbstractTreeNode {
 		return time.endTimeExclusive - time.startTimeExclusive - 1;
 	}
 	
-	public String toString(int maxDepth, long durationCutoff) {
+	public String printLargeDiffNodes(int maxDepth, long durationCutoff, TraceTimeStruct ts, long totalDiff) {
+		if (this.depth > maxDepth) return "";
+		if (this.getDuration() < durationCutoff) return "";
+		if (this.inclusiveDiffScore < totalDiff / TraceAnalysisUtils.diffCutoffDivider) return "";
+		
+		String ret = "T ";
+
+		for (int i = 0; i < depth; i++) ret += "    ";
+
+		ret += name + "(" + ID + ")";
+		
+		ret += " " + (time.startTimeExclusive + time.startTimeInclusive) / 2 / printDivisor + 
+				" ~ " + (time.endTimeInclusive + time.endTimeExclusive) / 2 / printDivisor;
+		
+		if (totalDiff > 0) ret += diffRatioString(totalDiff);
+		
+		ret += "\n";
+		
+		for (int i = 0; i < getNumOfChildren(); i++)
+			ret += getChild(i).printLargeDiffNodes(maxDepth, durationCutoff, getChildTime(i), totalDiff);
+		
+		return ret;
+	}
+	
+	public String toString(int maxDepth, long durationCutoff, int weight) {
 		String ret;
 		if (cfgNode == null) ret = "       ";
 		else ret = Long.toHexString(cfgNode.vma) + " ";
@@ -206,24 +249,14 @@ abstract public class AbstractTraceNode extends AbstractTreeNode {
 		ret += " " + time.startTimeExclusive / printDivisor + "/" +time.startTimeInclusive / printDivisor + 
 				" ~ " + time.endTimeInclusive / printDivisor + "/" + + time.endTimeExclusive / printDivisor;
 		
-		if (inclusiveDiffScore != 0) {
-			/*
-			long t = inclusiveDiffScore * 10000 / this.getMaxDuration() / weight;
-			ret += "  In-diff = " + t/100 + "." + t/1000%100 + t%1000 + "%";
-			t = exclusiveDiffScore * 10000 / this.getMaxDuration() / weight;
-			ret += "  Ex-diff = " + t/100 + "." + t/1000%100 + t%1000 + "%";*/
-			
-			long t = inclusiveDiffScore / printDivisor;
-			ret += "  In-diff = " + t;
-			t = exclusiveDiffScore / printDivisor;
-			ret += "  Ex-diff = " + t;
-		}
+		if (inclusiveDiffScore != 0)
+			ret += diffScoreString(weight);
 		
 		ret += "\n";
 		
 		if (getNumOfChildren() != 0 && this.getDuration() >= durationCutoff && this.depth < maxDepth)
 			for (int i = 0; i < getNumOfChildren(); i++)
-				ret += getChild(i).toString(maxDepth, durationCutoff);
+				ret += getChild(i).toString(maxDepth, durationCutoff, weight);
 		
 		return ret;
 	}

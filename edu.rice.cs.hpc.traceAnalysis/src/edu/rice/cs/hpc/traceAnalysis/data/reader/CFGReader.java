@@ -121,7 +121,9 @@ public class CFGReader {
 		nodeDist.remove(beginNode);
 		
 		ArrayList<Node> nodeList = new ArrayList<Node>();
+		HashMap<Node, Integer> nodeIndexMap = new HashMap<Node, Integer>();
 		
+		// Check if any loops are detected in the CFG. If so, return an invalid CFGGraph.
 		while (nodeIndegree.size() > 0) {
 			Node nextNode = null;
 			for (Entry<Node, Integer> e : nodeIndegree.entrySet())
@@ -131,12 +133,14 @@ public class CFGReader {
 				}
 			if (nextNode == null) {
 				System.err.println("Unexpected backedge detected while reading DOT file for " + g.getId().getId());
-				int minDist = Integer.MAX_VALUE;
-				for (Entry<Node, Integer> e : nodeDist.entrySet())
-					if (e.getValue() < minDist) {
-						minDist = e.getValue();
-						nextNode = e.getKey();
-					}
+				String[] split = gid.split("_");
+				assert(split[2].subSequence(0, 2).equals("0x"));
+				long addr = Long.decode(split[2]);
+				if (split[1].equals("func"))
+					CFGFuncMap.put(addr, new CFGFunc(addr, label));
+				else
+					CFGLoopMap.put(addr, new CFGLoop(addr, label));
+				return;
 			}
 
 			for (Edge e : edgeList) 
@@ -149,11 +153,15 @@ public class CFGReader {
 				}
 			
 			nodeList.add(nextNode);
+			nodeIndexMap.put(nextNode, nodeList.size()-1);
 			nodeIndegree.remove(nextNode);
 			nodeDist.remove(nextNode);
 		}
 		
 		CFGNode nodes[] = new CFGNode[nodeList.size()];
+
+		// Build a list of nodes in the CFGGraph, nodes are ranked in a way such that 
+		// if there is an edge from a to b, the index of a must be smaller than b.
 		for (int i = 0; i < nodeList.size(); i++) {
 			String[] split = nodeList.get(i).getId().getId().split("_");
 			assert(split[1].subSequence(0, 2).equals("0x"));
@@ -164,13 +172,30 @@ public class CFGReader {
 				nodes[i] = CFGLoopMap.get(addr);
 		}
 		
+		// Compute successors for all nodes in the CFGGraph. 
+		ArrayList<HashSet<CFGNode>> successors = new ArrayList<HashSet<CFGNode>>();
+		for (int i = 0; i < nodeList.size(); i++) successors.add(new HashSet<CFGNode>());
+		// First, add direct successors of all nodes.
+		for (Edge e : edgeList) 
+			if (e.getSource().getNode() != beginNode) {
+				int idx1 = nodeIndexMap.get(e.getSource().getNode());
+				int idx2 = nodeIndexMap.get(e.getTarget().getNode());
+				successors.get(idx1).add(nodes[idx2]);
+			}
+		// Then, propagate successors from the last node to the first node. 
+		// Correctness is based on the fact that if there is an edge from a to b, the index of a must be smaller than b.
+		for (int i = successors.size()-1; i >= 0; i--)
+			for (int j = i-1; j >= 0; j--)
+				if (successors.get(j).contains(nodes[i]))
+					successors.get(j).addAll(successors.get(i));
+		
 		String[] split = gid.split("_");
 		assert(split[2].subSequence(0, 2).equals("0x"));
 		long addr = Long.decode(split[2]);
 		if (split[1].equals("func"))
-			CFGFuncMap.put(addr, new CFGFunc(addr, label, nodes, null));
+			CFGFuncMap.put(addr, new CFGFunc(addr, label, nodes, successors));
 		else
-			CFGLoopMap.put(addr, new CFGLoop(addr, label, nodes, null));
+			CFGLoopMap.put(addr, new CFGLoop(addr, label, nodes, successors));
 		
 		/* verifying code
 		if (addr == 0x410989) {

@@ -21,7 +21,7 @@ abstract public class AbstractTreeNode {
 		this.weight = 1;
 	}
 	
-	public AbstractTreeNode(AbstractTreeNode other) {
+	protected AbstractTreeNode(AbstractTreeNode other) {
 		this.ID = other.ID;
 		this.name = other.name;
 		this.depth = other.depth;
@@ -78,6 +78,18 @@ abstract public class AbstractTreeNode {
 	
 	abstract public void clearChildren();
 	
+	public void clearDiffScore() {
+		this.inclusiveDiffScore = 0;
+		this.exclusiveDiffScore = 0;
+	}
+	
+	public void stretchDiffScore(int multiplier, int divisor) {
+		this.inclusiveDiffScore *= multiplier;
+		this.exclusiveDiffScore *= multiplier;
+		this.inclusiveDiffScore = (this.inclusiveDiffScore + (divisor-1) / 2) / divisor;
+		this.exclusiveDiffScore = (this.exclusiveDiffScore + (divisor-1) / 2) / divisor;
+	}
+	
 	public long getDuration() {
 		return Math.max(getMinDuration(), 0);
 	}
@@ -88,5 +100,27 @@ abstract public class AbstractTreeNode {
 	
 	abstract public AbstractTreeNode duplicate();
 	
-	abstract public String toString(int maxDepth, long durationCutoff);
+	abstract public AbstractTreeNode voidDuplicate();
+	
+	abstract public String toString(int maxDepth, long durationCutoff, int weight);
+	
+	abstract public String printLargeDiffNodes(int maxDepth, long durationCutoff, TraceTimeStruct ts, long totalDiff);
+	
+	protected String diffScoreString(int weight) {
+		String ret = "";
+		long t = inclusiveDiffScore * 2 / (weight * (weight-1)) / printDivisor;
+		ret += "  In-diff = " + t;
+		t = exclusiveDiffScore * 2 / (weight * (weight-1)) / printDivisor;
+		ret += "  Ex-diff = " + t;
+		return ret;
+	}
+	
+	protected String diffRatioString(long totalDiff) {
+		String ret = "";
+		long t = inclusiveDiffScore * 10000 / totalDiff;
+		ret += "  In-diff = " + t/100 + "." + t/10%10 + t%10 + "%";
+		t = exclusiveDiffScore * 10000/ totalDiff;
+		ret += "  Ex-diff = " + t/100 + "." + t/10%10 + t%10 + "%";
+		return ret;
+	}
 }

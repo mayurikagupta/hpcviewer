@@ -8,7 +8,7 @@ public class RawLoopTrace extends AbstractTraceNode {
 		super(ID, name, depth, cfgNode);
 	}
 	
-	public RawLoopTrace(RawLoopTrace other) {
+	protected RawLoopTrace(RawLoopTrace other) {
 		super(other);
 	}
 	
@@ -16,7 +16,11 @@ public class RawLoopTrace extends AbstractTraceNode {
 		return new RawLoopTrace(this);
 	}
 	
-	public String toString(int maxDepth, long durationCutoff) {
-		return "        R" + super.toString(maxDepth+1, durationCutoff);
+	public AbstractTreeNode voidDuplicate() {
+		return new RawLoopTrace(ID, name, depth, cfgNode);
+	}
+	
+	public String toString(int maxDepth, long durationCutoff, int weight) {
+		return "        R" + super.toString(maxDepth+1, durationCutoff, weight);
 	}
 }

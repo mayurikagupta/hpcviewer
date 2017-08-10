@@ -252,8 +252,8 @@ public class LoopDetector {
     		return trace;
     	}
     	
-    	// When a rawloop don't have a cfgNode reference, return null.
-    	if (rawLoop.cfgNode == null) {
+    	// When a rawloop don't have a cfgNode reference or the reference is invalid, return null.
+    	if (rawLoop.cfgNode == null || !rawLoop.cfgNode.valid) {
     		return null;
     	}
     	
@@ -264,21 +264,22 @@ public class LoopDetector {
 		iter.getTime().setStartTimeExclusive(rawLoop.getTime().getStartTimeExclusive());
 	    iter.getTime().setStartTimeInclusive(rawLoop.getTime().getStartTimeInclusive());
 		
-		int lastIndex = -1;
+		CFGNode lastCFGNode = null;
 		
 		for (int i = 0; i < rawLoop.getNumOfChildren(); i++) {
-			int curIndex = rawLoop.cfgNode.getChildIndex(rawLoop.getChildCFGNode(i));
-			if (curIndex == -1) { 
+			CFGNode curCFGNode = rawLoop.getChildCFGNode(i);
+			
+			if (!rawLoop.cfgNode.hasChild(curCFGNode)) { 
 				/* When we are unable to locate a child within the cfgNode, we will omit it.
 				 */
-				System.err.println("Ignored: unexpected CFG ID " + rawLoop.getChildCFGNode(i) + " in loop 0x" + Long.toHexString(rawLoop.cfgNode.vma));
+				System.err.println("Ignored: unexpected CFG ID " + rawLoop.getChildCFGNode(i) + " in loop 0x" + Long.toHexString(rawLoop.cfgNode.vma) + " @ CCT Node #" + rawLoop.getID());
 				continue;
 			}
 			
-			// forward flow, simply proceed and add the current child to current iteration
-			if (curIndex > lastIndex)
+			// lastCFGNode is a predecessor of curCFGNode, simply proceed and add the current child to current iteration
+			if ((lastCFGNode == null) || (rawLoop.cfgNode.compareChild(curCFGNode, lastCFGNode) == 1))
 				iter.addChild(rawLoop.getChild(i), rawLoop.getChildTime(i), rawLoop.getChildCFGNode(i));
-			// backward flow means end of iteration, end the current iteration and generates a new one.
+			// If not, means the start of a new iteration. End the current iteration and generates a new one.
 			else {
 				long startTimeExclusive = rawLoop.getChildTime(i).getStartTimeExclusive();
 				long startTimeInclusive = rawLoop.getChildTime(i).getStartTimeInclusive();
@@ -298,7 +299,7 @@ public class LoopDetector {
 				iter.addChild(rawLoop.getChild(i), rawLoop.getChildTime(i), rawLoop.getChildCFGNode(i));
 			}
 		
-			lastIndex = curIndex;
+			lastCFGNode = curCFGNode;
 		}
 		
 		if (iter.getNumOfChildren() > 0) {
@@ -308,9 +309,10 @@ public class LoopDetector {
 			iter.setDepth(retLoop.getDepth()+1);
 		}
 		
+		if (retLoop.getDuration() / retLoop.getNumOfChildren() < TraceAnalysisUtils.loopAverageIterationLengthCutoffMultiplier * traceTree.sampleFrequency) return null;
+		
 		return retLoop;
     }
-    
     /**
      * Input: trace tree containing only FunctionTrace and RawLoop nodes.
      * Output: trace tree containing ProfileNode, FunctionTrace, and IteratedLoop nodes.
@@ -405,9 +407,10 @@ public class LoopDetector {
     		}
     		// If not, allocate a new loop node
     		else {
-    	    	if (trace.getDuration() <= detectionCutoff) return ProfileNode.toProfile(trace);
+    			return ProfileNode.toProfile(trace);
+    	    	//if (trace.getDuration() <= detectionCutoff) return ProfileNode.toProfile(trace);
     			//TODO assigning an appropriate loop ID
-    			loop = new RawLoopTrace(--detectedLoopID, "LOOP", trace.getDepth()+1, null);
+    			//loop = new RawLoopTrace(--detectedLoopID, "LOOP", trace.getDepth()+1, null);
     		}
     		
     		loop.getTime().setStartTimeInclusive(trace.getChildTime(firstChild).getStartTimeInclusive());

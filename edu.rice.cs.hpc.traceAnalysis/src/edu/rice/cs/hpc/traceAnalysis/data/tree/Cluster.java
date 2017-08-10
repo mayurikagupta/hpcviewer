@@ -11,6 +11,7 @@ public class Cluster extends AbstractTreeNode {
 	public Cluster(AbstractTreeNode node, int id) {
 		super(node);
 		this.rep = node.duplicate();
+		this.weight = rep.weight;
 		if (this.rep instanceof AbstractTraceNode) {
 			((AbstractTraceNode) this.rep).shiftTime(-((AbstractTraceNode) this.rep).getTime().getStartTimeExclusive());
 		}
@@ -20,12 +21,14 @@ public class Cluster extends AbstractTreeNode {
 	public Cluster(AbstractTreeNode node, Vector<ClusterMemberID> members) {
 		super(node);
 		this.rep = node.duplicate();
+		this.weight = rep.weight;
 		this.members.addAll(members);
 	}
 	
-	public Cluster(Cluster other) {
+	protected Cluster(Cluster other) {
 		super(other);
 		this.rep = other.rep.duplicate();
+		this.weight = rep.weight;
 		for (ClusterMemberID otherMember : other.members)
 			this.members.add(otherMember.duplicate());
 	}
@@ -36,8 +39,13 @@ public class Cluster extends AbstractTreeNode {
 
 	@Override
 	public int getWeight() {
-		if (members.size() != rep.weight) System.err.println("Error: cluster member size != weight");
+		if (members.size() != rep.weight) 
+			System.err.println("Error: cluster member size != weight " + " @ " + rep.ID + ", " + members.size() + " vs " + rep.weight);
 		return rep.weight;
+	}
+	
+	public int getMemberSize() {
+		return members.size();
 	}
 	
 	public Vector<ClusterMemberID> getMembers() {
@@ -53,21 +61,45 @@ public class Cluster extends AbstractTreeNode {
 			member.append(ID);
 	}
 	
-	public String toString(int maxDepth, long durationCutoff) {
+	public String printLargeDiffNodes(int maxDepth, long durationCutoff, TraceTimeStruct ts, long totalDiff) {
+		return "printLargeDiffNodes not implemented for Cluster.";
+	}
+	
+	public String toString(int maxDepth, long durationCutoff, int weight) {
 		String ret = "                ";
 		
 		for (int i = 0; i < depth; i++) ret += "    ";
 		
 		Collections.sort(members);
-		return ret + "Members in " + rep.getName() + " : " + members.toString() + "\n" + rep.toString(maxDepth, durationCutoff);
+		return ret + "Members in " + rep.getName() + " : " + members.toString() + "\n" + rep.toString(maxDepth, durationCutoff, weight);
 	}
 
+	public void setDepth(int depth) {
+		super.setDepth(depth);
+		rep.setDepth(depth);
+	}
+	
+	public void setWeight(int weight) {
+		super.setWeight(weight);
+		rep.setWeight(weight);
+	}
+	
 	public boolean isLeaf() {
 		return rep.isLeaf();
 	}
 
 	public void clearChildren() {
 		assert(false);
+	}
+	
+	public void clearDiffScore() {
+		super.clearDiffScore();
+		rep.clearDiffScore();
+	}
+	
+	public void stretchDiffScore(int multiplier, int divisor) {
+		super.stretchDiffScore(multiplier, divisor);
+		rep.stretchDiffScore(multiplier, divisor);
 	}
 
 	public long getMinDuration() {
@@ -80,6 +112,10 @@ public class Cluster extends AbstractTreeNode {
 
 	public AbstractTreeNode duplicate() {
 		return new Cluster(this);
+	}
+	
+	public AbstractTreeNode voidDuplicate() {
+		return new Cluster(this.rep.voidDuplicate(), new Vector<ClusterMemberID>());
 	}
 	
 	public class ClusterMemberID implements Comparable<ClusterMemberID> {

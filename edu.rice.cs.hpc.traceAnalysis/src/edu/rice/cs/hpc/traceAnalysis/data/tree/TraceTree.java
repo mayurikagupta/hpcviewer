@@ -20,6 +20,10 @@ public class TraceTree {
 	}
 	
 	public String toString(int maxDepth) {
-		return root.toString(maxDepth, sampleFrequency * TraceAnalysisUtils.traceCutoffMultiplier);
+		return root.toString(maxDepth, sampleFrequency * TraceAnalysisUtils.traceCutoffMultiplier, 0);
+	}
+	
+	public String printLargeDiffNodes(int maxDepth) {
+		return root.printLargeDiffNodes(maxDepth, sampleFrequency * TraceAnalysisUtils.traceCutoffMultiplier, null, Long.MIN_VALUE);
 	}
 }

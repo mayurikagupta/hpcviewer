@@ -11,24 +11,28 @@ public class FunctionTrace extends AbstractTraceNode {
 		this.ra = ra;
 	}
 	
-	public FunctionTrace(FunctionTrace other) {
-		super(other);
-		this.ra = other.ra;
-	}
-	
 	public FunctionTrace(RawLoopTrace loop) {
 		super(loop);
 		this.ra = loop.cfgNode;
+	}
+	
+	protected FunctionTrace(FunctionTrace other) {
+		super(other);
+		this.ra = other.ra;
 	}
 	
 	public AbstractTreeNode duplicate() {
 		return new FunctionTrace(this);
 	}
 	
-	public String toString(int maxDepth, long durationCutoff) {
+	public AbstractTreeNode voidDuplicate() {
+		return new FunctionTrace(this.ID, this.name, this.depth, this.cfgNode, this.ra);
+	}
+	
+	public String toString(int maxDepth, long durationCutoff, int weight) {
 		if (ra != null)
-			return "C" + Long.toHexString(ra.vma) + "-F" + super.toString(maxDepth, durationCutoff);
+			return "C" + Long.toHexString(ra.vma) + "-F" + super.toString(maxDepth, durationCutoff, weight);
 		else
-			return "C      " + "-F" + super.toString(maxDepth, durationCutoff);
+			return "C      " + "-F" + super.toString(maxDepth, durationCutoff, weight);
 	}
 }

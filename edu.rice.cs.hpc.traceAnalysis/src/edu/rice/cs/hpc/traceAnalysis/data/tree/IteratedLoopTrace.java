@@ -9,7 +9,7 @@ public class IteratedLoopTrace extends AbstractTraceNode {
 		this.rawLoop = (RawLoopTrace)rawLoop.duplicate();
 	}
 	
-	public IteratedLoopTrace(IteratedLoopTrace other) {
+	protected IteratedLoopTrace(IteratedLoopTrace other) {
 		super(other);
 		this.rawLoop = other.rawLoop;
 	}
@@ -18,8 +18,11 @@ public class IteratedLoopTrace extends AbstractTraceNode {
 		return new IteratedLoopTrace(this);
 	}
 	
+	public AbstractTreeNode voidDuplicate() {
+		return new IteratedLoopTrace((RawLoopTrace)this.rawLoop.voidDuplicate());
+	}
 	
-	public String toString(int maxDepth, long durationCutoff) {
-		return "        L" + super.toString(maxDepth+1, durationCutoff);
+	public String toString(int maxDepth, long durationCutoff, int weight) {
+		return "        L" + super.toString(maxDepth+1, durationCutoff, weight);
 	}
 }
