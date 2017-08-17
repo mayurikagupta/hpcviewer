@@ -1,4 +1,4 @@
-package edu.rice.cs.hpc.traceAnalysis.iteration;
+package edu.rice.cs.hpc.traceAnalysis.operator;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -309,7 +309,9 @@ public class LoopDetector {
 			iter.setDepth(retLoop.getDepth()+1);
 		}
 		
-		if (retLoop.getDuration() / retLoop.getNumOfChildren() < TraceAnalysisUtils.loopAverageIterationLengthCutoffMultiplier * traceTree.sampleFrequency) return null;
+		if (retLoop.getDuration() / retLoop.getNumOfChildren() < 
+				TraceAnalysisUtils.loopAverageIterationLengthCutoffMultiplier * traceTree.sampleFrequency) 
+			return null;
 		
 		return retLoop;
     }
@@ -321,9 +323,6 @@ public class LoopDetector {
      */
     // tested and generated expecting output
     public AbstractTreeNode detectLoop(AbstractTreeNode node) {
-    	if (node.getName().length()>=4 && node.getName().substring(0, 4).equals("PMPI"))
-    		node.clearChildren();
-    	
     	if (!(node instanceof AbstractTraceNode)) return null;
 
     	AbstractTraceNode trace = (AbstractTraceNode) node;
@@ -338,8 +337,9 @@ public class LoopDetector {
 	    		}
 				return newTrace;
 			}
-			else
+			else {
 				return ProfileNode.toProfile(trace);
+			}
 		}
 		
 		// For functions, make sure there are no multiple occurrence of the same node (which implies a loop)

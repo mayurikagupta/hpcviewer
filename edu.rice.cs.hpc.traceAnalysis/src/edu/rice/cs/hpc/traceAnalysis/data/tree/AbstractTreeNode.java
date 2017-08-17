@@ -1,5 +1,7 @@
 package edu.rice.cs.hpc.traceAnalysis.data.tree;
 
+import java.text.DecimalFormat;
+
 abstract public class AbstractTreeNode {
 	static protected int printDivisor = 1;
 	
@@ -11,8 +13,8 @@ abstract public class AbstractTreeNode {
     /**
      * Scores are sum up of difference scores of (weight * (weight-1) / 2) pairs of nodes.
      */
-    protected long inclusiveDiffScore = 0;
-    protected long exclusiveDiffScore = 0;
+    protected double inclusiveDiffScore = 0;
+    protected double exclusiveDiffScore = 0;
 
 	public AbstractTreeNode(int ID, String name, int depth) {
 		this.ID = ID;
@@ -42,11 +44,11 @@ abstract public class AbstractTreeNode {
 		return weight;
 	}
 	
-	public long getInclusiveDiffScore() {
+	public double getInclusiveDiffScore() {
 		return inclusiveDiffScore;
 	}
 	
-	public long getExclusiveDiffScore() {
+	public double getExclusiveDiffScore() {
 		return exclusiveDiffScore;
 	}
 	
@@ -66,11 +68,11 @@ abstract public class AbstractTreeNode {
 		this.weight = weight;
 	}
 	
-	public void setInclusiveDiffScore(long diffScore) {
+	public void setInclusiveDiffScore(double diffScore) {
 		this.inclusiveDiffScore = diffScore;
 	}
 	
-	public void setExclusiveDiffScore(long diffScore) {
+	public void setExclusiveDiffScore(double diffScore) {
 		this.exclusiveDiffScore = diffScore;
 	}
 
@@ -83,11 +85,9 @@ abstract public class AbstractTreeNode {
 		this.exclusiveDiffScore = 0;
 	}
 	
-	public void stretchDiffScore(int multiplier, int divisor) {
-		this.inclusiveDiffScore *= multiplier;
-		this.exclusiveDiffScore *= multiplier;
-		this.inclusiveDiffScore = (this.inclusiveDiffScore + (divisor-1) / 2) / divisor;
-		this.exclusiveDiffScore = (this.exclusiveDiffScore + (divisor-1) / 2) / divisor;
+	public void stretchDiffScore(double multiplier, double divisor) {
+		this.inclusiveDiffScore *= multiplier / divisor;
+		this.exclusiveDiffScore *= multiplier / divisor;
 	}
 	
 	public long getDuration() {
@@ -108,19 +108,19 @@ abstract public class AbstractTreeNode {
 	
 	protected String diffScoreString(int weight) {
 		String ret = "";
-		long t = inclusiveDiffScore * 2 / (weight * (weight-1)) / printDivisor;
-		ret += "  In-diff = " + t;
+		double t = inclusiveDiffScore * 2 / (weight * (weight-1)) / printDivisor;
+		ret += "  In-diff = " + Math.round(t);
 		t = exclusiveDiffScore * 2 / (weight * (weight-1)) / printDivisor;
-		ret += "  Ex-diff = " + t;
+		ret += "  Ex-diff = " + Math.round(t);
 		return ret;
 	}
 	
-	protected String diffRatioString(long totalDiff) {
+	protected String diffRatioString(double totalDiff) {
 		String ret = "";
-		long t = inclusiveDiffScore * 10000 / totalDiff;
-		ret += "  In-diff = " + t/100 + "." + t/10%10 + t%10 + "%";
-		t = exclusiveDiffScore * 10000/ totalDiff;
-		ret += "  Ex-diff = " + t/100 + "." + t/10%10 + t%10 + "%";
+		double t = inclusiveDiffScore / totalDiff * 100;
+		ret += "  In-diff = " + String.format("%.2f", t) + "%";
+		t = exclusiveDiffScore / totalDiff * 100;
+		ret += "  Ex-diff = " + String.format("%.2f", t) + "%";
 		return ret;
 	}
 }

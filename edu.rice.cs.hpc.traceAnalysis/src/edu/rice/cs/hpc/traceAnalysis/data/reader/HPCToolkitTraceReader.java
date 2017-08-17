@@ -158,7 +158,7 @@ public class HPCToolkitTraceReader {
 	}
 	
 	private CFGCall findCFGCall(CFGGraph parentCFGNode, long ra) {
-		if (parentCFGNode == null) return null;
+		if (parentCFGNode == null || !parentCFGNode.valid) return null;
 		for (CFGNode node : parentCFGNode.nodes)
 			if (node instanceof CFGCall && node.vma == ra)
 				return (CFGCall) node;

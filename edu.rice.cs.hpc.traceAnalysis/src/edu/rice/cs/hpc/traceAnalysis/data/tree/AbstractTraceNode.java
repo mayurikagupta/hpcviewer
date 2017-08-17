@@ -197,7 +197,7 @@ abstract public class AbstractTraceNode extends AbstractTreeNode {
 			node.clearDiffScore();
 	}
 	
-	public void stretchDiffScore(int multiplier, int divisor) {
+	public void stretchDiffScore(double multiplier, double divisor) {
 		super.stretchDiffScore(multiplier, divisor);
 		for (AbstractTreeNode node : children)
 			node.stretchDiffScore(multiplier, divisor);
@@ -218,15 +218,16 @@ abstract public class AbstractTraceNode extends AbstractTreeNode {
 		if (this.getDuration() < durationCutoff) return "";
 		if (this.inclusiveDiffScore < totalDiff / TraceAnalysisUtils.diffCutoffDivider) return "";
 		
-		String ret = "T ";
+		String info = "T ";
 
-		for (int i = 0; i < depth; i++) ret += "    ";
+		for (int i = 0; i < depth; i++) info += "    ";
 
-		ret += name + "(" + ID + ")";
+		info += name + "(" + ID + ")";
 		
-		ret += " " + (time.startTimeExclusive + time.startTimeInclusive) / 2 / printDivisor + 
+		info += " " + (time.startTimeExclusive + time.startTimeInclusive) / 2 / printDivisor + 
 				" ~ " + (time.endTimeInclusive + time.endTimeExclusive) / 2 / printDivisor;
 		
+		String ret = "";
 		if (totalDiff > 0) ret += diffRatioString(totalDiff);
 		
 		ret += "\n";
@@ -234,7 +235,8 @@ abstract public class AbstractTraceNode extends AbstractTreeNode {
 		for (int i = 0; i < getNumOfChildren(); i++)
 			ret += getChild(i).printLargeDiffNodes(maxDepth, durationCutoff, getChildTime(i), totalDiff);
 		
-		return ret;
+		if (ret.length() > 1) return info+ret;
+		else return "";
 	}
 	
 	public String toString(int maxDepth, long durationCutoff, int weight) {

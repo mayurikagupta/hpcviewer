@@ -1,6 +1,6 @@
 package edu.rice.cs.hpc.traceAnalysis.data.tree;
 
-import edu.rice.cs.hpc.traceAnalysis.cluster.ClusterIdentifier;
+import edu.rice.cs.hpc.traceAnalysis.operator.ClusterIdentifier;
 import edu.rice.cs.hpc.traceAnalysis.utils.TraceAnalysisUtils;
 
 
@@ -25,6 +25,7 @@ public class ClusterTreeNode extends AbstractTreeNode {
 		this.clusters = clusters;
 		//int numIteration = 0;
 		for (int i = 0; i < clusters.length; i++) {
+			clusters[i].setName("Cluster #" + i);
 			clusters[i].getRep().setName("Cluster #" + i);
 			//numIteration += clusters[i].getMemberSize();
 		}
@@ -48,6 +49,7 @@ public class ClusterTreeNode extends AbstractTreeNode {
 		this.clusters = clusters;
 		//int numIteration = 0;
 		for (int i = 0; i < clusters.length; i++) {
+			clusters[i].setName("Cluster #" + i);
 			clusters[i].getRep().setName("Cluster #" + i);
 			//numIteration += clusters[i].getMemberSize();
 		}
@@ -84,9 +86,13 @@ public class ClusterTreeNode extends AbstractTreeNode {
 		return rep;
 	}
 	
+	public AbstractTraceNode getOrigin() {
+		return origin;
+	}
+	
 	public void setDepth(int depth) {
 		super.setDepth(depth);
-		rep.setDepth(depth);
+		rep.setDepth(depth+1);
 		for (Cluster c : clusters)
 			c.setDepth(depth+1);
 	}
@@ -110,7 +116,7 @@ public class ClusterTreeNode extends AbstractTreeNode {
 			c.clearDiffScore();
 	}
 	
-	public void stretchDiffScore(int multiplier, int divisor) {
+	public void stretchDiffScore(double multiplier, double divisor) {
 		super.stretchDiffScore(multiplier, divisor);
 		rep.stretchDiffScore(multiplier, divisor);
 	}
@@ -155,13 +161,22 @@ public class ClusterTreeNode extends AbstractTreeNode {
 					" ~ " + (ts.endTimeInclusive + ts.endTimeExclusive) / 2 / printDivisor;
 		ret += "  Duration = " + (minDuration + maxDuration) / 2 / printDivisor;
 		
-		ret += "\n";
+		String retChild = "";
+		if (totalDiff > 0) retChild += diffRatioString(totalDiff);
+		retChild += "\n";
 		
-		if (totalDiff < 0)
-			ret += rep.printLargeDiffNodes(maxDepth, durationCutoff, null, rep.getDuration() * rep.weight * (rep.weight - 1));
-		else ret += rep.printLargeDiffNodes(maxDepth, durationCutoff, null, totalDiff);
+		for (int i = 0; i < clusters.length; i++) 
+			retChild += clusters[i].printLargeDiffNodes(maxDepth, durationCutoff, null, totalDiff);
 		
-		return ret;
+		if (totalDiff < 0) {
+			retChild += rep.printLargeDiffNodes(maxDepth, durationCutoff, null, rep.getDuration() * rep.weight * (rep.weight - 1));
+			return ret + retChild;
+		}
+		else {
+			retChild += rep.printLargeDiffNodes(maxDepth, durationCutoff, null, totalDiff);
+			if (retChild.length() > 1) return ret + retChild;
+			else return "";
+		}
 	}
 	
 	public String toString(int maxDepth, long durationCutoff, int weight) {
@@ -180,7 +195,10 @@ public class ClusterTreeNode extends AbstractTreeNode {
 		
 		ret += '\n';
 		
-		if (this.ID == 1598) maxDepth += 5;
+		for (int i = 0; i < clusters.length; i++) 
+			ret += clusters[i].printLargeDiffNodes(maxDepth, durationCutoff, null, 0);
+		
+		//if (this.ID == 1598) maxDepth += 5;
 		ret += rep.toString(maxDepth+1, durationCutoff, weight);
 		
 		//for (int i = 0; i < clusters.length; i++) 

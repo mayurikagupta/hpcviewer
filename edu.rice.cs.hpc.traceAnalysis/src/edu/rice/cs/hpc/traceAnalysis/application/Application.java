@@ -10,16 +10,14 @@ import java.util.Date;
 import edu.rice.cs.hpc.data.util.Constants;
 import edu.rice.cs.hpc.data.util.Util;
 
-import edu.rice.cs.hpc.traceAnalysis.cluster.ClusterIdentifier;
-import edu.rice.cs.hpc.traceAnalysis.data.reader.CFGReader;
 import edu.rice.cs.hpc.traceAnalysis.data.reader.HPCToolkitTraceReader;
-import edu.rice.cs.hpc.traceAnalysis.data.tree.AbstractTraceNode;
-import edu.rice.cs.hpc.traceAnalysis.data.tree.ClusterTreeNode;
-import edu.rice.cs.hpc.traceAnalysis.data.tree.ProfileNode;
+import edu.rice.cs.hpc.traceAnalysis.data.tree.AbstractTreeNode;
 import edu.rice.cs.hpc.traceAnalysis.data.tree.RootTrace;
 import edu.rice.cs.hpc.traceAnalysis.data.tree.TraceTree;
-import edu.rice.cs.hpc.traceAnalysis.iteration.IterationClassifier;
-import edu.rice.cs.hpc.traceAnalysis.iteration.LoopDetector;
+import edu.rice.cs.hpc.traceAnalysis.operator.ClusterIdentifier;
+import edu.rice.cs.hpc.traceAnalysis.operator.LoopDetector;
+import edu.rice.cs.hpc.traceAnalysis.operator.TraceFilter;
+import edu.rice.cs.hpc.traceAnalysis.output.SignificantDiffNodePrinter;
 
 public class Application {
 	private boolean openExperiment(PrintStream objPrint, PrintStream objError, File objFile) {
@@ -31,7 +29,7 @@ public class Application {
 		
 		objError.println("Init finished at " + (new Date()).toString());
 		
-		int printDepth = 10;
+		int printDepth = 25;
 		
 		RootTrace root = new RootTrace("Root for all procs");
 		root.getTime().setStartTimeExclusive(0);
@@ -39,31 +37,39 @@ public class Application {
 		root.getTime().setEndTimeInclusive(traceReader.getDurantion());
 		root.getTime().setEndTimeExclusive(traceReader.getDurantion());
 		
-		for (int i = 0; i < 24; i += 6) {
+		for (int i = 0; i < 24; i += 6) { 
 			objError.println("\n\nProcessing traceline #" + i + ": ");
 			TraceTree tree = traceReader.buildTraceTree(i);
 			objError.println("Build finished at " + (new Date()).toString());
 			//objPrint.println(tree.toString(printDepth));
+			
+			TraceFilter.filterTrace(tree.root);
 			LoopDetector detector = new LoopDetector(tree);
 			detector.detectLoop(tree.root);
 			objError.println("Detect loop finished at " + (new Date()).toString());
 			//objPrint.println("*************************************************");
 			//objPrint.println(tree.toString(printDepth));
-			IterationClassifier.ClasifyLoops(tree.root);
+			ClusterIdentifier.clusterLoops(tree.root);
+			objError.println("Cluster finished at " + (new Date()).toString());
 			//objPrint.println("*************************************************");
-			//objPrint.println(tree.printLargeDiffNodes(printDepth));
+			if (i == 0) {
+				objPrint.println(tree.printLargeDiffNodes(printDepth));
+				SignificantDiffNodePrinter.printAllCluster(objPrint, tree.root);
+			}
 			
+			tree.root.setName("PROC_#" + i);
 			root.addChild(tree.root, tree.root.getTime(), null);
 		}
 		
-		objError.println("\n\nMerge all threads at " + (new Date()).toString());
+		objError.println("\n\nMerging all threads at " + (new Date()).toString());
 		root.setDepth(0);
 		//objPrint.println(root.toString(printDepth, 10000, 0));
 		
 		
-		ClusterTreeNode cluster = ClusterIdentifier.findCluster(root);
-		//objPrint.println(cluster.toString(3, 10000, 0));
-		objPrint.println(cluster.printLargeDiffNodes(printDepth, 100, null, Long.MIN_VALUE));
+		AbstractTreeNode node = ClusterIdentifier.findCluster(root);
+		//objPrint.println(node.toString(10, 10000, 2));
+		objPrint.println(node.printLargeDiffNodes(printDepth, 0, null, Long.MIN_VALUE));
+		SignificantDiffNodePrinter.printAllCluster(objPrint, node);
 		
 		objError.println("Exit at " + (new Date()).toString());
 		/*

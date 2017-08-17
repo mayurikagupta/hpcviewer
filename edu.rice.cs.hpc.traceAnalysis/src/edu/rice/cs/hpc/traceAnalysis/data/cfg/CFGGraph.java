@@ -61,8 +61,9 @@ public abstract class CFGGraph extends CFGNode {
 	
 	public String toString() {
 		String str = super.toString() + ":";
-		for (CFGNode n : nodes)
-			str += " -> " + n.toString();
+		if (this.valid)
+			for (CFGNode n : nodes)
+				str += " -> " + n.toString();
 		return str;
 	}
 }

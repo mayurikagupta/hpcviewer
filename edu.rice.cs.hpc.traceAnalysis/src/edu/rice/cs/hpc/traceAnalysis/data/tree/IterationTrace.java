@@ -6,7 +6,7 @@ public class IterationTrace extends AbstractTraceNode {
 	//protected final int iterNum;
 	
 	public IterationTrace(IteratedLoopTrace loop, int iterNum) {
-		super(loop.getID(), "ITER #" + iterNum, loop.getDepth(), loop.cfgNode);
+		super(loop.getID(), "ITER_#" + iterNum, loop.getDepth(), loop.cfgNode);
 		//this.iterNum = iterNum;
 	}
 	

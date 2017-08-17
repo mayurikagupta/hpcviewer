@@ -62,7 +62,14 @@ public class Cluster extends AbstractTreeNode {
 	}
 	
 	public String printLargeDiffNodes(int maxDepth, long durationCutoff, TraceTimeStruct ts, long totalDiff) {
-		return "printLargeDiffNodes not implemented for Cluster.";
+		if (this.depth > maxDepth) return "";
+		
+		String ret = "  ";
+		
+		for (int i = 0; i < depth; i++) ret += "    ";
+		
+		Collections.sort(members);
+		return ret + "Members in " + rep.getName() + " : " + members.toString() + "\n";
 	}
 	
 	public String toString(int maxDepth, long durationCutoff, int weight) {
@@ -97,7 +104,7 @@ public class Cluster extends AbstractTreeNode {
 		rep.clearDiffScore();
 	}
 	
-	public void stretchDiffScore(int multiplier, int divisor) {
+	public void stretchDiffScore(double multiplier, double divisor) {
 		super.stretchDiffScore(multiplier, divisor);
 		rep.stretchDiffScore(multiplier, divisor);
 	}
@@ -133,6 +140,10 @@ public class Cluster extends AbstractTreeNode {
 			IDs.add(ID);
 		}
 		
+		public void remove() {
+			IDs.remove(IDs.size()-1);
+		}
+		
 		public ClusterMemberID duplicate() {
 			return new ClusterMemberID(this);
 		}
@@ -162,6 +173,10 @@ public class Cluster extends AbstractTreeNode {
 				if (IDs.get(i) < o.IDs.get(i)) return -1;
 				else if (IDs.get(i) > o.IDs.get(i)) return 1;
 			return 0;
+		}
+		
+		public int hashCode() {
+			return toString().hashCode();
 		}
 	}
 
