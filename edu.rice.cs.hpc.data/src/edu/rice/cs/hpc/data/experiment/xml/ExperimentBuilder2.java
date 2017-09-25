@@ -288,7 +288,15 @@ public class ExperimentBuilder2 extends BaseExperimentBuilder
 				toShow = (values[i].charAt(0) == '1');
 			} else if (attributes[i].charAt(0) == 'p') {
 				// partner
-				partner = Integer.valueOf( values[i] );
+				if (attributes[i].charAt(1) == 'e') {
+					// pe : perf events attributes, which can be :
+					//  pep: period mean
+					//  pem: is the event multiplexed
+					//  pes: number of total samples
+					// do nothing at the moment
+				} else {
+					partner = Integer.valueOf( values[i] );
+				}
 			}
 		}
 		
