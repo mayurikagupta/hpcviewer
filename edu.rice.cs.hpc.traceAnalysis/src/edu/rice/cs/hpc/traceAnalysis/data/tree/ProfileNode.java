@@ -6,6 +6,8 @@ import edu.rice.cs.hpc.traceAnalysis.utils.TraceAnalysisUtils;
 
 
 public class ProfileNode extends AbstractTreeNode {
+	private static final long serialVersionUID = -474439542838312738L;
+	
 	protected long minDurationInclusive = 0;
 	protected long maxDurationInclusive = 0;
 	
@@ -17,7 +19,7 @@ public class ProfileNode extends AbstractTreeNode {
 	
 	static public ProfileNode toProfile(AbstractTreeNode node) {
 		if (node instanceof ProfileNode) return new ProfileNode((ProfileNode)node);
-		if (node instanceof ClusterTreeNode) return new ProfileNode((ClusterTreeNode)node);
+		if (node instanceof ClusterSetNode) return new ProfileNode((ClusterSetNode)node);
 		/*{
 			ClusterTreeNode cluster = (ClusterTreeNode) node;
 			if (cluster.origin instanceof IteratedLoopTrace) return new ProfileNode(((IteratedLoopTrace)cluster.origin).rawLoop);
@@ -53,7 +55,7 @@ public class ProfileNode extends AbstractTreeNode {
 	}
 	
 	
-	public ProfileNode(ClusterTreeNode cluster) {
+	public ProfileNode(ClusterSetNode cluster) {
 		super(cluster);
 		/*
 		for (Cluster c: cluster.clusters) {

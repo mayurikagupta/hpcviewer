@@ -1,27 +1,44 @@
 package edu.rice.cs.hpc.traceAnalysis.operator;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import edu.rice.cs.hpc.traceAnalysis.data.tree.AbstractTraceNode;
 import edu.rice.cs.hpc.traceAnalysis.data.tree.AbstractTreeNode;
 import edu.rice.cs.hpc.traceAnalysis.data.tree.Cluster;
-import edu.rice.cs.hpc.traceAnalysis.data.tree.ClusterTreeNode;
+import edu.rice.cs.hpc.traceAnalysis.data.tree.ClusterSetNode;
 import edu.rice.cs.hpc.traceAnalysis.data.tree.IteratedLoopTrace;
 import edu.rice.cs.hpc.traceAnalysis.data.tree.IterationTrace;
 import edu.rice.cs.hpc.traceAnalysis.data.tree.ProfileNode;
 import edu.rice.cs.hpc.traceAnalysis.data.tree.TraceTimeStruct;
+import edu.rice.cs.hpc.traceAnalysis.data.tree.TraceTree;
 
 public class ClusterIdentifier {
 	static public final double minClusterDiff = 0.01;
 	static public final double maxClusterDiff = 0.20;
-	static public final double maxMinRatio = 3;
+	static public final double maxMinRatio = 4;
 	
-	static public int maxNumOfClusters(int numOfInstances) {
+	public final int procNum;
+	public final TraceTree tree;
+	private long clusterCount;
+	
+	public ClusterIdentifier(int procNum, TraceTree tree) {
+		this.procNum = procNum;
+		this.tree = tree;
+		this.clusterCount = 0;
+	}
+	
+	public int maxNumOfClusters(int numOfInstances) {
 		return (int)Math.round(Math.sqrt(numOfInstances)) + 20; //31 - Integer.numberOfLeadingZeros(numOfInstances) + 1; // which is log2(numOfInstance) + 1
 		//return 10;
 	}
 
-	static private long computeRangeDiff(long min1, long max1, long min2, long max2) {
+	private long computeRangeDiff(long min1, long max1, long min2, long max2) {
 		if (max1 - min1 > 50000) {
 			long mid1 = (max1 + min1) / 2;
 			min1 = mid1 - 25000;
@@ -45,7 +62,7 @@ public class ClusterIdentifier {
 		return (total + divisor / 2) / divisor;
 	}
 
-	static private void addTraceDiffScore(AbstractTraceNode dest, AbstractTraceNode src) {
+	private void addTraceDiffScore(AbstractTraceNode dest, AbstractTraceNode src) {
 		int k1 = 0, k2 = 0;
 		while (k1 < dest.getNumOfChildren() && k2 < src.getNumOfChildren())
 			if (dest.getChild(k1).getID() == src.getChild(k2).getID()) {
@@ -64,7 +81,7 @@ public class ClusterIdentifier {
 		}
 	}
 	
-	static private void addProfileDiffScore(ProfileNode dest, AbstractTreeNode src) {
+	private void addProfileDiffScore(ProfileNode dest, AbstractTreeNode src) {
 		ProfileNode srcProf;
 		if (src instanceof ProfileNode) srcProf = (ProfileNode) src;
 		else srcProf = ProfileNode.toProfile(src);
@@ -82,7 +99,7 @@ public class ClusterIdentifier {
 			}
 	}
 	
-	static private void addClusterDiffScore(ClusterTreeNode dest, ClusterTreeNode src) {
+	private void addClusterDiffScore(ClusterSetNode dest, ClusterSetNode src) {
 		dest.setExclusiveDiffScore(dest.getExclusiveDiffScore() + src.getExclusiveDiffScore());
 		dest.setInclusiveDiffScore(dest.getInclusiveDiffScore() + src.getInclusiveDiffScore());
 		addDiffScore(dest.getRep(), src.getRep());
@@ -92,13 +109,13 @@ public class ClusterIdentifier {
 	/**
 	 * Add the diff scores in src and its sub-nodes to corresponding nodes in dest.
 	 */
-	static private void addDiffScore(AbstractTreeNode dest, AbstractTreeNode src) {
+	private void addDiffScore(AbstractTreeNode dest, AbstractTreeNode src) {
 		if (src.getInclusiveDiffScore() == 0) return;
 		
 		if ((dest instanceof AbstractTraceNode) && (src instanceof AbstractTraceNode))
 			addTraceDiffScore((AbstractTraceNode)dest, (AbstractTraceNode)src);
-		else if ((dest instanceof ClusterTreeNode) && (src instanceof ClusterTreeNode))
-			addClusterDiffScore((ClusterTreeNode)dest, (ClusterTreeNode)src);
+		else if ((dest instanceof ClusterSetNode) && (src instanceof ClusterSetNode))
+			addClusterDiffScore((ClusterSetNode)dest, (ClusterSetNode)src);
 		else if (dest instanceof ProfileNode)
 			addProfileDiffScore((ProfileNode)dest, src);
 		else {
@@ -108,7 +125,7 @@ public class ClusterIdentifier {
 		}
 	}
 	
-	static private TraceTimeStruct mergeTimeStruct(TraceTimeStruct time1, int weight1, TraceTimeStruct time2, int weight2) {
+	private TraceTimeStruct mergeTimeStruct(TraceTimeStruct time1, int weight1, TraceTimeStruct time2, int weight2) {
 		TraceTimeStruct mergedTime = new TraceTimeStruct();
 		
 		mergedTime.setEndTimeExclusive(computeWeightedAverage(time1.getEndTimeExclusive(), weight1,
@@ -123,7 +140,7 @@ public class ClusterIdentifier {
 		return mergedTime;
 	}
 	
-	static private AbstractTreeNode mergeTraceNode(AbstractTraceNode trace1, int weight1, AbstractTraceNode trace2, int weight2, boolean accumulate) {
+	private AbstractTreeNode mergeTraceNode(AbstractTraceNode trace1, int weight1, AbstractTraceNode trace2, int weight2, boolean accumulate) {
 		AbstractTraceNode mergedTrace = (AbstractTraceNode)trace1.duplicate();
 		
 		int w1 = trace1.getWeight();
@@ -193,7 +210,7 @@ public class ClusterIdentifier {
 				if (k2 == trace2.getNumOfChildren()) compare = -1; // increase k1 if k2 points to end
 				
 				if (compare == 0) {
-					assert (trace1.cfgNode == trace2.cfgNode);
+					assert (trace1.cfgNode.equals(trace2.cfgNode));
 					if (trace1.cfgNode == null || !trace1.cfgNode.valid)
 						return mergeProfileNode(trace1, w1, trace2, w2, accumulate);
 					
@@ -337,7 +354,7 @@ public class ClusterIdentifier {
 		return mergedTrace;
 	}
 	
-	static private ProfileNode mergeProfileNode(AbstractTreeNode node1, int weight1, AbstractTreeNode node2, int weight2, boolean accumulate) {
+	private ProfileNode mergeProfileNode(AbstractTreeNode node1, int weight1, AbstractTreeNode node2, int weight2, boolean accumulate) {
 		ProfileNode prof1, prof2;
 		if (node1 instanceof ProfileNode) prof1 = (ProfileNode) node1;
 		else prof1 = ProfileNode.toProfile(node1);
@@ -440,7 +457,7 @@ public class ClusterIdentifier {
 		return mergedProfile;
 	}
 	
-	static private AbstractTreeNode mergeClusterNode(ClusterTreeNode node1, int weight1, ClusterTreeNode node2, int weight2, boolean accumulate) {
+	private AbstractTreeNode mergeClusterNode(ClusterSetNode node1, int weight1, ClusterSetNode node2, int weight2, boolean accumulate) {
 		Cluster[] cluster = new Cluster[node1.getNumOfClusters() + node2.getNumOfClusters()];
 		
 		for (int i = 0; i < node1.getNumOfClusters(); i++)
@@ -456,7 +473,7 @@ public class ClusterIdentifier {
 		//	clusterDebug = true;
 		//}
 		
-		cluster = mergeCluster(cluster, maxNumOfClusters(numMembers));
+		cluster = mergeCluster(cluster, maxNumOfClusters(numMembers), 1);
 		
 		AbstractTreeNode mergedNode = null;
 		if (cluster == null) mergedNode = mergeProfileNode(node1, weight1, node2, weight2, accumulate);
@@ -614,16 +631,16 @@ public class ClusterIdentifier {
 				addDiffScore(rep, node2.getRep());
 			}
 			
-			mergedNode = new ClusterTreeNode(node1, node2, rep, cluster);
+			mergedNode = new ClusterSetNode(node1, node2, rep, cluster);
 		}
 
 		return mergedNode;
 	}
 	
-	static private boolean clusterDebug = false;
-	static private int clusterDebugID = 36268;
+	private boolean clusterDebug = false;
+    private int clusterDebugID = 36268;
 	
-	static private AbstractTreeNode mergeNode(AbstractTreeNode node1, int weight1, AbstractTreeNode node2, int weight2, boolean accumulate) {
+	public AbstractTreeNode mergeNode(AbstractTreeNode node1, int weight1, AbstractTreeNode node2, int weight2, boolean accumulate) {
 		if (node1.getWeight() != weight1) {
 			System.err.println(node1.getWeight() + " vs " + weight1 + " : " + node1.toString(0, 0, 0));
 		}
@@ -640,17 +657,119 @@ public class ClusterIdentifier {
 			return mergeTraceNode((AbstractTraceNode)node1, weight1, (AbstractTraceNode)node2, weight2, accumulate);
 		else if ((node1 instanceof IterationTrace) && (node2 instanceof IterationTrace))
 			return mergeTraceNode((AbstractTraceNode)node1, weight1, (AbstractTraceNode)node2, weight2, accumulate);
-		else if ((node1 instanceof ClusterTreeNode) && (node2 instanceof ClusterTreeNode))
-			return mergeClusterNode((ClusterTreeNode)node1, weight1, (ClusterTreeNode)node2, weight2, accumulate);
+		else if ((node1 instanceof ClusterSetNode) && (node2 instanceof ClusterSetNode))
+			return mergeClusterNode((ClusterSetNode)node1, weight1, (ClusterSetNode)node2, weight2, accumulate);
 		//TODO IteratedLoopTrace
 		//TODO Trace/Profile with Cluster
 		else return mergeProfileNode(node1, weight1, node2, weight2, accumulate);
 		
 	}
 	
-	static private Cluster[] mergeCluster(Cluster[] cluster, int maxNumCluster) {
+	class ComputeDiffThread implements Callable<double[]> {
+		final Cluster[] cluster;
+		int n, i, j;
+		final int start;
+		final int end;
+		double[] diff;
+		
+		public ComputeDiffThread(Cluster[] cluster, int start, int end) {
+			this.cluster = cluster;
+			this.start = start;
+			this.end = end;
+			this.diff = new double[end-start];
+			
+			computeStartIndex();
+		}
+		
+		private void computeStartIndex() {
+			n = cluster.length;
+			i = 0;
+			
+			/**
+			 * Given 2D index (i,j), 1D index t, and num of cluster N, we have
+			 * t = (N-1)(N-2)/2 - (N-1-i)(N-2-i)/2 + (j-1);
+			 */
+			while ( ((n-1)*(n-2)/2 - (n-1-i)*(n-2-i)/2 + (n-2)) < start) 
+				i++;
+			
+			j = start - (n-1)*(n-2)/2 + (n-1-i)*(n-2-i)/2 + 1;
+		}
+		
+		@Override
+		public double[] call() throws Exception {
+			int count = 0;
+			while (count < end - start) {
+				diff[count] = (double)mergeNode(cluster[i].getRep(), cluster[i].getRep().getWeight(),
+						cluster[j].getRep(), cluster[j].getRep().getWeight(), false).getInclusiveDiffScore()
+						/ cluster[i].getRep().getWeight() / cluster[j].getRep().getWeight() 
+						/ (double)(cluster[i].getRep().getDuration() + cluster[j].getRep().getDuration());
+				j++;
+				if (j >= n) {
+					i++;
+					j=i+1;
+				}
+				
+				count++;
+			}	
+			return diff;
+		}
+		
+	}
+	
+	
+	private Cluster[] mergeCluster(Cluster[] cluster, int maxNumCluster, int numProc) {
 		int numCluster = cluster.length;
 		double[][] diff = new double[numCluster][numCluster];
+		
+		boolean parallelized = false;
+		if (numProc > 1) {
+			int workLoad = numCluster * (numCluster-1) / 2;
+			if (numProc > workLoad) numProc = workLoad;
+			
+			ExecutorService threadExecutor = Executors.newFixedThreadPool(numProc); 
+			ArrayList<Future<double[]>> futures = new ArrayList<Future<double[]>>();
+
+			for (int p = 0; p < numProc; p++) {
+				ComputeDiffThread thread = new ComputeDiffThread(cluster, workLoad*p/numProc, workLoad*(p+1)/numProc);
+				Future<double[]> future = threadExecutor.submit(thread);
+				futures.add(future);
+			}
+			
+			int i = 0, j = 1;
+			parallelized = true;
+			for (Future<double[]> future : futures) {
+				try {
+					double[] temp = future.get();
+					for (int k = 0; k < temp.length; k++) {
+						diff[i][j] = temp[k];
+						
+						j++;
+						if (j >= numCluster) {
+							i++;
+							j=i+1;
+						}
+					}
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+					parallelized = false;
+					break;
+				} catch (ExecutionException e) {
+					e.printStackTrace();
+					parallelized = false;
+					break;
+				}
+			}
+			
+			threadExecutor.shutdown();
+		}
+		
+		if (!parallelized)
+			for (int i = 0; i < numCluster; i++)
+				for (int j = i+1; j < numCluster; j++) 
+						diff[i][j] = (double)mergeNode(cluster[i].getRep(), cluster[i].getRep().getWeight(),
+								cluster[j].getRep(), cluster[j].getRep().getWeight(), false).getInclusiveDiffScore()
+								/ cluster[i].getRep().getWeight() / cluster[j].getRep().getWeight() 
+								/ (double)(cluster[i].getRep().getDuration() + cluster[j].getRep().getDuration());
 		
 		double minDiff = 1;
 		double maxDiff = 0;
@@ -658,10 +777,6 @@ public class ClusterIdentifier {
 		
 		for (int i = 0; i < numCluster; i++)
 			for (int j = i+1; j < numCluster; j++) {
-				diff[i][j] = (double)mergeNode(cluster[i].getRep(), cluster[i].getRep().getWeight(),
-						cluster[j].getRep(), cluster[j].getRep().getWeight(), false).getInclusiveDiffScore()
-						/ cluster[i].getRep().getWeight() / cluster[j].getRep().getWeight() 
-						/ (double)(cluster[i].getRep().getDuration() + cluster[j].getRep().getDuration());
 				maxDiff = Math.max(maxDiff, diff[i][j]);
 				if (diff[i][j] < minDiff) {
 					minDiff = diff[i][j];
@@ -762,7 +877,7 @@ if (cluster[0].getRep().getID() == 7159) {
 		else return null;
 	}
 	
-	static private AbstractTreeNode computeAveragedRep(Cluster[] cluster) {
+	private AbstractTreeNode computeAveragedRep(Cluster[] cluster) {
 		AbstractTreeNode node = cluster[0].getRep().duplicate();
 		for (int i = 1; i < cluster.length; i++)
 			node = mergeNode(node, node.getWeight(), cluster[i].getRep(), cluster[i].getWeight(), false);
@@ -779,9 +894,9 @@ if (cluster[0].getRep().getID() == 7159) {
 		return node;
 	}
 	
-	static private void labelCluster(AbstractTreeNode node, int ID) {
-		if (node instanceof ClusterTreeNode)
-			((ClusterTreeNode) node).addLabel(ID);
+	private void labelCluster(AbstractTreeNode node, int ID) {
+		if (node instanceof ClusterSetNode)
+			((ClusterSetNode) node).addLabel(ID);
 		else if (node instanceof AbstractTraceNode) {
 			AbstractTraceNode trace = (AbstractTraceNode) node;
 			for (int i = 0; i < trace.getNumOfChildren(); i++)
@@ -789,8 +904,80 @@ if (cluster[0].getRep().getID() == 7159) {
 		}
 	}
 	
-	// fully tested.
-	static private Cluster[] findCluster(AbstractTraceNode loop, int begin, int end, int maxNumCluster) {
+	class FindClusterThread implements Callable<Cluster[]> {
+		private final AbstractTraceNode loop;
+		private final int begin;
+		private final int end;
+		private final int maxNumCluster;
+		private final int numProc;
+		
+		public FindClusterThread(AbstractTraceNode loop, int begin, int end,
+				int maxNumCluster, int numProc) {
+			this.loop = loop;
+			this.begin = begin;
+			this.end = end;
+			this.maxNumCluster = maxNumCluster;
+			this.numProc = numProc;
+		}
+
+		@Override
+		public Cluster[] call() {
+			if (begin == end) {
+				labelCluster(loop.getChild(begin), begin);
+				
+				Cluster[] cluster = new Cluster[1];
+				cluster[0] = new Cluster(loop.getChild(begin), begin);
+				return cluster;
+			}
+			
+			int mid = (begin+end)/2;
+			Cluster[] cluster1 = null;
+			Cluster[] cluster2 = null;
+			
+			boolean parallelized = false;
+			if (numProc > 1) {
+				ExecutorService threadExecutor = Executors.newFixedThreadPool(2); 
+				
+				FindClusterThread thread1 = new FindClusterThread(loop, begin, mid, maxNumCluster, numProc/2);
+				Future<Cluster[]> future1 = threadExecutor.submit(thread1);
+				
+				FindClusterThread thread2 = new FindClusterThread(loop, mid+1, end, maxNumCluster, numProc/2);
+				Future<Cluster[]> future2 = threadExecutor.submit(thread2);
+
+				try {
+					cluster1 = future1.get();
+					cluster2 = future2.get();
+					parallelized = true;
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				} catch (ExecutionException e) {
+					e.printStackTrace();
+				}
+				
+				threadExecutor.shutdown();			
+			}
+
+			if (!parallelized) {
+				FindClusterThread thread = new FindClusterThread(loop, begin, mid, maxNumCluster, numProc);
+				cluster1 = thread.call();
+				thread = new FindClusterThread(loop, mid+1, end, maxNumCluster, numProc);
+				cluster2 = thread.call();
+			}
+			
+			if (cluster1 == null || cluster2 == null) return null;
+			
+			Cluster[] cluster = new Cluster[cluster1.length + cluster2.length];
+			for (int i = 0; i < cluster1.length; i++)
+				cluster[i] = cluster1[i];
+			for (int i = 0; i < cluster2.length; i++)
+				cluster[i+cluster1.length] = cluster2[i];
+			
+			return mergeCluster(cluster, maxNumCluster, numProc);
+		}
+	}
+	
+	/*
+	private Cluster[] findCluster(AbstractTraceNode loop, int begin, int end, int maxNumCluster) {
 		if (begin == end) {
 			labelCluster(loop.getChild(begin), begin);
 			
@@ -813,16 +1000,24 @@ if (cluster[0].getRep().getID() == 7159) {
 		
 		return mergeCluster(cluster, maxNumCluster);
 	}
+	*/
 	
-	static public AbstractTreeNode findCluster(AbstractTraceNode loop) {
+	public AbstractTreeNode findCluster(AbstractTraceNode loop, int numProc) {
 		AbstractTraceNode noDiffLoop = (AbstractTraceNode) loop.duplicate();
 		noDiffLoop.clearDiffScore();
-		Cluster[] cluster = findCluster(noDiffLoop, 0, noDiffLoop.getNumOfChildren()-1, maxNumOfClusters(noDiffLoop.getNumOfChildren()));
+		
+		FindClusterThread thread = new FindClusterThread(noDiffLoop, 0, noDiffLoop.getNumOfChildren()-1, 
+				maxNumOfClusters(noDiffLoop.getNumOfChildren()), numProc);
+		Cluster[] cluster = thread.call();
+
 		if (cluster == null) return ProfileNode.toProfile(noDiffLoop);
-		else return new ClusterTreeNode(loop, computeAveragedRep(cluster), cluster);
+		else if (this.procNum >= 0) 
+			return new ClusterSetNode(loop, "data\\P" + this.procNum + "_C" + this.clusterCount++, computeAveragedRep(cluster), cluster);
+		else 
+			return new ClusterSetNode(loop, "data\\AllProcs", computeAveragedRep(cluster), cluster);
 	}
 	
-	public static AbstractTreeNode clusterLoops(AbstractTreeNode node) {
+	public AbstractTreeNode clusterLoops(AbstractTreeNode node) {
 		if (!(node instanceof AbstractTraceNode)) return null;
 		AbstractTraceNode trace = (AbstractTraceNode) node;
 			
@@ -832,7 +1027,7 @@ if (cluster[0].getRep().getID() == 7159) {
 		}
 		
 		if (trace instanceof IteratedLoopTrace) {
-			return findCluster(trace);
+			return findCluster(trace, 1);
 			
 			/*if (trace.getID() == 69617 || trace.getID() == 23299) {
 				if (cluster != null) 
@@ -861,7 +1056,7 @@ if (cluster[0].getRep().getID() == 7159) {
 		return null;
 	}
 	
-	static public void testDiff(AbstractTreeNode node) {
+	public void testDiff(AbstractTreeNode node) {
 		//if (node.getID() == 0) {
 		if (node instanceof IteratedLoopTrace) {
 			AbstractTraceNode loop = (AbstractTraceNode)node;

@@ -1,17 +1,27 @@
 package edu.rice.cs.hpc.traceAnalysis.application;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.PrintStream;
-import java.util.Date;
+import java.util.ArrayList;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import edu.rice.cs.hpc.data.util.Constants;
 import edu.rice.cs.hpc.data.util.Util;
 
 import edu.rice.cs.hpc.traceAnalysis.data.reader.HPCToolkitTraceReader;
 import edu.rice.cs.hpc.traceAnalysis.data.tree.AbstractTreeNode;
+import edu.rice.cs.hpc.traceAnalysis.data.tree.ClusterSetNode;
 import edu.rice.cs.hpc.traceAnalysis.data.tree.RootTrace;
 import edu.rice.cs.hpc.traceAnalysis.data.tree.TraceTree;
 import edu.rice.cs.hpc.traceAnalysis.operator.ClusterIdentifier;
@@ -20,16 +30,131 @@ import edu.rice.cs.hpc.traceAnalysis.operator.TraceFilter;
 import edu.rice.cs.hpc.traceAnalysis.output.SignificantDiffNodePrinter;
 
 public class Application {
-	private boolean openExperiment(PrintStream objPrint, PrintStream objError, File objFile) {
-		if (!objFile.canRead()) return false;
+	private HPCToolkitTraceReader traceReader = null;
+	private final PrintStream objPrint;
+	private final PrintStream objError;
+
+	private final int printDepth = 25;
+	private final int nProc = 192;
+	
+	private final long startTime = System.currentTimeMillis();
+
+	public Application(PrintStream objPrint, PrintStream objError) {
+		this.objError = objError;
+		this.objPrint = objPrint;
+	}
+	
+	private String printTime() {
+		long diff = System.currentTimeMillis() - startTime;
+		return diff/1000 + "." + diff/100%10 + diff/10%10 + diff%10 + "s";
+	}
+	
+	class PerThreadAnalyzer implements Runnable {
+		private final int procNum;
 		
-		objError.println("Start at " + (new Date()).toString());
+		PerThreadAnalyzer(int procNum) {
+			this.procNum = procNum;
+		}
 		
-		HPCToolkitTraceReader traceReader = new HPCToolkitTraceReader(objFile, objPrint, objError);
+		@Override
+		public void run() {
+			TraceTree tree = null;
+			synchronized (this) {
+				tree = traceReader.buildTraceTree(procNum);
+			}
+			objError.println("Build traceline #" + procNum + " finished at " + printTime());
+			//objPrint.println(tree.toString(printDepth));
+			
+			TraceFilter.filterTrace(tree.root);
+			LoopDetector detector = new LoopDetector(tree);
+			detector.detectLoop(tree.root);
+			objError.println("Detect loop traceline #" + procNum + " finished at " + printTime());
+			//objPrint.println("*************************************************");
+			//objPrint.println(tree.toString(printDepth));
+			
+			ClusterIdentifier clusteror = new ClusterIdentifier(procNum, tree);
+			clusteror.clusterLoops(tree.root);
+			objError.println("Cluster traceline #" + procNum + " finished at " + printTime());
+			//objPrint.println("*************************************************");
+			
+			if (procNum == 0) {
+				objPrint.println(tree.printLargeDiffNodes(printDepth));
+				SignificantDiffNodePrinter.printAllCluster(objPrint, tree.root);
+			}
+			
+			tree.root.setName("P" + procNum);
+			
+			try {
+				FileOutputStream fileOut = new FileOutputStream("data\\P"+procNum);
+				ObjectOutputStream out = new ObjectOutputStream(fileOut);
+				out.writeObject(tree);
+				out.close();
+				fileOut.close();
+			} catch (IOException e) {
+				objError.println("file not found when outputing analyzed trace tree for proc #" + procNum);
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	private boolean perThreadAnalysis() {
+		ExecutorService threadExecutor = Executors.newFixedThreadPool( Runtime.getRuntime().availableProcessors()); 
+
+		for (int procNum = 0; procNum < nProc; procNum += 1) { 
+			Runnable worker = new PerThreadAnalyzer(procNum);
+			threadExecutor.execute(worker);
+		}
+		threadExecutor.shutdown();
 		
-		objError.println("Init finished at " + (new Date()).toString());
+		try {
+			while (!threadExecutor.awaitTermination(60, TimeUnit.SECONDS)) {}
+		} catch (InterruptedException e1) {
+			objError.println("Analysis thread interrupted!");
+			e1.printStackTrace();
+			return false;
+		}
 		
-		int printDepth = 25;
+		return true;
+	}
+	
+	class PerThreadReader implements Callable<TraceTree> {
+		private final int procNum;
+		
+		PerThreadReader(int procNum) {
+			this.procNum = procNum;
+		}
+		
+		@Override
+		public TraceTree call() throws Exception {
+			try {
+				FileInputStream fileIn = new FileInputStream("data\\P"+procNum);
+				ObjectInputStream in = new ObjectInputStream(fileIn);
+				TraceTree tree = (TraceTree) in.readObject();
+				in.close();
+				fileIn.close();
+				return tree;
+			} catch (IOException e) {
+				objError.println("file not found when reading analyzed trace tree for proc #" + procNum);
+				e.printStackTrace();
+				return null;
+			} catch (ClassNotFoundException c) {
+		         objError.println("class not found when reading analyzed trace tree for proc #" + procNum);
+		         c.printStackTrace();
+		         return null;
+		    }
+		}
+		
+	}
+	
+	private boolean crossThreadAnalysis() {
+		objError.println("\n\nReading all threads at " + printTime());
+		ExecutorService threadExecutor = Executors.newFixedThreadPool( Runtime.getRuntime().availableProcessors()); 
+		ArrayList<Future<TraceTree>> futures = new ArrayList<Future<TraceTree>>();
+		for (int procNum = 0; procNum < nProc; procNum += 1) { 
+			PerThreadReader reader = new PerThreadReader(procNum);
+			Future<TraceTree> future = threadExecutor.submit(reader);
+			futures.add(future);
+		}
 		
 		RootTrace root = new RootTrace("Root for all procs");
 		root.getTime().setStartTimeExclusive(0);
@@ -37,70 +162,66 @@ public class Application {
 		root.getTime().setEndTimeInclusive(traceReader.getDurantion());
 		root.getTime().setEndTimeExclusive(traceReader.getDurantion());
 		
-		for (int i = 0; i < 24; i += 6) { 
-			objError.println("\n\nProcessing traceline #" + i + ": ");
-			TraceTree tree = traceReader.buildTraceTree(i);
-			objError.println("Build finished at " + (new Date()).toString());
-			//objPrint.println(tree.toString(printDepth));
-			
-			TraceFilter.filterTrace(tree.root);
-			LoopDetector detector = new LoopDetector(tree);
-			detector.detectLoop(tree.root);
-			objError.println("Detect loop finished at " + (new Date()).toString());
-			//objPrint.println("*************************************************");
-			//objPrint.println(tree.toString(printDepth));
-			ClusterIdentifier.clusterLoops(tree.root);
-			objError.println("Cluster finished at " + (new Date()).toString());
-			//objPrint.println("*************************************************");
-			if (i == 0) {
-				objPrint.println(tree.printLargeDiffNodes(printDepth));
-				SignificantDiffNodePrinter.printAllCluster(objPrint, tree.root);
+		for (Future<TraceTree> future : futures) {
+			try {
+				TraceTree tree = future.get();
+				root.addChild(tree.root, tree.root.getTime(), null);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+				return false;
+			} catch (ExecutionException e) {
+				e.printStackTrace();
+				return false;
 			}
-			
-			tree.root.setName("PROC_#" + i);
-			root.addChild(tree.root, tree.root.getTime(), null);
 		}
 		
-		objError.println("\n\nMerging all threads at " + (new Date()).toString());
+		threadExecutor.shutdown();
+		
+		objError.println("\n\nMerging all threads at " + printTime());
 		root.setDepth(0);
-		//objPrint.println(root.toString(printDepth, 10000, 0));
 		
+		ClusterIdentifier clusteror = new ClusterIdentifier(-1, null);
+		ClusterSetNode node = (ClusterSetNode) clusteror.findCluster(root, Runtime.getRuntime().availableProcessors());
 		
-		AbstractTreeNode node = ClusterIdentifier.findCluster(root);
+		objError.println("\n\nFinished all threads at " + printTime());
+		
+		objPrint.println();
+		objPrint.println();
+		
+		double maxDiffRatio = 0;
+		for (int i = 0; i < node.getNumOfClusters(); i++)
+			for (int j = i+1; j < node.getNumOfClusters(); j++) {
+				AbstractTreeNode diff = clusteror.mergeNode(node.getCluster(i).getRep(), node.getCluster(i).getWeight(), 
+						node.getCluster(j).getRep(), node.getCluster(j).getWeight(), false);
+				double ratio = diff.getInclusiveDiffScore() / node.getCluster(i).getWeight() / node.getCluster(j).getWeight() / 
+						(node.getCluster(i).getRep().getDuration() + node.getCluster(j).getRep().getDuration());
+				maxDiffRatio = Math.max(maxDiffRatio, ratio);
+			}
+		objPrint.println("Max diff ratio = " + String.format("%.2f", maxDiffRatio*100) + "%");
 		//objPrint.println(node.toString(10, 10000, 2));
 		objPrint.println(node.printLargeDiffNodes(printDepth, 0, null, Long.MIN_VALUE));
 		SignificantDiffNodePrinter.printAllCluster(objPrint, node);
 		
-		objError.println("Exit at " + (new Date()).toString());
-		/*
-		ClusterNode cluster = ClusterIdentifier.findCluster(root);
-		objPrint.println(cluster.print(3, 0));
-		*/
-		
-		/*
-		//traceReader.readRank(0);
-		TraceTree tree = traceReader.buildTraceTree(0);
-		
-		LoopDetector detector = new LoopDetector(tree);
-		detector.detectLoop(tree.root);
-		
-		//objPrint.println(tree.print(4));
-		//objPrint.println(detector.detectedLoopID);
-		
-		//ProfileNode prof = Trace2ProfileConverter.trace2profile(((AbstractTraceNode)tree.root.getChild(0)).getChild(1));
-		//objPrint.println(((AbstractTraceNode)tree.root.getChild(0)).getChild(1).print(4, 0));
-		//objPrint.println(prof.print(7, 1000));
-		
-		//System.out.println("***********************************************");
-		IterationClassifier.ClasifyLoops(tree.root);
-		objPrint.println(tree.print(6));
-		*/
+		objError.println("Exit at " + printTime());
 		
 		return true;
 	}
 	
+	private boolean openExperiment(File objFile) {
+		if (!objFile.canRead()) return false;
+		
+		objError.println("Started at " + printTime());
+		
+		this.traceReader = new HPCToolkitTraceReader(objFile, objPrint, objError);
+		objError.println("Init finished at " + printTime());
+		
+		//if (!this.perThreadAnalysis()) return false;
+		if (!this.crossThreadAnalysis()) return false;
+
+		return true;
+	}
+	
 	public static void main(String[] args) {
-		Application objApp = new Application();
 		PrintStream objPrint = System.out;
 		String sFilename;
 		boolean std_output = true;
@@ -155,6 +276,8 @@ public class Application {
 		else
 			print_msg = System.out;
 		
+		Application objApp = new Application(objPrint, print_msg);
+		
 		File objFile = new File(sFilename);
 		boolean done = false;
 
@@ -166,13 +289,13 @@ public class Application {
 			{
 				// only experiment*.xml will be considered as database file
 				if (file.getName().startsWith(Constants.DATABASE_FILENAME)) {
-					done = objApp.openExperiment(objPrint, print_msg, file);
+					done = objApp.openExperiment(file);
 					if (done)
 						break;
 				}
 			}
 		} else {
-			done = objApp.openExperiment(objPrint, print_msg, objFile);
+			done = objApp.openExperiment(objFile);
 			
 		}
 

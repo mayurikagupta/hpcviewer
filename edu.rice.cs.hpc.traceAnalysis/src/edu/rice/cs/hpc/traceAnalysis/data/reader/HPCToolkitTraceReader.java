@@ -12,13 +12,7 @@ import edu.rice.cs.hpc.data.experiment.ExperimentWithoutMetrics;
 import edu.rice.cs.hpc.data.experiment.extdata.FileDB2;
 import edu.rice.cs.hpc.data.experiment.extdata.IFileDB;
 import edu.rice.cs.hpc.data.experiment.extdata.TraceAttribute;
-import edu.rice.cs.hpc.data.experiment.scope.CallSiteScope;
-import edu.rice.cs.hpc.data.experiment.scope.LineScope;
-import edu.rice.cs.hpc.data.experiment.scope.LoopScope;
-import edu.rice.cs.hpc.data.experiment.scope.ProcedureScope;
-import edu.rice.cs.hpc.data.experiment.scope.RootScope;
-import edu.rice.cs.hpc.data.experiment.scope.RootScopeType;
-import edu.rice.cs.hpc.data.experiment.scope.Scope;
+import edu.rice.cs.hpc.data.experiment.scope.*;
 import edu.rice.cs.hpc.data.util.Constants;
 import edu.rice.cs.hpc.traceAnalysis.data.cfg.CFGCall;
 import edu.rice.cs.hpc.traceAnalysis.data.cfg.CFGGraph;
@@ -45,10 +39,10 @@ public class HPCToolkitTraceReader {
     private BaseData dataTrace;
     private HashMap<Integer, LineScope> scopeMap;
     
-    private int maxDepth;
+    //private int maxDepth;
     private long minTime;
     private long maxTime;
-    private long frequency;
+    //private long frequency;
 	
     private CFGReader cfgReader;
     

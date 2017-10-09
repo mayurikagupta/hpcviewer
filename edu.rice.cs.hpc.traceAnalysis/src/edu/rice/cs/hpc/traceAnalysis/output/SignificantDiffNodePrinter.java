@@ -10,13 +10,15 @@ import edu.rice.cs.hpc.traceAnalysis.data.tree.Cluster.ClusterMemberID;
 import edu.rice.cs.hpc.traceAnalysis.utils.TraceAnalysisUtils;
 
 public class SignificantDiffNodePrinter {
-	static private final double inclusiveHotpathRatio = 0.5;
-	static private final double inclusiveMinimunRatio = 0.05;
+	
+	static private final double inclusiveHotpathRatio = 0.4;
+	static private final double inclusiveMinimunRatio = 0.025;
 	
 	static private final double minimumDiffRatio = 1.0 / TraceAnalysisUtils.diffCutoffDivider;
 	
 	private final PrintStream objPrint;
-	private final ClusterTreeNode clusterNode;
+	private final ClusterSetNode clusterNode;
+	private final AbstractTraceNode originNode;
 	
 	private final double totalDiffRatio;
 	
@@ -42,19 +44,20 @@ public class SignificantDiffNodePrinter {
 	// instanceID[callpathIdx][instanceIdx] ID of each instance for a call path.
 	private ClusterMemberID[][] instanceID;
 	
-	private SignificantDiffNodePrinter(PrintStream objPrint, ClusterTreeNode clusterNode) {
+	private SignificantDiffNodePrinter(PrintStream objPrint, ClusterSetNode clusterNode) {
 		this.objPrint = objPrint;
-		this.clusterNode = (ClusterTreeNode) clusterNode.duplicate();
+		this.clusterNode = (ClusterSetNode) clusterNode.duplicate();
+		this.originNode = this.clusterNode.getOrigin();
 		
 		this.clusterNode.getRep().stretchDiffScore(1, (double)this.clusterNode.getRep().getDuration()
 				* (double)this.clusterNode.getRep().getWeight() * (this.clusterNode.getRep().getWeight() - 1));
 		this.totalDiffRatio = this.clusterNode.getRep().getInclusiveDiffScore();
 		
-		this.numIterations = this.clusterNode.getOrigin().getNumOfChildren();
+		this.numIterations = this.originNode.getNumOfChildren();
 		
 		this.iterationNames = new String[numIterations];
 		for (int i = 0; i < numIterations; i++)
-			iterationNames[i] = this.clusterNode.getOrigin().getChild(i).getName();
+			iterationNames[i] = this.originNode.getChild(i).getName();
 	}
 	
 	// TODO The current implementation only works when no loop has ever been turned into profiles along the call path.
@@ -69,8 +72,8 @@ public class SignificantDiffNodePrinter {
 			
 			// find the deepest ClusterNode in the callpath
 			for (int i = callpath.length-1; i >= 0; i--)
-				if (callpath[i] instanceof ClusterTreeNode) {
-					ClusterTreeNode node = (ClusterTreeNode) callpath[i];
+				if (callpath[i] instanceof ClusterSetNode) {
+					ClusterSetNode node = (ClusterSetNode) callpath[i];
 					HashSet<ClusterMemberID> instanceNameSet = new HashSet<ClusterMemberID>();
 					for (int j = 0; j < node.getNumOfClusters(); j++) 
 						for (ClusterMemberID member : node.getCluster(j).getMembers()) {
@@ -84,12 +87,12 @@ public class SignificantDiffNodePrinter {
 						instanceID[k] = new ClusterMemberID[instanceNameSet.size()];
 						instanceID[k] = instanceNameSet.toArray(instanceID[k]);
 						Arrays.sort(instanceID[k]);
-						/*
-						objPrint.print("instanceNameSet for " + node.printLargeDiffNodes(node.getDepth(), 0, null, 1));
-						for (ClusterMemberID member : instanceID[k])
-							objPrint.print(member.toString() + ", ");
-						objPrint.println();
-						*/
+						
+						//objPrint.print("instanceNameSet for " + node.printLargeDiffNodes(node.getDepth(), 0, null, 1));
+						//for (ClusterMemberID member : instanceID[k])
+						//	objPrint.print(member.toString() + ", ");
+						//objPrint.println();
+						
 					}
 					
 					break;
@@ -129,8 +132,8 @@ public class SignificantDiffNodePrinter {
 				}
 		}
 		
-		if (node instanceof ClusterTreeNode) {
-			AbstractTraceNode origin = ((ClusterTreeNode) node).getOrigin();
+		if (node instanceof ClusterSetNode) {
+			AbstractTraceNode origin = ((ClusterSetNode) node).getOrigin();
 			for (int i = 0; i < origin.getNumOfChildren(); i++) {
 				String newInstanceName = String.valueOf(i);
 				if (instanceName.length() != 0) newInstanceName = instanceName + "." + newInstanceName;
@@ -150,15 +153,15 @@ public class SignificantDiffNodePrinter {
 		perInstanceTime = new long[majorCallPaths.size()][][];
 		
 		for (int i = 0; i < numIterations; i++)
-			sumTime[majorCallPaths.size()][i] = (clusterNode.getOrigin().getChild(i).getMinDuration() + 
-					clusterNode.getOrigin().getChild(i).getMaxDuration()) / 2;
+			sumTime[majorCallPaths.size()][i] = (originNode.getChild(i).getMinDuration() + 
+					originNode.getChild(i).getMaxDuration()) / 2;
 		
 		for (int k = 0; k < majorCallPaths.size(); k++) {
 			if (hasMultipleInstance[k]) 
 				perInstanceTime[k] = new long [numIterations][instanceID[k].length];
 			
 			for (int i = 0; i < numIterations; i++) {
-				extractTime(clusterNode.getOrigin().getChild(i), k, 0, i, 0, "");
+				extractTime(originNode.getChild(i), k, 0, i, 0, "");
 				sumTime[majorCallPaths.size()][i] -= sumTime[k][i];
 			}
 		}
@@ -182,13 +185,13 @@ public class SignificantDiffNodePrinter {
 				objPrint.print("\t" + printTime(sumTime[k][i]));
 			objPrint.println();
 		
-			/*
-			for (int i = 0; i < numIterations; i++) {
-				for (int j = 0; j < instanceID[k].length; j++)
-					objPrint.print(perInstanceTime[k][i][j] + ", ");
-				objPrint.println(" = " + sumTime[k][i]);
-			}
-			*/
+			
+			//for (int i = 0; i < numIterations; i++) {
+			//	for (int j = 0; j < instanceID[k].length; j++)
+			//		objPrint.print(perInstanceTime[k][i][j] + ", ");
+			//	objPrint.println(" = " + sumTime[k][i]);
+			//}
+			
 		}
 		
 		objPrint.print("Others");
@@ -202,7 +205,7 @@ public class SignificantDiffNodePrinter {
 				objPrint.println();
 				objPrint.print("Cpid_" + majorCallPaths.get(k)[majorCallPaths.get(k).length-1].getID());
 				
-				for (int i = 0; i < instanceID[k].length; i++) objPrint.print("\tITER_#" + instanceID[k][i]);
+				for (int i = 0; i < instanceID[k].length; i++) objPrint.print("\tI" + instanceID[k][i]);
 				objPrint.println();
 				
 				for (int i = 0; i < numIterations; i++) {
@@ -255,7 +258,7 @@ public class SignificantDiffNodePrinter {
 					betterChild = true;
 					break;
 				}
-		} else betterChild = true; // always true for clusterTreeNode
+		} else betterChild = true; // always true for ClusterSetNode
 		
 		if (callpath.size() == 0) betterChild = true;
 		
@@ -277,18 +280,18 @@ public class SignificantDiffNodePrinter {
 		} else if (node instanceof ProfileNode) {
 			for (ProfileNode child : ((ProfileNode) node).getChildMap().values())
 				findSignificantDiffNode(child, callpath);
-		} else if (node instanceof ClusterTreeNode) {
-			findSignificantDiffNode(((ClusterTreeNode) node).getRep(), callpath);	
+		} else if (node instanceof ClusterSetNode) {
+			findSignificantDiffNode(((ClusterSetNode) node).getRep(), callpath);	
 		}
 		
 		callpath.remove(callpath.size()-1);
 	}
 	
 	public static void printAllCluster(PrintStream objPrint, AbstractTreeNode node) {
-		if (node instanceof ClusterTreeNode) {
-			SignificantDiffNodePrinter printer = new SignificantDiffNodePrinter(objPrint, (ClusterTreeNode) node);
+		if (node instanceof ClusterSetNode) {
+			SignificantDiffNodePrinter printer = new SignificantDiffNodePrinter(objPrint, (ClusterSetNode) node);
 			if (printer.totalDiffRatio > minimumDiffRatio) {
-				objPrint.println("@ " + node.getName() + ", totalDiffRatio = " + String.format("%.2f", printer.totalDiffRatio * 100) + "%");
+				objPrint.println("\n@ " + node.getName() + ", totalDiffRatio = " + String.format("%.2f", printer.totalDiffRatio * 100) + "%");
 				printer.findSignificantDiffNode();
 				objPrint.println("remaining diff ratio = " + String.format("%.2f", (printer.totalDiffRatio - printer.sumDiffRatio) * 100) + "%");
 			}

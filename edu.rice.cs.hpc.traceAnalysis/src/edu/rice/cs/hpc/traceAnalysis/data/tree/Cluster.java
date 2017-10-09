@@ -1,10 +1,13 @@
 package edu.rice.cs.hpc.traceAnalysis.data.tree;
 
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.Vector;
 
 
 public class Cluster extends AbstractTreeNode {
+	private static final long serialVersionUID = -1204550671079401928L;
+	
 	private AbstractTreeNode rep; // representative
 	private Vector<ClusterMemberID> members = new Vector<ClusterMemberID>();
 	
@@ -125,7 +128,9 @@ public class Cluster extends AbstractTreeNode {
 		return new Cluster(this.rep.voidDuplicate(), new Vector<ClusterMemberID>());
 	}
 	
-	public class ClusterMemberID implements Comparable<ClusterMemberID> {
+	public class ClusterMemberID implements Comparable<ClusterMemberID>, Serializable {
+		private static final long serialVersionUID = -8225446671312668849L;
+		
 		private Vector<Integer> IDs = new Vector<Integer>();
 		
 		public ClusterMemberID(int ID) {
@@ -153,7 +158,7 @@ public class Cluster extends AbstractTreeNode {
 				ClusterMemberID other = (ClusterMemberID)obj;
 				if (IDs.size() != other.IDs.size()) return false;
 				for (int i = 0; i < IDs.size(); i++)
-					if (IDs.get(i) != other.IDs.get(i)) return false;
+					if (!IDs.get(i).equals(other.IDs.get(i))) return false;
 				return true;
 			}
 			return false;
@@ -175,6 +180,7 @@ public class Cluster extends AbstractTreeNode {
 			return 0;
 		}
 		
+		@Override
 		public int hashCode() {
 			return toString().hashCode();
 		}

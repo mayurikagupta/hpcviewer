@@ -4,12 +4,21 @@ import java.util.ArrayList;
 import java.util.HashSet;
 
 public class CFGFunc extends CFGGraph {
+	private static final long serialVersionUID = -2368182051569920667L;
+
 	public CFGFunc(long vma, String label) {
 		super(vma, label);
 	}
 	
 	public CFGFunc(long vma, String label, CFGNode[] nodes, ArrayList<HashSet<CFGNode>> successors) {
 		super(vma, label, nodes, successors);
+	}
+	
+	public boolean equals(Object other) {
+		if (other instanceof CFGFunc)
+			if (this.vma == ((CFGFunc)other).vma)
+				return true;
+		return false;
 	}
 	
 	public String toString() {

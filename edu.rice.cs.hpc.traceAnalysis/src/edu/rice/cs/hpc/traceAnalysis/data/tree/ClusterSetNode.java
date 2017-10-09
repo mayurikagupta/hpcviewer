@@ -1,11 +1,21 @@
 package edu.rice.cs.hpc.traceAnalysis.data.tree;
 
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+
 import edu.rice.cs.hpc.traceAnalysis.operator.ClusterIdentifier;
 import edu.rice.cs.hpc.traceAnalysis.utils.TraceAnalysisUtils;
 
 
-public class ClusterTreeNode extends AbstractTreeNode {
-	protected final AbstractTraceNode origin;
+public class ClusterSetNode extends AbstractTreeNode {
+	private static final long serialVersionUID = -1173018873034372326L;
+
+	protected final String originFileName;
+	protected final AbstractTraceNode originVoidDuplicate;
+	//private AbstractTraceNode origin = null;
 	
 	protected long minDuration;
 	protected long maxDuration;
@@ -14,20 +24,17 @@ public class ClusterTreeNode extends AbstractTreeNode {
 	private final AbstractTreeNode rep; // the averaged representative across all threads/iterations, with difference scores indicating the difference within the clusters.
 	
 	// Build new ClusterTreeNode from traces.
-	public ClusterTreeNode(AbstractTraceNode origin, AbstractTreeNode rep, Cluster[] clusters) {
+	public ClusterSetNode(AbstractTraceNode origin, String originFileName, AbstractTreeNode rep, Cluster[] clusters) {
 		super(origin);
-		this.origin = origin;
 		this.name = "Cluster of " + origin.name;
 		
 		this.minDuration = origin.getMinDuration();
 		this.maxDuration = origin.getMaxDuration();
 		
 		this.clusters = clusters;
-		//int numIteration = 0;
 		for (int i = 0; i < clusters.length; i++) {
 			clusters[i].setName("Cluster #" + i);
 			clusters[i].getRep().setName("Cluster #" + i);
-			//numIteration += clusters[i].getMemberSize();
 		}
 		
 		this.rep = rep;
@@ -35,34 +42,48 @@ public class ClusterTreeNode extends AbstractTreeNode {
 		
 		this.inclusiveDiffScore = 0;
 		this.exclusiveDiffScore = 0;
+		
+		this.originFileName = originFileName;
+		this.originVoidDuplicate = (AbstractTraceNode)origin.voidDuplicate();
+		
+		if (origin != null && originFileName != null && originFileName.length() > 0) {
+			try {
+				FileOutputStream fileOut = new FileOutputStream(originFileName);
+				ObjectOutputStream out = new ObjectOutputStream(fileOut);
+				out.writeObject(origin);
+				out.close();
+				fileOut.close();
+			} catch (IOException e) {
+				System.err.println("File not found when serializing origin for ClusterSetNode");
+				e.printStackTrace();
+			}
+		}
 	}
 	
 	// Build new ClusterTreeNode from two existing ClusterTreeNode.
-	public ClusterTreeNode(ClusterTreeNode node1, ClusterTreeNode node2, AbstractTreeNode rep, Cluster[] clusters) {
+	public ClusterSetNode(ClusterSetNode node1, ClusterSetNode node2, AbstractTreeNode rep, Cluster[] clusters) {
 		super(node1.getID(), node1.getName(), node1.getDepth());
-		
-		this.origin = (AbstractTraceNode) node1.origin.voidDuplicate();
+		this.originFileName = null;
+		this.originVoidDuplicate = null;
+		//this.origin = (AbstractTraceNode) node1.origin.voidDuplicate();
 		this.weight = node1.weight + node2.weight;
 		this.minDuration = ClusterIdentifier.computeWeightedAverage(node1.getMinDuration(), node1.getWeight(), node2.getMinDuration(), node2.getWeight());
 		this.maxDuration = ClusterIdentifier.computeWeightedAverage(node1.getMaxDuration(), node1.getWeight(), node2.getMaxDuration(), node2.getWeight());
 		
 		this.clusters = clusters;
-		//int numIteration = 0;
 		for (int i = 0; i < clusters.length; i++) {
 			clusters[i].setName("Cluster #" + i);
 			clusters[i].getRep().setName("Cluster #" + i);
-			//numIteration += clusters[i].getMemberSize();
 		}
-		//this.numIteration = numIteration;
 		
 		this.rep = rep;
-		rep.setName("Average for " + rep.weight + " iterations/threads of " + origin.name);
+		rep.setName("Average for " + rep.weight + " iterations/threads of " + node1.getName().substring(11));
 		
 		this.inclusiveDiffScore = this.rep.inclusiveDiffScore;
 		this.exclusiveDiffScore = this.rep.exclusiveDiffScore;
 	}
 	
-	protected ClusterTreeNode(ClusterTreeNode other) {
+	protected ClusterSetNode(ClusterSetNode other) {
 		super(other);
 		this.minDuration = other.minDuration;
 		this.maxDuration = other.maxDuration;
@@ -70,8 +91,8 @@ public class ClusterTreeNode extends AbstractTreeNode {
 		for (int i = 0; i < clusters.length; i++)
 			clusters[i] = (Cluster) other.clusters[i].duplicate();
 		this.rep = other.rep.duplicate();
-		//this.numIteration = other.numIteration;
-		this.origin = other.origin;
+		this.originFileName = other.originFileName;
+		this.originVoidDuplicate = other.originVoidDuplicate;
 	}
 	
 	public int getNumOfClusters() {
@@ -87,6 +108,20 @@ public class ClusterTreeNode extends AbstractTreeNode {
 	}
 	
 	public AbstractTraceNode getOrigin() {
+		AbstractTraceNode origin = null;
+			try {
+				FileInputStream fileIn = new FileInputStream(this.originFileName);
+				ObjectInputStream in = new ObjectInputStream(fileIn);
+				origin = (AbstractTraceNode) in.readObject();
+				in.close();
+				fileIn.close();
+			} catch (IOException e) {
+				System.err.println("File not found when deserializing origin for ClusterSetNode");
+				e.printStackTrace();
+			} catch (ClassNotFoundException c) {
+				System.err.println("class not found when deserializing origin for ClusterSetNode");
+		        c.printStackTrace();
+			}
 		return origin;
 	}
 	
@@ -130,13 +165,14 @@ public class ClusterTreeNode extends AbstractTreeNode {
 	}
 
 	public AbstractTreeNode duplicate() {
-		return new ClusterTreeNode(this);
+		return new ClusterSetNode(this);
 	}
 	
 	public AbstractTreeNode voidDuplicate() {
-		ClusterTreeNode ret = new ClusterTreeNode(this.origin, rep.voidDuplicate(), new Cluster[0]);
+		ClusterSetNode ret = new ClusterSetNode((AbstractTraceNode)originVoidDuplicate.voidDuplicate(), "", rep.voidDuplicate(), new Cluster[0]);
 		ret.minDuration = 0;
 		ret.maxDuration = 0;
+		ret.name = this.name;
 		return ret;
 	}
 	

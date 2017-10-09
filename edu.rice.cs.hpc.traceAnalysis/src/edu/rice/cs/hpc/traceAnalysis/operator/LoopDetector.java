@@ -46,16 +46,16 @@ public class LoopDetector {
         	int curID = node.getChild(k).getID();
         	if (!map.containsKey(curID)) {
         		OccurrenceRecord record = new OccurrenceRecord(curID, k);
-        		if (node.getChild(k) instanceof RawLoopTrace)
-        			record.minDuration = 0;
+        		//if (node.getChild(k) instanceof RawLoopTrace)
+        		//	record.minDuration = 0;
         		records.add(record);
         		map.put(curID, record);
         	}
         	OccurrenceRecord record = map.get(curID);
         	record.lastOccur = k;
         	record.occurrence++;
-        	record.totalDuration += node.getChild(k).getDuration();
-        	record.minDuration = Math.min(record.minDuration, node.getChild(k).getDuration());
+        	//record.totalDuration += node.getChild(k).getDuration();
+        	//record.minDuration = Math.min(record.minDuration, node.getChild(k).getDuration());
         	if (predID != -1) {
         		record.pred.add(predID);
         		map.get(predID).post.add(curID);
@@ -452,8 +452,8 @@ class OccurrenceRecord {
 	int lastOccur;
 	
 	int occurrence = 0;
-	long totalDuration = 0;
-	long minDuration = Long.MAX_VALUE;
+	//long totalDuration = 0;
+	//long minDuration = Long.MAX_VALUE;
 	
 	HashSet<Integer> pred = new HashSet<Integer>();
 	HashSet<Integer> post = new HashSet<Integer>();

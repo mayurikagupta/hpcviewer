@@ -1,6 +1,10 @@
 package edu.rice.cs.hpc.traceAnalysis.data.tree;
 
-public class TraceTimeStruct {
+import java.io.Serializable;
+
+public class TraceTimeStruct implements Serializable {
+	private static final long serialVersionUID = 4846970525263781853L;
+
 	long startTimeExclusive;
 	long startTimeInclusive;
 	long endTimeInclusive;

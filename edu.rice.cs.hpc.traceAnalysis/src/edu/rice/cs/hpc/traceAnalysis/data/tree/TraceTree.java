@@ -1,8 +1,12 @@
 package edu.rice.cs.hpc.traceAnalysis.data.tree;
 
+import java.io.Serializable;
+
 import edu.rice.cs.hpc.traceAnalysis.utils.TraceAnalysisUtils;
 
-public class TraceTree {
+public class TraceTree implements Serializable {
+	private static final long serialVersionUID = -8921129750765810938L;
+
 	public final RootTrace root;
 	
 	public final long begTime;

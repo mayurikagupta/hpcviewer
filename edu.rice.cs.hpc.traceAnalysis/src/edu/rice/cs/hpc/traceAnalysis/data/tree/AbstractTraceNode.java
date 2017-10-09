@@ -7,6 +7,10 @@ import edu.rice.cs.hpc.traceAnalysis.data.cfg.CFGNode;
 import edu.rice.cs.hpc.traceAnalysis.utils.TraceAnalysisUtils;
 
 abstract public class AbstractTraceNode extends AbstractTreeNode {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 4263460050236195638L;
 	protected TraceTimeStruct time = new TraceTimeStruct();
 	public final CFGGraph cfgNode;
 	

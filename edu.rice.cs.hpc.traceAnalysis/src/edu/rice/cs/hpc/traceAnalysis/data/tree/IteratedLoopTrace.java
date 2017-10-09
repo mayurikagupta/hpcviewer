@@ -1,6 +1,8 @@
 package edu.rice.cs.hpc.traceAnalysis.data.tree;
 
 public class IteratedLoopTrace extends AbstractTraceNode {
+	private static final long serialVersionUID = 5359891394567113682L;
+	
 	protected final RawLoopTrace rawLoop;
 	
 	public IteratedLoopTrace(RawLoopTrace rawLoop) {

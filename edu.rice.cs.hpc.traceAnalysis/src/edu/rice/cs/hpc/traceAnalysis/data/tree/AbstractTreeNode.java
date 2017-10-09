@@ -1,8 +1,10 @@
 package edu.rice.cs.hpc.traceAnalysis.data.tree;
 
-import java.text.DecimalFormat;
+import java.io.Serializable;
 
-abstract public class AbstractTreeNode {
+abstract public class AbstractTreeNode implements Serializable {
+	private static final long serialVersionUID = 2487139341048860091L;
+
 	static protected int printDivisor = 1;
 	
 	final protected int ID;
@@ -91,7 +93,7 @@ abstract public class AbstractTreeNode {
 	}
 	
 	public long getDuration() {
-		return Math.max(getMinDuration(), 0);
+		return (this.getMinDuration() + this.getMaxDuration()) / 2;
 	}
 	
 	abstract public long getMinDuration();

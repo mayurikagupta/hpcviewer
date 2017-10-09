@@ -3,16 +3,14 @@ package edu.rice.cs.hpc.traceAnalysis.data.tree;
 import edu.rice.cs.hpc.traceAnalysis.data.cfg.CFGGraph;
 
 public class IterationTrace extends AbstractTraceNode {
-	//protected final int iterNum;
-	
+	private static final long serialVersionUID = -3660573230045906119L;
+
 	public IterationTrace(IteratedLoopTrace loop, int iterNum) {
 		super(loop.getID(), "ITER_#" + iterNum, loop.getDepth(), loop.cfgNode);
-		//this.iterNum = iterNum;
 	}
 	
 	protected IterationTrace(IterationTrace other) {
 		super(other);
-		//this.iterNum = other.iterNum;
 	}
 	
 	private IterationTrace(int ID, String name, int depth, CFGGraph cfgNode) {

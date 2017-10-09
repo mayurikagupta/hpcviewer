@@ -4,6 +4,8 @@ import edu.rice.cs.hpc.traceAnalysis.data.cfg.CFGGraph;
 import edu.rice.cs.hpc.traceAnalysis.data.cfg.CFGNode;
 
 public class FunctionTrace extends AbstractTraceNode {
+	private static final long serialVersionUID = 5162368077246918208L;
+	
 	public final CFGNode ra;
 	
 	public FunctionTrace(int ID, String name, int depth, CFGGraph cfgNode, CFGNode ra) {
