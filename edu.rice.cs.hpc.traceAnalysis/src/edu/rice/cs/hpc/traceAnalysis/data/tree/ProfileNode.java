@@ -18,7 +18,7 @@ public class ProfileNode extends AbstractTreeNode {
 	private HashMap<Integer, ProfileNode> childMap = new HashMap<Integer, ProfileNode>();
 	
 	static public ProfileNode toProfile(AbstractTreeNode node) {
-		if (node instanceof ProfileNode) return new ProfileNode((ProfileNode)node);
+		if (node instanceof ProfileNode) return new ProfileNode((ProfileNode)node, true);
 		if (node instanceof ClusterSetNode) return new ProfileNode((ClusterSetNode)node);
 		/*{
 			ClusterTreeNode cluster = (ClusterTreeNode) node;
@@ -75,15 +75,16 @@ public class ProfileNode extends AbstractTreeNode {
 		this.setWeight(cluster.weight);
 	}
 	
-	public ProfileNode(ProfileNode profile) {
+	public ProfileNode(ProfileNode profile, boolean initChildMap) {
 		super(profile);
 		this.minDurationExclusive = profile.minDurationExclusive;
 		this.minDurationInclusive = profile.minDurationInclusive;
 		this.maxDurationExclusive = profile.maxDurationExclusive;
 		this.maxDurationInclusive = profile.maxDurationInclusive;
 		
-		for (ProfileNode child: profile.childMap.values())
-			this.childMap.put(child.ID, new ProfileNode(child));
+		if (initChildMap)
+			for (ProfileNode child: profile.childMap.values())
+				this.childMap.put(child.ID, new ProfileNode(child, initChildMap));
 	}
 	
 	public long getMinDurationInclusive() {
@@ -212,11 +213,11 @@ public class ProfileNode extends AbstractTreeNode {
 	}
 	
 	public AbstractTreeNode duplicate() {
-		return new ProfileNode(this);
+		return new ProfileNode(this, true);
 	}
 	
 	public AbstractTreeNode voidDuplicate() {
-		ProfileNode ret = new ProfileNode(this);
+		ProfileNode ret = new ProfileNode(this, false);
 		ret.minDurationExclusive = 0;
 		ret.minDurationInclusive = 0;
 		ret.maxDurationExclusive = 0;

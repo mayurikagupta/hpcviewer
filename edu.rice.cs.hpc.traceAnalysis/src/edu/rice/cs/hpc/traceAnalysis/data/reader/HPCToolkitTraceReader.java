@@ -22,6 +22,7 @@ import edu.rice.cs.hpc.traceAnalysis.data.tree.FunctionTrace;
 import edu.rice.cs.hpc.traceAnalysis.data.tree.RawLoopTrace;
 import edu.rice.cs.hpc.traceAnalysis.data.tree.RootTrace;
 import edu.rice.cs.hpc.traceAnalysis.data.tree.TraceTree;
+import edu.rice.cs.hpc.traceAnalysis.utils.TraceAnalysisUtils;
 import edu.rice.cs.hpc.traceviewer.data.db.TraceDataByRank;
 import edu.rice.cs.hpc.traceviewer.data.version2.BaseData;
 import edu.rice.cs.hpc.traceviewer.data.version3.FileDB3;
@@ -105,6 +106,9 @@ public class HPCToolkitTraceReader {
 			objError.println("Error while processing CFG graphviz file.");
 			return;
 		}
+		
+		TraceAnalysisUtils.setCFGFuncMap(cfgReader.CFGFuncMap);
+		TraceAnalysisUtils.setCFGLoopMap(cfgReader.CFGLoopMap);
 		
 		dataTrace = new BaseData(fileDB);
 	}

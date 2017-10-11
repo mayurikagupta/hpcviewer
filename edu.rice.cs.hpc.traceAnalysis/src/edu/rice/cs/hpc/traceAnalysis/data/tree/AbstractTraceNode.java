@@ -1,7 +1,11 @@
 package edu.rice.cs.hpc.traceAnalysis.data.tree;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.Vector;
 
+import edu.rice.cs.hpc.traceAnalysis.data.cfg.CFGCall;
 import edu.rice.cs.hpc.traceAnalysis.data.cfg.CFGGraph;
 import edu.rice.cs.hpc.traceAnalysis.data.cfg.CFGNode;
 import edu.rice.cs.hpc.traceAnalysis.utils.TraceAnalysisUtils;
@@ -12,7 +16,7 @@ abstract public class AbstractTraceNode extends AbstractTreeNode {
 	 */
 	private static final long serialVersionUID = 4263460050236195638L;
 	protected TraceTimeStruct time = new TraceTimeStruct();
-	public final CFGGraph cfgNode;
+	public transient CFGGraph cfgNode;
 	
 	protected Vector<AbstractTreeNode> children = new Vector<AbstractTreeNode>();
 	
@@ -28,7 +32,7 @@ abstract public class AbstractTraceNode extends AbstractTreeNode {
 	 * If a child represent a function call, the reference should be CFGCall
 	 * If a child represent a loop, the reference should be CFGLoop
 	 */
-	protected Vector<CFGNode> childrenCFGNode = new Vector<CFGNode>();
+	protected transient Vector<CFGNode> childrenCFGNode = new Vector<CFGNode>();
 	
 	public AbstractTraceNode(int ID, String name, int depth, CFGGraph cfgNode) {
 		super(ID, name, depth);
@@ -48,7 +52,7 @@ abstract public class AbstractTraceNode extends AbstractTreeNode {
 				childrenCFGNode.add(other.getChildCFGNode(i));
 			} else {
 				children.add(other.getChild(i).duplicate());
-				childrenTime.add(other.getChildTime(i).duplicate());
+				childrenTime.add(other.getChildTime(i) == null ? null : other.getChildTime(i).duplicate());
 				childrenCFGNode.add(other.getChildCFGNode(i));
 			}
 	}
@@ -111,9 +115,12 @@ abstract public class AbstractTraceNode extends AbstractTreeNode {
 	
 	public void updateChild(int index, AbstractTreeNode node) {
 		children.set(index, node);
+
+		if (node instanceof AbstractTraceNode) {
+			childrenTime.set(index, ((AbstractTraceNode) node).getTime());
+		}
 		
-		if (node instanceof AbstractTraceNode) 
-			assert (childrenTime.get(index) == ((AbstractTraceNode)node).time);
+		//TODO update childrenCFGNode?
 	}
 	/*
 	public void moveChild(int origin, int dest) {
@@ -265,5 +272,42 @@ abstract public class AbstractTraceNode extends AbstractTreeNode {
 				ret += getChild(i).toString(maxDepth, durationCutoff, weight);
 		
 		return ret;
+	}
+	
+	private void writeObject(ObjectOutputStream out) throws IOException {
+		out.defaultWriteObject();
+		out.writeObject(cfgNode == null ? null : cfgNode.toString());
+		
+		Vector<String> CFGStrings = new Vector<String>();
+		for (CFGNode node : childrenCFGNode)
+			CFGStrings.add(node == null ? null : node.toString());
+		out.writeObject(CFGStrings);
+	}
+	
+	private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+		in.defaultReadObject();
+		
+		String str = (String) in.readObject();
+		this.cfgNode = (CFGGraph) rebuildCFGNode(str);
+		
+		@SuppressWarnings("unchecked")
+		Vector<String> CFGStrings = (Vector<String>) in.readObject();
+		childrenCFGNode = new Vector<CFGNode>();
+		for (String s : CFGStrings)
+			childrenCFGNode.add(rebuildCFGNode(s));
+	}
+	
+	protected CFGNode rebuildCFGNode(String str) {
+		if (str == null) return null;
+			
+		String[] split = str.split("_");
+		assert(split[1].subSequence(0, 2).equals("0x"));
+		long addr = Long.decode(split[1]);
+		if (split[0].equals("loop"))
+			return TraceAnalysisUtils.lookupCFGLoop(addr);
+		else if (split[0].equals("func"))
+			return TraceAnalysisUtils.lookupCFGFunc(addr);
+		else
+			return new CFGCall(addr);
 	}
 }

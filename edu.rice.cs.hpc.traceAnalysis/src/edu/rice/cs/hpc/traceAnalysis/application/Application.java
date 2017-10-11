@@ -23,6 +23,7 @@ import edu.rice.cs.hpc.traceAnalysis.data.reader.HPCToolkitTraceReader;
 import edu.rice.cs.hpc.traceAnalysis.data.tree.AbstractTreeNode;
 import edu.rice.cs.hpc.traceAnalysis.data.tree.ClusterSetNode;
 import edu.rice.cs.hpc.traceAnalysis.data.tree.RootTrace;
+import edu.rice.cs.hpc.traceAnalysis.data.tree.ShadowTraceTree;
 import edu.rice.cs.hpc.traceAnalysis.data.tree.TraceTree;
 import edu.rice.cs.hpc.traceAnalysis.operator.ClusterIdentifier;
 import edu.rice.cs.hpc.traceAnalysis.operator.LoopDetector;
@@ -147,7 +148,9 @@ public class Application {
 	}
 	
 	private boolean crossThreadAnalysis() {
-		objError.println("\n\nReading all threads at " + printTime());
+		//objError.println("\n\nReading all threads at " + printTime());
+		
+		/*
 		ExecutorService threadExecutor = Executors.newFixedThreadPool( Runtime.getRuntime().availableProcessors()); 
 		ArrayList<Future<TraceTree>> futures = new ArrayList<Future<TraceTree>>();
 		for (int procNum = 0; procNum < nProc; procNum += 1) { 
@@ -155,6 +158,7 @@ public class Application {
 			Future<TraceTree> future = threadExecutor.submit(reader);
 			futures.add(future);
 		}
+		*/
 		
 		RootTrace root = new RootTrace("Root for all procs");
 		root.getTime().setStartTimeExclusive(0);
@@ -162,6 +166,12 @@ public class Application {
 		root.getTime().setEndTimeInclusive(traceReader.getDurantion());
 		root.getTime().setEndTimeExclusive(traceReader.getDurantion());
 		
+		for (int procNum = 0; procNum < nProc; procNum += 1) { 
+			ShadowTraceTree shadow = new ShadowTraceTree("data\\P"+procNum);
+			root.addChild(shadow, null, null);
+		}
+		
+		/*
 		for (Future<TraceTree> future : futures) {
 			try {
 				TraceTree tree = future.get();
@@ -176,6 +186,7 @@ public class Application {
 		}
 		
 		threadExecutor.shutdown();
+		*/
 		
 		objError.println("\n\nMerging all threads at " + printTime());
 		root.setDepth(0);
@@ -192,7 +203,7 @@ public class Application {
 		for (int i = 0; i < node.getNumOfClusters(); i++)
 			for (int j = i+1; j < node.getNumOfClusters(); j++) {
 				AbstractTreeNode diff = clusteror.mergeNode(node.getCluster(i).getRep(), node.getCluster(i).getWeight(), 
-						node.getCluster(j).getRep(), node.getCluster(j).getWeight(), false);
+						node.getCluster(j).getRep(), node.getCluster(j).getWeight(), false, true);
 				double ratio = diff.getInclusiveDiffScore() / node.getCluster(i).getWeight() / node.getCluster(j).getWeight() / 
 						(node.getCluster(i).getRep().getDuration() + node.getCluster(j).getRep().getDuration());
 				maxDiffRatio = Math.max(maxDiffRatio, ratio);
@@ -200,7 +211,8 @@ public class Application {
 		objPrint.println("Max diff ratio = " + String.format("%.2f", maxDiffRatio*100) + "%");
 		//objPrint.println(node.toString(10, 10000, 2));
 		objPrint.println(node.printLargeDiffNodes(printDepth, 0, null, Long.MIN_VALUE));
-		SignificantDiffNodePrinter.printAllCluster(objPrint, node);
+		
+		//SignificantDiffNodePrinter.printAllCluster(objPrint, node);
 		
 		objError.println("Exit at " + printTime());
 		

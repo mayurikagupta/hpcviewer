@@ -5,8 +5,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 public abstract class CFGGraph extends CFGNode {
-	private static final long serialVersionUID = 7176055497659587665L;
-	
 	public final boolean valid;
 	public final String label;
 	public final CFGNode[] nodes;
@@ -61,7 +59,7 @@ public abstract class CFGGraph extends CFGNode {
 		return childIndexMap.containsKey(node);
 	}
 	
-	public String toString() {
+	public String toDetailedString() {
 		String str = super.toString() + ":";
 		if (this.valid)
 			for (CFGNode n : nodes)

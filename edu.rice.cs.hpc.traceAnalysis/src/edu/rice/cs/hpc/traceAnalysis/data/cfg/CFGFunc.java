@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 
 public class CFGFunc extends CFGGraph {
-	private static final long serialVersionUID = -2368182051569920667L;
-
 	public CFGFunc(long vma, String label) {
 		super(vma, label);
 	}
@@ -22,6 +20,6 @@ public class CFGFunc extends CFGGraph {
 	}
 	
 	public String toString() {
-		return label + " " + super.toString();
+		return "func_" + super.toString();
 	}
 }

@@ -1,8 +1,6 @@
 package edu.rice.cs.hpc.traceAnalysis.data.cfg;
 
 public class CFGCall extends CFGNode {
-	private static final long serialVersionUID = 2739711733665207359L;
-
 	public CFGCall(long vma) {
 		super(vma);
 	}

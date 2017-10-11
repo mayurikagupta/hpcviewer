@@ -1,10 +1,6 @@
 package edu.rice.cs.hpc.traceAnalysis.data.cfg;
 
-import java.io.Serializable;
-
-public abstract class CFGNode implements Serializable{
-	private static final long serialVersionUID = 1083631193415176371L;
-	
+public abstract class CFGNode {
 	public final long vma;
 	
 	public CFGNode(long vma) {

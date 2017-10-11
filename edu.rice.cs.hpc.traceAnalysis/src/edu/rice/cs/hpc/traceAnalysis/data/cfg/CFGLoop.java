@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 
 public class CFGLoop extends CFGGraph{
-	private static final long serialVersionUID = 4499474815822603018L;
-
 	public CFGLoop(long addr, String label) {
 		super(addr, label);
 	}
@@ -22,6 +20,6 @@ public class CFGLoop extends CFGGraph{
 	}
 	
 	public String toString() {
-		return "[loop_" + super.toString() + "]";
+		return "loop_" + super.toString();
 	}
 }
