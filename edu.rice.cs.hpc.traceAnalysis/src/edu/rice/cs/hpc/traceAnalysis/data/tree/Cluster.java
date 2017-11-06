@@ -16,7 +16,7 @@ public class Cluster extends AbstractTreeNode {
 		this.rep = node.duplicate();
 		this.weight = rep.weight;
 		if (this.rep instanceof AbstractTraceNode) {
-			((AbstractTraceNode) this.rep).shiftTime(-((AbstractTraceNode) this.rep).getTime().getStartTimeExclusive());
+			((AbstractTraceNode) this.rep).shiftTime(-((AbstractTraceNode) this.rep).getTraceTime().getStartTimeExclusive());
 		}
 		this.members.add(new ClusterMemberID(id));
 	}
@@ -64,7 +64,7 @@ public class Cluster extends AbstractTreeNode {
 			member.append(ID);
 	}
 	
-	public String printLargeDiffNodes(int maxDepth, long durationCutoff, TraceTimeStruct ts, long totalDiff) {
+	public String printLargeDiffNodes(int maxDepth, long durationCutoff, long totalDiff) {
 		if (this.depth > maxDepth) return "";
 		
 		String ret = "  ";

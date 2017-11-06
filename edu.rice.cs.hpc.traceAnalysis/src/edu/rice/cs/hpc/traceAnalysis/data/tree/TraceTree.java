@@ -28,6 +28,6 @@ public class TraceTree implements Serializable {
 	}
 	
 	public String printLargeDiffNodes(int maxDepth) {
-		return root.printLargeDiffNodes(maxDepth, sampleFrequency * TraceAnalysisUtils.traceCutoffMultiplier, null, Long.MIN_VALUE);
+		return root.printLargeDiffNodes(maxDepth, sampleFrequency * TraceAnalysisUtils.traceCutoffMultiplier, Long.MIN_VALUE);
 	}
 }

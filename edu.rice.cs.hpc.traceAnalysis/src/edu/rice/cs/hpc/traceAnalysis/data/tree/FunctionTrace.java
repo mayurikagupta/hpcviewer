@@ -1,30 +1,21 @@
 package edu.rice.cs.hpc.traceAnalysis.data.tree;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-
 import edu.rice.cs.hpc.traceAnalysis.data.cfg.CFGGraph;
 import edu.rice.cs.hpc.traceAnalysis.data.cfg.CFGNode;
 
 public class FunctionTrace extends AbstractTraceNode {
 	private static final long serialVersionUID = 5162368077246918208L;
 	
-	public transient CFGNode ra;
-	
-	public FunctionTrace(int ID, String name, int depth, CFGGraph cfgNode, CFGNode ra) {
-		super(ID, name, depth, cfgNode);
-		this.ra = ra;
+	public FunctionTrace(int ID, String name, int depth, CFGGraph cfgGraph, CFGNode ra) {
+		super(ID, name, depth, cfgGraph, ra);
 	}
 	
 	public FunctionTrace(RawLoopTrace loop) {
 		super(loop);
-		this.ra = loop.cfgNode;
 	}
 	
 	protected FunctionTrace(FunctionTrace other) {
 		super(other);
-		this.ra = other.ra;
 	}
 	
 	public AbstractTreeNode duplicate() {
@@ -32,24 +23,13 @@ public class FunctionTrace extends AbstractTraceNode {
 	}
 	
 	public AbstractTreeNode voidDuplicate() {
-		return new FunctionTrace(this.ID, this.name, this.depth, this.cfgNode, this.ra);
+		return new FunctionTrace(this.ID, this.name, this.depth, this.cfgGraph, this.addrNode);
 	}
 	
 	public String toString(int maxDepth, long durationCutoff, int weight) {
-		if (ra != null)
-			return "C" + Long.toHexString(ra.vma) + "-F" + super.toString(maxDepth, durationCutoff, weight);
+		if (addrNode != null)
+			return "C" + Long.toHexString(addrNode.vma) + "-R" + super.toString(maxDepth, durationCutoff, weight);
 		else
-			return "C      " + "-F" + super.toString(maxDepth, durationCutoff, weight);
-	}
-	
-	private void writeObject(ObjectOutputStream out) throws IOException {
-		out.defaultWriteObject();
-		out.writeObject(ra == null? null : ra.toString());
-	}
-	
-	private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-		in.defaultReadObject();
-		String str = (String) in.readObject();
-		this.ra = rebuildCFGNode(str);
+			return "C      " + "-R" + super.toString(maxDepth, durationCutoff, weight);
 	}
 }

@@ -13,7 +13,7 @@ public class ShadowTraceTree extends AbstractTreeNode {
 	private boolean clearedDiffScore = false;
 	
 	public ShadowTraceTree(String filename) {
-		super(0, filename, 0);
+		super(0, filename, 0, null, null);
 	}
 	
 	public RootTrace getRootTrace() {
@@ -35,7 +35,6 @@ public class ShadowTraceTree extends AbstractTreeNode {
 	    }
 	}
 	
-	@Override
 	public void clearDiffScore() {
 		this.clearedDiffScore = true;
 	}
@@ -75,8 +74,7 @@ public class ShadowTraceTree extends AbstractTreeNode {
 	}
 
 	@Override
-	public String printLargeDiffNodes(int maxDepth, long durationCutoff,
-			TraceTimeStruct ts, long totalDiff) {
-		return getRootTrace().printLargeDiffNodes(maxDepth, durationCutoff, ts, totalDiff);
+	public String printLargeDiffNodes(int maxDepth, long durationCutoff, long totalDiff) {
+		return getRootTrace().printLargeDiffNodes(maxDepth, durationCutoff, totalDiff);
 	}
 }

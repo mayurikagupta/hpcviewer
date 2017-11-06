@@ -20,17 +20,12 @@ public class ProfileNode extends AbstractTreeNode {
 	static public ProfileNode toProfile(AbstractTreeNode node) {
 		if (node instanceof ProfileNode) return new ProfileNode((ProfileNode)node, true);
 		if (node instanceof ClusterSetNode) return new ProfileNode((ClusterSetNode)node);
-		/*{
-			ClusterTreeNode cluster = (ClusterTreeNode) node;
-			if (cluster.origin instanceof IteratedLoopTrace) return new ProfileNode(((IteratedLoopTrace)cluster.origin).rawLoop);
-			else new ProfileNode(cluster.origin);
-		}*/
 		if (node instanceof IteratedLoopTrace) return toProfile(((IteratedLoopTrace)node).rawLoop);
 		
 		return new ProfileNode((AbstractTraceNode)node);
 	}
 	
-	protected ProfileNode(AbstractTraceNode trace) {
+	private ProfileNode(AbstractTraceNode trace) {
 		super(trace);
 
 		this.minDurationInclusive = trace.getMinDuration();
@@ -53,9 +48,8 @@ public class ProfileNode extends AbstractTreeNode {
 		
 		setDepth(depth);
 	}
-	
-	
-	public ProfileNode(ClusterSetNode cluster) {
+
+	private ProfileNode(ClusterSetNode cluster) {
 		super(cluster);
 		/*
 		for (Cluster c: cluster.clusters) {
@@ -73,9 +67,10 @@ public class ProfileNode extends AbstractTreeNode {
 		//this.inclusiveDiffScore = prof.inclusiveDiffScore;
 		//this.exclusiveDiffScore = prof.exclusiveDiffScore;
 		this.setWeight(cluster.weight);
+		this.setDepth(cluster.getDepth());
 	}
 	
-	public ProfileNode(ProfileNode profile, boolean initChildMap) {
+	private ProfileNode(ProfileNode profile, boolean initChildMap) {
 		super(profile);
 		this.minDurationExclusive = profile.minDurationExclusive;
 		this.minDurationInclusive = profile.minDurationInclusive;
@@ -120,14 +115,15 @@ public class ProfileNode extends AbstractTreeNode {
 	}
 
 	private void merge(ProfileNode other) {
+		this.traceTime = null;
+		
 		this.minDurationInclusive += other.minDurationInclusive;
 		this.maxDurationInclusive += other.maxDurationInclusive;
 		
 		this.minDurationExclusive += other.minDurationExclusive;
 		this.maxDurationExclusive += other.maxDurationExclusive;
 		
-		this.exclusiveDiffScore += other.exclusiveDiffScore;
-		this.inclusiveDiffScore += other.inclusiveDiffScore;
+		this.metrics.add(other.metrics);
 		
 		for (ProfileNode child : other.childMap.values()) 
 			if (childMap.containsKey(child.ID)) childMap.get(child.ID).merge(child);
@@ -222,16 +218,15 @@ public class ProfileNode extends AbstractTreeNode {
 		ret.minDurationInclusive = 0;
 		ret.maxDurationExclusive = 0;
 		ret.maxDurationInclusive = 0;
-		ret.exclusiveDiffScore = 0;
-		ret.inclusiveDiffScore = 0;
+		ret.clearDiffScore();
 		ret.childMap.clear();
 		return ret;
 	}
 
-	public String printLargeDiffNodes(int maxDepth, long durationCutoff, TraceTimeStruct ts, long totalDiff) {
+	public String printLargeDiffNodes(int maxDepth, long durationCutoff, long totalDiff) {
 		if (this.depth > maxDepth) return "";
 		if (this.getDuration() < durationCutoff) return "";
-		if (this.inclusiveDiffScore < totalDiff / TraceAnalysisUtils.diffCutoffDivider) return "";
+		if (metrics.getInclusiveDiffScore() < totalDiff / TraceAnalysisUtils.diffCutoffDivider) return "";
 		
 		String info = "P ";
 
@@ -239,9 +234,9 @@ public class ProfileNode extends AbstractTreeNode {
 
 		info += name + "(" + ID + ")";
 		
-		if (ts != null)
-			info += " " + (ts.startTimeExclusive + ts.startTimeInclusive) / 2 / printDivisor + 
-					" ~ " + (ts.endTimeInclusive + ts.endTimeExclusive) / 2 / printDivisor;
+		if (this.getTraceTime() != null)
+			info += " " + (getTraceTime().startTimeExclusive + getTraceTime().startTimeInclusive) / 2 / printDivisor + 
+					" ~ " + (getTraceTime().endTimeInclusive + getTraceTime().endTimeExclusive) / 2 / printDivisor;
 		info += "  In-time = " + (minDurationInclusive + maxDurationInclusive) / 2 / printDivisor +
 				"  Ex-time = " + (minDurationExclusive + maxDurationExclusive) / 2 / printDivisor;
 	
@@ -251,14 +246,20 @@ public class ProfileNode extends AbstractTreeNode {
 		ret += "\n";
 		
 		for (ProfileNode child : childMap.values())
-			ret += child.printLargeDiffNodes(maxDepth, durationCutoff, null, totalDiff);
+			ret += child.printLargeDiffNodes(maxDepth, durationCutoff, totalDiff);
 		
 		if (ret.length() > 1) return info+ret;
 		else return "";
 	}
 	
 	public String toString(int maxDepth, long durationCutoff, int weight) {
-		String ret = "P               ";
+		String ret = "P";
+		
+		if (cfgGraph == null) ret += "       ";
+		else ret += Long.toHexString(cfgGraph.vma) + "-";
+		
+		if (addrNode == null) ret += "        ";
+		else ret += "V" + Long.toHexString(addrNode.vma)+ " ";
 		
 		for (int i = 0; i < depth; i++) ret += "    ";
 
@@ -266,7 +267,7 @@ public class ProfileNode extends AbstractTreeNode {
 		
 		ret += " " + minDurationInclusive / printDivisor + " ~ " + maxDurationInclusive / printDivisor + ", " + minDurationExclusive / printDivisor + " ~ " + maxDurationExclusive / printDivisor;
 		
-		if (inclusiveDiffScore != 0)
+		if (metrics.getInclusiveDiffScore() != 0)
 			ret += diffScoreString(weight);
 		
 		ret += '\n';

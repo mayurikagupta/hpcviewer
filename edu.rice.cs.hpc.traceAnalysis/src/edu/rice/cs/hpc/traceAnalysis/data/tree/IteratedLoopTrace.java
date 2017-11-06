@@ -6,14 +6,19 @@ public class IteratedLoopTrace extends AbstractTraceNode {
 	protected final RawLoopTrace rawLoop;
 	
 	public IteratedLoopTrace(RawLoopTrace rawLoop) {
-		super(rawLoop.ID, rawLoop.name, rawLoop.depth, rawLoop.cfgNode);
-		this.time = rawLoop.time;
+		super(rawLoop.ID, rawLoop.name, rawLoop.depth, rawLoop.cfgGraph, rawLoop.addrNode);
+		this.traceTime = rawLoop.traceTime;
 		this.rawLoop = (RawLoopTrace)rawLoop.duplicate();
 	}
 	
 	protected IteratedLoopTrace(IteratedLoopTrace other) {
 		super(other);
 		this.rawLoop = other.rawLoop;
+	}
+	
+	public void setDepth(int depth) {
+		super.setDepth(depth);
+		rawLoop.setDepth(depth);
 	}
 	
 	public AbstractTreeNode duplicate() {

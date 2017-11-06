@@ -5,8 +5,8 @@ import edu.rice.cs.hpc.traceAnalysis.data.cfg.CFGGraph;
 public class RawLoopTrace extends AbstractTraceNode {
 	private static final long serialVersionUID = 3459129701847983180L;
 
-	public RawLoopTrace(int ID, String name, int depth, CFGGraph cfgNode) {
-		super(ID, name, depth, cfgNode);
+	public RawLoopTrace(int ID, String name, int depth, CFGGraph cfgGraph) {
+		super(ID, name, depth, cfgGraph, cfgGraph);
 	}
 	
 	protected RawLoopTrace(RawLoopTrace other) {
@@ -18,7 +18,7 @@ public class RawLoopTrace extends AbstractTraceNode {
 	}
 	
 	public AbstractTreeNode voidDuplicate() {
-		return new RawLoopTrace(ID, name, depth, cfgNode);
+		return new RawLoopTrace(ID, name, depth, cfgGraph);
 	}
 	
 	public String toString(int maxDepth, long durationCutoff, int weight) {

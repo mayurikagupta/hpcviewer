@@ -12,7 +12,6 @@ import edu.rice.cs.hpc.traceAnalysis.data.tree.IteratedLoopTrace;
 import edu.rice.cs.hpc.traceAnalysis.data.tree.IterationTrace;
 import edu.rice.cs.hpc.traceAnalysis.data.tree.ProfileNode;
 import edu.rice.cs.hpc.traceAnalysis.data.tree.RawLoopTrace;
-import edu.rice.cs.hpc.traceAnalysis.data.tree.TraceTimeStruct;
 import edu.rice.cs.hpc.traceAnalysis.data.tree.TraceTree;
 import edu.rice.cs.hpc.traceAnalysis.utils.TraceAnalysisUtils;
 
@@ -253,7 +252,7 @@ public class LoopDetector {
     	}
     	
     	// When a rawloop don't have a cfgNode reference or the reference is invalid, return null.
-    	if (rawLoop.cfgNode == null || !rawLoop.cfgNode.valid) {
+    	if (rawLoop.getCFGGraph() == null || !rawLoop.getCFGGraph().valid) {
     		return null;
     	}
     	
@@ -261,51 +260,51 @@ public class LoopDetector {
 		IteratedLoopTrace retLoop = new IteratedLoopTrace(rawLoop);
 
 		IterationTrace iter = new IterationTrace(retLoop, retLoop.getNumOfChildren());
-		iter.getTime().setStartTimeExclusive(rawLoop.getTime().getStartTimeExclusive());
-	    iter.getTime().setStartTimeInclusive(rawLoop.getTime().getStartTimeInclusive());
+		iter.getTraceTime().setStartTimeExclusive(rawLoop.getTraceTime().getStartTimeExclusive());
+	    iter.getTraceTime().setStartTimeInclusive(rawLoop.getTraceTime().getStartTimeInclusive());
 		
 		CFGNode lastCFGNode = null;
 		
 		for (int i = 0; i < rawLoop.getNumOfChildren(); i++) {
-			CFGNode curCFGNode = rawLoop.getChildCFGNode(i);
+			CFGNode curCFGNode = rawLoop.getChild(i).getAddrNode();
 			
-			if (!rawLoop.cfgNode.hasChild(curCFGNode)) { 
+			if (!rawLoop.getCFGGraph().hasChild(curCFGNode)) { 
 				/* When we are unable to locate a child within the cfgNode, we will omit it.
 				 */
-				System.err.println("Ignored: unexpected CFG ID " + rawLoop.getChildCFGNode(i) + " in loop 0x" + Long.toHexString(rawLoop.cfgNode.vma) + " @ CCT Node #" + rawLoop.getID());
+				System.err.println("Ignored: unexpected CFG ID " + rawLoop.getChild(i).getAddrNode() + " in loop 0x" + Long.toHexString(rawLoop.getCFGGraph().vma) + " @ CCT Node #" + rawLoop.getID());
 				continue;
 			}
 			
 			// lastCFGNode is a predecessor of curCFGNode, simply proceed and add the current child to current iteration
-			if ((lastCFGNode == null) || (rawLoop.cfgNode.compareChild(curCFGNode, lastCFGNode) == 1))
-				iter.addChild(rawLoop.getChild(i), rawLoop.getChildTime(i), rawLoop.getChildCFGNode(i));
+			if ((lastCFGNode == null) || (rawLoop.getCFGGraph().compareChild(curCFGNode, lastCFGNode) == 1))
+				iter.addChild(rawLoop.getChild(i));
 			// If not, means the start of a new iteration. End the current iteration and generates a new one.
 			else {
-				long startTimeExclusive = rawLoop.getChildTime(i).getStartTimeExclusive();
-				long startTimeInclusive = rawLoop.getChildTime(i).getStartTimeInclusive();
+				long startTimeExclusive = rawLoop.getChild(i).getTraceTime().getStartTimeExclusive();
+				long startTimeInclusive = rawLoop.getChild(i).getTraceTime().getStartTimeInclusive();
 				
 				// end time for the current iteration
-				iter.getTime().setEndTimeExclusive(startTimeInclusive);
-				iter.getTime().setEndTimeInclusive(startTimeExclusive);
+				iter.getTraceTime().setEndTimeExclusive(startTimeInclusive);
+				iter.getTraceTime().setEndTimeInclusive(startTimeExclusive);
 
-				retLoop.addChild(iter, iter.getTime(), null);
+				retLoop.addChild(iter);
 				iter.setDepth(retLoop.getDepth()+1);
 				
 				// new iteration
 				iter = new IterationTrace(retLoop, retLoop.getNumOfChildren());
-				iter.getTime().setStartTimeExclusive(startTimeExclusive);
-				iter.getTime().setStartTimeInclusive(startTimeInclusive);
+				iter.getTraceTime().setStartTimeExclusive(startTimeExclusive);
+				iter.getTraceTime().setStartTimeInclusive(startTimeInclusive);
 				
-				iter.addChild(rawLoop.getChild(i), rawLoop.getChildTime(i), rawLoop.getChildCFGNode(i));
+				iter.addChild(rawLoop.getChild(i));
 			}
 		
 			lastCFGNode = curCFGNode;
 		}
 		
 		if (iter.getNumOfChildren() > 0) {
-			iter.getTime().setEndTimeExclusive(rawLoop.getTime().getEndTimeExclusive());
-			iter.getTime().setEndTimeInclusive(rawLoop.getTime().getEndTimeInclusive());
-			retLoop.addChild(iter, iter.getTime(), null);
+			iter.getTraceTime().setEndTimeExclusive(rawLoop.getTraceTime().getEndTimeExclusive());
+			iter.getTraceTime().setEndTimeInclusive(rawLoop.getTraceTime().getEndTimeInclusive());
+			retLoop.addChild(iter);
 			iter.setDepth(retLoop.getDepth()+1);
 		}
 		
@@ -367,17 +366,13 @@ public class LoopDetector {
     	 */
 
     	Vector<AbstractTreeNode> newChildren = new Vector<AbstractTreeNode>();
-    	Vector<TraceTimeStruct> newChildrenTime = new Vector<TraceTimeStruct>();
-    	Vector<CFGNode> newChildrenCFGNode = new Vector<CFGNode>();
-    	
+  	
     	int k = 0;
     	while (k < records.length) {
     		// For child that occurred once and not overlapped with a loop, 
     		// they will remain the child of the current node.
     		while (k < records.length && records[k].occurrence == 1) {
     			newChildren.add(trace.getChild(records[k].firstOccur));
-    			newChildrenTime.add(trace.getChildTime(records[k].firstOccur));
-    			newChildrenCFGNode.add(trace.getChildCFGNode(records[k].firstOccur));
 				k++;
     		}
     		
@@ -403,7 +398,7 @@ public class LoopDetector {
     		// If so, will merge those loops together under one loop node
     		if ((numRepCat == 1) && (trace.getChild(records[firstIdx].firstOccur) instanceof RawLoopTrace)) {
     			RawLoopTrace child = (RawLoopTrace)trace.getChild(records[firstIdx].firstOccur);
-    			loop = new RawLoopTrace(child.getID(), child.getName(), child.getDepth(), child.cfgNode);
+    			loop = new RawLoopTrace(child.getID(), child.getName(), child.getDepth(), child.getCFGGraph());
     		}
     		// If not, allocate a new loop node
     		else {
@@ -413,34 +408,32 @@ public class LoopDetector {
     			//loop = new RawLoopTrace(--detectedLoopID, "LOOP", trace.getDepth()+1, null);
     		}
     		
-    		loop.getTime().setStartTimeInclusive(trace.getChildTime(firstChild).getStartTimeInclusive());
-    		loop.getTime().setStartTimeExclusive(trace.getChildTime(firstChild).getStartTimeExclusive());
-    		loop.getTime().setEndTimeInclusive(trace.getChildTime(lastChild).getEndTimeInclusive());
-    		loop.getTime().setEndTimeExclusive(trace.getChildTime(lastChild).getEndTimeExclusive());
+    		loop.getTraceTime().setStartTimeInclusive(trace.getChild(firstChild).getTraceTime().getStartTimeInclusive());
+    		loop.getTraceTime().setStartTimeExclusive(trace.getChild(firstChild).getTraceTime().getStartTimeExclusive());
+    		loop.getTraceTime().setEndTimeInclusive(trace.getChild(lastChild).getTraceTime().getEndTimeInclusive());
+    		loop.getTraceTime().setEndTimeExclusive(trace.getChild(lastChild).getTraceTime().getEndTimeExclusive());
     		for (int i = firstChild; i <= lastChild; i++)
     			// This branch will always be taken when a new loop is allocated.
     			if (trace.getChild(i).getID() != loop.getID())
-    				loop.addChild(trace.getChild(i), trace.getChildTime(i), trace.getChildCFGNode(i));
+    				loop.addChild(trace.getChild(i));
     			// This branch will only be taken when the existing loops should be merged.
     		    // Merge the repetitions of the same loop under a single loop node
     			else {
     				RawLoopTrace oldLoop = (RawLoopTrace)trace.getChild(i);
     				for (int j = 0; j < oldLoop.getNumOfChildren(); j++)
-    					loop.addChild(oldLoop.getChild(j), oldLoop.getChildTime(j), oldLoop.getChildCFGNode(j));
+    					loop.addChild(oldLoop.getChild(j));
     			}
     			
     		
     		loop.setDepth(loop.getDepth());
     		newChildren.add(loop);
-    		newChildrenTime.add(loop.getTime());
-    		newChildrenCFGNode.add(loop.cfgNode);
     	}
     	
     	trace.clearChildren();
     	for (int i = 0; i < newChildren.size(); i++) {
     		AbstractTreeNode child = detectLoop(newChildren.get(i));
     		if (child == null) child = newChildren.get(i);
-    		trace.addChild(child, newChildrenTime.get(i), newChildrenCFGNode.get(i));
+    		trace.addChild(child);
     	}
     	return null;
     }

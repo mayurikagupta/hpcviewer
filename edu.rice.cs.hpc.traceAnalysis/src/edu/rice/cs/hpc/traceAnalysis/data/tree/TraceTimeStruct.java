@@ -2,6 +2,8 @@ package edu.rice.cs.hpc.traceAnalysis.data.tree;
 
 import java.io.Serializable;
 
+import edu.rice.cs.hpc.traceAnalysis.utils.TraceAnalysisUtils;
+
 public class TraceTimeStruct implements Serializable {
 	private static final long serialVersionUID = 4846970525263781853L;
 
@@ -65,5 +67,20 @@ public class TraceTimeStruct implements Serializable {
 	
 	public TraceTimeStruct duplicate() {
 		return new TraceTimeStruct(this);
+	}
+
+	static public TraceTimeStruct mergeTimeStruct(TraceTimeStruct time1, int weight1, TraceTimeStruct time2, int weight2) {
+		if (time1 == null || time2 == null) return null;
+		
+		TraceTimeStruct mergedTime = new TraceTimeStruct();
+		mergedTime.setEndTimeExclusive(TraceAnalysisUtils.computeWeightedAverage(time1.getEndTimeExclusive(), weight1,
+				time2.getEndTimeExclusive(), weight2));
+		mergedTime.setEndTimeInclusive(TraceAnalysisUtils.computeWeightedAverage(time1.getEndTimeInclusive(), weight1,
+				time2.getEndTimeInclusive(), weight2));
+		mergedTime.setStartTimeExclusive(TraceAnalysisUtils.computeWeightedAverage(time1.getStartTimeExclusive(), weight1,
+				time2.getStartTimeExclusive(), weight2));
+		mergedTime.setStartTimeInclusive(TraceAnalysisUtils.computeWeightedAverage(time1.getStartTimeInclusive(), weight1,
+				time2.getStartTimeInclusive(), weight2));
+		return mergedTime;
 	}
 }

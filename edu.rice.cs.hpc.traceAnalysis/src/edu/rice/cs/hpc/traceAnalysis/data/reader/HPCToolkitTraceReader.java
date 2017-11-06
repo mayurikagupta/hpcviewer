@@ -182,8 +182,8 @@ public class HPCToolkitTraceReader {
 			
 			long lastTime = begTime;
 			CallPathWithLoop lastCP = new CallPathWithLoop(scopeMap.get(dataTrace.getInt(minloc + Constants.SIZEOF_LONG)));
-			root.getTime().setStartTimeInclusive(lastTime);
-			root.getTime().setStartTimeExclusive(lastTime-1);
+			root.getTraceTime().setStartTimeInclusive(lastTime);
+			root.getTraceTime().setStartTimeExclusive(lastTime-1);
 			
 			for (int depth = 0; depth < lastCP.getMaxDepth(); depth++) {
 				Scope scope = lastCP.getScopeAt(depth);
@@ -192,7 +192,7 @@ public class HPCToolkitTraceReader {
 				if (scope instanceof LoopScope) {
 					node = new RawLoopTrace(scope.getCCTIndex(), scope.getName(), depth+1, 
 							cfgReader.CFGLoopMap.get(((LoopScope)scope).getVMA()));
-					if (node.cfgNode == null)
+					if (node.getCFGGraph() == null)
 						System.err.println("Loop_0x" + Long.toHexString(((LoopScope)scope).getVMA()) + 
 								" not found in cfg.dot");
 				}
@@ -202,9 +202,9 @@ public class HPCToolkitTraceReader {
 					if (ra != 0) {
 						node = new FunctionTrace(scope.getCCTIndex(), scope.getName(), depth+1, 
 							cfgReader.CFGFuncMap.get(((CallSiteScope)scope).getVMA()), 
-							findCFGCall(activeTraceStack.peek().cfgNode, ra));
-						if (activeTraceStack.peek().cfgNode != null && ((FunctionTrace)node).ra == null)
-							System.err.println("RA " + Long.toHexString(ra) + " not found under " + activeTraceStack.peek().cfgNode);
+							findCFGCall(activeTraceStack.peek().getCFGGraph(), ra));
+						if (activeTraceStack.peek().getCFGGraph() != null && node.getAddrNode() == null)
+							System.err.println("RA " + Long.toHexString(ra) + " not found under " + activeTraceStack.peek().getCFGGraph());
 					}
 				}
 				
@@ -213,12 +213,10 @@ public class HPCToolkitTraceReader {
 					continue;
 				}
 
-				node.getTime().setStartTimeInclusive(lastTime);
-				node.getTime().setStartTimeExclusive(lastTime);
-				if (node instanceof FunctionTrace)
-					activeTraceStack.peek().addChild(node, node.getTime(), ((FunctionTrace)node).ra);
-				else
-					activeTraceStack.peek().addChild(node, node.getTime(), node.cfgNode);
+				node.getTraceTime().setStartTimeInclusive(lastTime);
+				node.getTraceTime().setStartTimeExclusive(lastTime);
+				
+				activeTraceStack.peek().addChild(node);
 				activeTraceStack.add(node);
 			}
 			
@@ -232,8 +230,8 @@ public class HPCToolkitTraceReader {
 				
 				while (activeTraceStack.size() > lcaDepth + 2) {
 					AbstractTraceNode inactiveNode = activeTraceStack.pop();
-					inactiveNode.getTime().setEndTimeInclusive(lastTime);
-					inactiveNode.getTime().setEndTimeExclusive(curTime);
+					inactiveNode.getTraceTime().setEndTimeInclusive(lastTime);
+					inactiveNode.getTraceTime().setEndTimeExclusive(curTime);
 				}
 				
 				sampleNum++;
@@ -245,7 +243,7 @@ public class HPCToolkitTraceReader {
 					if (scope instanceof LoopScope) {
 						node = new RawLoopTrace(scope.getCCTIndex(), scope.getName(), depth+1, 
 								cfgReader.CFGLoopMap.get(((LoopScope)scope).getVMA()));
-						if (node.cfgNode == null)
+						if (node.getCFGGraph() == null)
 							System.err.println("Loop_0x" + Long.toHexString(((LoopScope)scope).getVMA()) + 
 									" not found in cfg.dot");
 					}
@@ -255,9 +253,9 @@ public class HPCToolkitTraceReader {
 						if (ra != 0) {
 							node = new FunctionTrace(scope.getCCTIndex(), scope.getName(), depth+1, 
 								cfgReader.CFGFuncMap.get(((CallSiteScope)scope).getVMA()), 
-								findCFGCall(activeTraceStack.peek().cfgNode, ra));
-							if (activeTraceStack.peek().cfgNode != null && ((FunctionTrace)node).ra == null)
-								System.err.println("RA " + Long.toHexString(ra) + " not found under " + activeTraceStack.peek().cfgNode);
+								findCFGCall(activeTraceStack.peek().getCFGGraph(), ra));
+							if (activeTraceStack.peek().getCFGGraph() != null && node.getAddrNode() == null)
+								System.err.println("RA " + Long.toHexString(ra) + " not found under " + activeTraceStack.peek().getCFGGraph());
 						}
 					}
 					
@@ -266,12 +264,10 @@ public class HPCToolkitTraceReader {
 						continue;
 					}
 					
-					node.getTime().setStartTimeInclusive(curTime);
-					node.getTime().setStartTimeExclusive(lastTime);
-					if (node instanceof FunctionTrace)
-						activeTraceStack.peek().addChild(node, node.getTime(), ((FunctionTrace)node).ra);
-					else
-						activeTraceStack.peek().addChild(node, node.getTime(), node.cfgNode);
+					node.getTraceTime().setStartTimeInclusive(curTime);
+					node.getTraceTime().setStartTimeExclusive(lastTime);
+					
+					activeTraceStack.peek().addChild(node);
 					activeTraceStack.add(node);
 				}
 				
@@ -282,8 +278,8 @@ public class HPCToolkitTraceReader {
 			// Handle leftovers at the end
 			while (activeTraceStack.size() > 0) {
 				AbstractTraceNode inactiveNode = activeTraceStack.pop();
-				inactiveNode.getTime().setEndTimeInclusive(lastTime);
-				inactiveNode.getTime().setEndTimeExclusive(lastTime+1);
+				inactiveNode.getTraceTime().setEndTimeInclusive(lastTime);
+				inactiveNode.getTraceTime().setEndTimeExclusive(lastTime+1);
 				//inactiveNode.setEndSampleInclusive(sampleNum);
 			}
 			

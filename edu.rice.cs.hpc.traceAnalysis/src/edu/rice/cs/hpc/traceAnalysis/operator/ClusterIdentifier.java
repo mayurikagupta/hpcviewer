@@ -18,6 +18,7 @@ import edu.rice.cs.hpc.traceAnalysis.data.tree.ProfileNode;
 import edu.rice.cs.hpc.traceAnalysis.data.tree.ShadowTraceTree;
 import edu.rice.cs.hpc.traceAnalysis.data.tree.TraceTimeStruct;
 import edu.rice.cs.hpc.traceAnalysis.data.tree.TraceTree;
+import edu.rice.cs.hpc.traceAnalysis.utils.TraceAnalysisUtils;
 
 public class ClusterIdentifier {
 	static public final double minClusterDiff = 0.01;
@@ -56,12 +57,6 @@ public class ClusterIdentifier {
 		if (max1 < min2) return min2 - max1;
 		return 0;
 	}
-	
-	static public long computeWeightedAverage(long value1, int weight1, long value2, int weight2) {
-		long total = value1 * weight1 + value2 * weight2;
-		int divisor = weight1 + weight2;
-		return (total + divisor / 2) / divisor;
-	}
 
 	private void addTraceDiffScore(AbstractTraceNode dest, AbstractTraceNode src) {
 		int k1 = 0, k2 = 0;
@@ -74,8 +69,8 @@ public class ClusterIdentifier {
 			else 
 				k1++;
 		
-		dest.setExclusiveDiffScore(dest.getExclusiveDiffScore() + src.getExclusiveDiffScore());
-		dest.setInclusiveDiffScore(dest.getInclusiveDiffScore() + src.getInclusiveDiffScore());
+		dest.getMetrics().setExclusiveDiffScore(dest.getMetrics().getExclusiveDiffScore() + src.getMetrics().getExclusiveDiffScore());
+		dest.getMetrics().setInclusiveDiffScore(dest.getMetrics().getInclusiveDiffScore() + src.getMetrics().getInclusiveDiffScore());
 		
 		if (k2 != src.getNumOfChildren()) { 
 			System.err.println("Error while adding trace diff.");
@@ -87,8 +82,8 @@ public class ClusterIdentifier {
 		if (src instanceof ProfileNode) srcProf = (ProfileNode) src;
 		else srcProf = ProfileNode.toProfile(src);
 		
-		dest.setExclusiveDiffScore(dest.getExclusiveDiffScore() + srcProf.getExclusiveDiffScore());
-		dest.setInclusiveDiffScore(dest.getInclusiveDiffScore() + srcProf.getInclusiveDiffScore());
+		dest.getMetrics().setExclusiveDiffScore(dest.getMetrics().getExclusiveDiffScore() + srcProf.getMetrics().getExclusiveDiffScore());
+		dest.getMetrics().setInclusiveDiffScore(dest.getMetrics().getInclusiveDiffScore() + srcProf.getMetrics().getInclusiveDiffScore());
 		
 		for (ProfileNode child : srcProf.getChildMap().values())
 			if (dest.getChildMap().containsKey(child.getID()))
@@ -101,8 +96,8 @@ public class ClusterIdentifier {
 	}
 	
 	private void addClusterDiffScore(ClusterSetNode dest, ClusterSetNode src) {
-		dest.setExclusiveDiffScore(dest.getExclusiveDiffScore() + src.getExclusiveDiffScore());
-		dest.setInclusiveDiffScore(dest.getInclusiveDiffScore() + src.getInclusiveDiffScore());
+		dest.getMetrics().setExclusiveDiffScore(dest.getMetrics().getExclusiveDiffScore() + src.getMetrics().getExclusiveDiffScore());
+		dest.getMetrics().setInclusiveDiffScore(dest.getMetrics().getInclusiveDiffScore() + src.getMetrics().getInclusiveDiffScore());
 		addDiffScore(dest.getRep(), src.getRep());
 		//TODO need some deeper thought
 	}
@@ -111,7 +106,7 @@ public class ClusterIdentifier {
 	 * Add the diff scores in src and its sub-nodes to corresponding nodes in dest.
 	 */
 	private void addDiffScore(AbstractTreeNode dest, AbstractTreeNode src) {
-		if (src.getInclusiveDiffScore() == 0) return;
+		if (src.getMetrics().getInclusiveDiffScore() == 0) return;
 		
 		if ((dest instanceof AbstractTraceNode) && (src instanceof AbstractTraceNode))
 			addTraceDiffScore((AbstractTraceNode)dest, (AbstractTraceNode)src);
@@ -126,21 +121,6 @@ public class ClusterIdentifier {
 		}
 	}
 	
-	private TraceTimeStruct mergeTimeStruct(TraceTimeStruct time1, int weight1, TraceTimeStruct time2, int weight2) {
-		TraceTimeStruct mergedTime = new TraceTimeStruct();
-		
-		mergedTime.setEndTimeExclusive(computeWeightedAverage(time1.getEndTimeExclusive(), weight1,
-				time2.getEndTimeExclusive(), weight2));
-		mergedTime.setEndTimeInclusive(computeWeightedAverage(time1.getEndTimeInclusive(), weight1,
-				time2.getEndTimeInclusive(), weight2));
-		mergedTime.setStartTimeExclusive(computeWeightedAverage(time1.getStartTimeExclusive(), weight1,
-				time2.getStartTimeExclusive(), weight2));
-		mergedTime.setStartTimeInclusive(computeWeightedAverage(time1.getStartTimeInclusive(), weight1,
-				time2.getStartTimeInclusive(), weight2));
-		
-		return mergedTime;
-	}
-	
 	private AbstractTreeNode mergeTraceNode(AbstractTraceNode trace1, int weight1, AbstractTraceNode trace2, int weight2, boolean accumulate, boolean scoreOnly) {
 		int w1 = trace1.getWeight();
 		int w2 = trace2.getWeight();
@@ -149,7 +129,7 @@ public class ClusterIdentifier {
 		
 		if (!scoreOnly) {
 			mergedTrace = (AbstractTraceNode)trace1.duplicate(); //TODO memory optimization
-			mergedTrace.setTime(mergeTimeStruct(trace1.getTime(), w1, trace2.getTime(), w2));
+			mergedTrace.getMetrics().merge(trace2.getMetrics());
 			mergedTrace.setWeight(w1 + w2);
 			mergedTrace.clearChildren();
 		}
@@ -178,10 +158,10 @@ public class ClusterIdentifier {
 		long gapDiffMin = 0;
 		long gapDiffMax = 0;
 		
-		long startExclusive1 = trace1.getTime().getStartTimeExclusive();
-		long startInclusive1 = trace1.getTime().getStartTimeInclusive();
-		long startExclusive2 = trace2.getTime().getStartTimeExclusive();
-		long startInclusive2 = trace2.getTime().getStartTimeInclusive();
+		long startExclusive1 = trace1.getTraceTime().getStartTimeExclusive();
+		long startInclusive1 = trace1.getTraceTime().getStartTimeInclusive();
+		long startExclusive2 = trace2.getTraceTime().getStartTimeExclusive();
+		long startInclusive2 = trace2.getTraceTime().getStartTimeInclusive();
 		
 		while (k1 < trace1.getNumOfChildren() || k2 < trace2.getNumOfChildren()) {
 			// At the same child 
@@ -190,15 +170,12 @@ public class ClusterIdentifier {
 				// Merge corresponding node
 				AbstractTreeNode mergedChild = mergeNode(trace1.getChild(k1), w1, trace2.getChild(k2), w2, accumulate, scoreOnly);
 				if (!scoreOnly) {
-					if (mergedChild instanceof AbstractTraceNode) 
-						mergedTrace.addChild(mergedChild, ((AbstractTraceNode)mergedChild).getTime(), trace1.getChildCFGNode(k1));
-					else 
-						mergedTrace.addChild(mergedChild, mergeTimeStruct(trace1.getChildTime(k1), w1, trace2.getChildTime(k2), w2), trace1.getChildCFGNode(k1));
+					mergedTrace.addChild(mergedChild);
 				}
-				startExclusive1 = trace1.getChildTime(k1).getEndTimeInclusive();
-				startInclusive1 = trace1.getChildTime(k1).getEndTimeExclusive();
-				startExclusive2 = trace2.getChildTime(k2).getEndTimeInclusive();
-				startInclusive2 = trace2.getChildTime(k2).getEndTimeExclusive();
+				startExclusive1 = trace1.getChild(k1).getTraceTime().getEndTimeInclusive();
+				startInclusive1 = trace1.getChild(k1).getTraceTime().getEndTimeExclusive();
+				startExclusive2 = trace2.getChild(k2).getTraceTime().getEndTimeInclusive();
+				startInclusive2 = trace2.getChild(k2).getTraceTime().getEndTimeExclusive();
 				
 				// Compute the difference between the gaps among (k1-1, k1) in node1 and (k2-1, k2) in node2.
 				double diff = computeRangeDiff(trace1.getMinGapDurationBeforeChild(k1) + gapDiffMin, trace1.getMaxGapDurationBeforeChild(k1) + gapDiffMax,
@@ -207,7 +184,7 @@ public class ClusterIdentifier {
 				gapDiffMax = 0;
 				
 				inclusiveDiff += diff * w1 * w2; // belongs to 2.3)
-				inclusiveDiff += mergedChild.getInclusiveDiffScore(); // belongs to 1.3) when not accumulating and 1) when accumulating
+				inclusiveDiff += mergedChild.getMetrics().getInclusiveDiffScore(); // belongs to 1.3) when not accumulating and 1) when accumulating
 				
 				k1++;
 				k2++;
@@ -219,27 +196,27 @@ public class ClusterIdentifier {
 				if (k2 == trace2.getNumOfChildren()) compare = -1; // increase k1 if k2 points to end
 				
 				if (compare == 0) {
-					assert (trace1.cfgNode.equals(trace2.cfgNode));
-					if (trace1.cfgNode == null || !trace1.cfgNode.valid)
+					assert (trace1.getCFGGraph().equals(trace2.getCFGGraph()));
+					if (trace1.getCFGGraph() == null || !trace1.getCFGGraph().valid)
 						return mergeProfileNode(trace1, w1, trace2, w2, accumulate, scoreOnly);
 					
-					if (!trace1.cfgNode.hasChild(trace1.getChildCFGNode(k1))) compare = -1; // increase k1 if the current child's cfgNode is not found.
-					if (!trace1.cfgNode.hasChild(trace2.getChildCFGNode(k2))) compare = 1;
+					if (!trace1.getCFGGraph().hasChild(trace1.getChild(k1).getAddrNode())) compare = -1; // increase k1 if the current child's cfgNode is not found.
+					if (!trace1.getCFGGraph().hasChild(trace2.getChild(k2).getAddrNode())) compare = 1;
 				}
 				
 				if (compare == 0) // increase k1 if k1 is a predecessor of k2; increase k2 of k2 is a predecessor of k1.
-					compare = trace1.cfgNode.compareChild(trace1.getChildCFGNode(k1), trace2.getChildCFGNode(k2));
+					compare = trace1.getCFGGraph().compareChild(trace1.getChild(k1).getAddrNode(), trace2.getChild(k2).getAddrNode());
 
 				if (compare == 0) // tie is broken by simply comparing CCT ID
 					compare = trace1.getChild(k1).getID() - trace2.getChild(k2).getID();
 				
 				if (compare < 0) { // increase k1
-					startExclusive2 += trace1.getChildTime(k1).getStartTimeExclusive() - startExclusive1;
-					startInclusive2 += trace1.getChildTime(k1).getStartTimeInclusive() - startInclusive1;
+					startExclusive2 += trace1.getChild(k1).getTraceTime().getStartTimeExclusive() - startExclusive1;
+					startInclusive2 += trace1.getChild(k1).getTraceTime().getStartTimeInclusive() - startInclusive1;
 					startExclusive2 = Math.min(startExclusive2, 
-							(k2 == trace2.getNumOfChildren()) ? trace2.getTime().getEndTimeInclusive() : trace2.getChildTime(k2).getStartTimeExclusive());
+							(k2 == trace2.getNumOfChildren()) ? trace2.getTraceTime().getEndTimeInclusive() : trace2.getChild(k2).getTraceTime().getStartTimeExclusive());
 					startInclusive2 = Math.min(startInclusive2, 
-							(k2 == trace2.getNumOfChildren()) ? trace2.getTime().getEndTimeExclusive() : trace2.getChildTime(k2).getStartTimeInclusive());
+							(k2 == trace2.getNumOfChildren()) ? trace2.getTraceTime().getEndTimeExclusive() : trace2.getChild(k2).getTraceTime().getStartTimeInclusive());
 					
 					AbstractTreeNode dummyNode = null;
 					dummyNode = trace1.getChild(k1).voidDuplicate();
@@ -250,36 +227,32 @@ public class ClusterIdentifier {
 					ts.setEndTimeInclusive(startExclusive2);
 					ts.setEndTimeExclusive(startInclusive2);
 					
-					if (dummyNode instanceof AbstractTraceNode) 
-						((AbstractTraceNode) dummyNode).setTime(ts);
+					dummyNode.setTraceTime(ts);
 					
 					dummyNode.setWeight(trace2.getWeight());
 
 					AbstractTreeNode mergedChild = mergeNode(trace1.getChild(k1), w1, dummyNode, w2, accumulate, scoreOnly);
 					if (!scoreOnly) {
-						if (mergedChild instanceof AbstractTraceNode) 
-							mergedTrace.addChild(mergedChild, ((AbstractTraceNode)mergedChild).getTime(), trace1.getChildCFGNode(k1));
-						else 
-							mergedTrace.addChild(mergedChild, mergeTimeStruct(trace1.getChildTime(k1), w1, ts, w2), trace1.getChildCFGNode(k1));
+						mergedTrace.addChild(mergedChild);
 					}
-					startExclusive1 = trace1.getChildTime(k1).getEndTimeInclusive();
-					startInclusive1 = trace1.getChildTime(k1).getEndTimeExclusive();
+					startExclusive1 = trace1.getChild(k1).getTraceTime().getEndTimeInclusive();
+					startInclusive1 = trace1.getChild(k1).getTraceTime().getEndTimeExclusive();
 					
 					// compute diff score
 					gapDiffMin += trace1.getMinGapDurationBeforeChild(k1);
 					gapDiffMax += trace1.getMaxGapDurationBeforeChild(k1);
 					
-					inclusiveDiff += mergedChild.getInclusiveDiffScore(); // belongs to 1.3) when not accumulating and 1) when accumulating
+					inclusiveDiff += mergedChild.getMetrics().getInclusiveDiffScore(); // belongs to 1.3) when not accumulating and 1) when accumulating
 
 					k1++;
 				}
 				else {
-					startExclusive1 += trace2.getChildTime(k2).getStartTimeExclusive() - startExclusive2;
-					startInclusive1 += trace2.getChildTime(k2).getStartTimeInclusive() - startInclusive2;
+					startExclusive1 += trace2.getChild(k2).getTraceTime().getStartTimeExclusive() - startExclusive2;
+					startInclusive1 += trace2.getChild(k2).getTraceTime().getStartTimeInclusive() - startInclusive2;
 					startExclusive1 = Math.min(startExclusive1, 
-							(k1 == trace1.getNumOfChildren()) ? trace1.getTime().getEndTimeInclusive() : trace1.getChildTime(k1).getStartTimeExclusive());
+							(k1 == trace1.getNumOfChildren()) ? trace1.getTraceTime().getEndTimeInclusive() : trace1.getChild(k1).getTraceTime().getStartTimeExclusive());
 					startInclusive1 = Math.min(startInclusive1, 
-							(k1 == trace1.getNumOfChildren()) ? trace1.getTime().getEndTimeExclusive() : trace1.getChildTime(k1).getStartTimeInclusive());
+							(k1 == trace1.getNumOfChildren()) ? trace1.getTraceTime().getEndTimeExclusive() : trace1.getChild(k1).getTraceTime().getStartTimeInclusive());
 										
 					AbstractTreeNode dummyNode = null;
 					dummyNode = trace2.getChild(k2).voidDuplicate();
@@ -290,27 +263,23 @@ public class ClusterIdentifier {
 					ts.setEndTimeInclusive(startExclusive1);
 					ts.setEndTimeExclusive(startInclusive1);
 					
-					if (dummyNode instanceof AbstractTraceNode) 
-						((AbstractTraceNode) dummyNode).setTime(ts);
+					dummyNode.setTraceTime(ts);
 					
 					dummyNode.setWeight(trace1.getWeight());
 					
 					AbstractTreeNode mergedChild = mergeNode(dummyNode, w1, trace2.getChild(k2), w2, accumulate, scoreOnly);
 					if (!scoreOnly) {
-						if (mergedChild instanceof AbstractTraceNode) 
-							mergedTrace.addChild(mergedChild, ((AbstractTraceNode)mergedChild).getTime(), trace2.getChildCFGNode(k2));
-						else 
-							mergedTrace.addChild(mergedChild, mergeTimeStruct(ts, w1, trace2.getChildTime(k2), w2), trace2.getChildCFGNode(k2));
+						mergedTrace.addChild(mergedChild);
 					}
 					
-					startExclusive2 = trace2.getChildTime(k2).getEndTimeInclusive();
-					startInclusive2 = trace2.getChildTime(k2).getEndTimeExclusive();
+					startExclusive2 = trace2.getChild(k2).getTraceTime().getEndTimeInclusive();
+					startInclusive2 = trace2.getChild(k2).getTraceTime().getEndTimeExclusive();
 					
 					// compute diff score
 					gapDiffMin -= trace2.getMaxGapDurationBeforeChild(k2);
 					gapDiffMax -= trace2.getMinGapDurationBeforeChild(k2);
 					
-					inclusiveDiff += mergedChild.getInclusiveDiffScore(); // belongs to 1.3) when not accumulating and 1) when accumulating
+					inclusiveDiff += mergedChild.getMetrics().getInclusiveDiffScore(); // belongs to 1.3) when not accumulating and 1) when accumulating
 					k2++;
 				}
 			}
@@ -327,24 +296,24 @@ public class ClusterIdentifier {
 				trace2.getMinDuration(), trace2.getMaxDuration()) * (double)w1 * w2;
 		
 		if (accumulate) {
-			exclusiveDiff += trace1.getExclusiveDiffScore() + trace2.getExclusiveDiffScore();
+			exclusiveDiff += trace1.getMetrics().getExclusiveDiffScore() + trace2.getMetrics().getExclusiveDiffScore();
 			
 			// The above code has added 1) and 2.3) to inclusive diff score. Add 2.1) and 2.2) to inclusive diff score below.
 			
 			// Add 2.1)
-			inclusiveDiff += trace1.getInclusiveDiffScore();
+			inclusiveDiff += trace1.getMetrics().getInclusiveDiffScore();
 			for (int i = 0; i < trace1.getNumOfChildren(); i++)
-				inclusiveDiff -= trace1.getChild(i).getInclusiveDiffScore();
+				inclusiveDiff -= trace1.getChild(i).getMetrics().getInclusiveDiffScore();
 			
 			// Add 2.2)
-			inclusiveDiff += trace2.getInclusiveDiffScore();
+			inclusiveDiff += trace2.getMetrics().getInclusiveDiffScore();
 			for (int i = 0; i < trace2.getNumOfChildren(); i++)
-				inclusiveDiff -= trace2.getChild(i).getInclusiveDiffScore();
+				inclusiveDiff -= trace2.getChild(i).getMetrics().getInclusiveDiffScore();
 		}
 		
 		if (accumulate) 
 			inclusiveDiff = Math.max(inclusiveDiff, (double)computeRangeDiff(trace1.getMinDuration(), trace1.getMaxDuration(),
-				trace2.getMinDuration(), trace2.getMaxDuration()) * (double)w1 * w2 + trace1.getInclusiveDiffScore() + trace2.getInclusiveDiffScore());
+				trace2.getMinDuration(), trace2.getMaxDuration()) * (double)w1 * w2 + trace1.getMetrics().getInclusiveDiffScore() + trace2.getMetrics().getInclusiveDiffScore());
 		else
 			inclusiveDiff = Math.max(inclusiveDiff, (double)computeRangeDiff(trace1.getMinDuration(), trace1.getMaxDuration(),
 					trace2.getMinDuration(), trace2.getMaxDuration()) * (double)w1 * w2);
@@ -360,8 +329,8 @@ public class ClusterIdentifier {
 			}
 		*/
 		
-		mergedTrace.setExclusiveDiffScore(exclusiveDiff);
-		mergedTrace.setInclusiveDiffScore(inclusiveDiff);
+		mergedTrace.getMetrics().setExclusiveDiffScore(exclusiveDiff);
+		mergedTrace.getMetrics().setInclusiveDiffScore(inclusiveDiff);
 		
 		return mergedTrace;
 	}
@@ -380,15 +349,16 @@ public class ClusterIdentifier {
 		ProfileNode mergedProfile = null;
 		if (!scoreOnly) {
 			mergedProfile = (ProfileNode) prof1.duplicate(); //TODO memory optimization
+			mergedProfile.getMetrics().merge(prof2.getMetrics());
 			mergedProfile.setWeight(w1 + w2);
 			mergedProfile.clearChildren();
-			mergedProfile.setMaxDurationInclusive(computeWeightedAverage(prof1.getMaxDurationInclusive(), w1, 
+			mergedProfile.setMaxDurationInclusive(TraceAnalysisUtils.computeWeightedAverage(prof1.getMaxDurationInclusive(), w1, 
 					prof2.getMaxDurationInclusive(), w2));
-			mergedProfile.setMinDurationInclusive(computeWeightedAverage(prof1.getMinDurationInclusive(), w1,
+			mergedProfile.setMinDurationInclusive(TraceAnalysisUtils.computeWeightedAverage(prof1.getMinDurationInclusive(), w1,
 					prof2.getMinDurationInclusive(), w2));
-			mergedProfile.setMaxDurationExclusive(computeWeightedAverage(prof1.getMaxDurationExclusive(), w1,
+			mergedProfile.setMaxDurationExclusive(TraceAnalysisUtils.computeWeightedAverage(prof1.getMaxDurationExclusive(), w1,
 					prof2.getMaxDurationExclusive(), w2));
-			mergedProfile.setMinDurationExclusive(computeWeightedAverage(prof1.getMinDurationExclusive(), w1,
+			mergedProfile.setMinDurationExclusive(TraceAnalysisUtils.computeWeightedAverage(prof1.getMinDurationExclusive(), w1,
 					prof2.getMinDurationExclusive(), w2));
 		} else 
 			mergedProfile = (ProfileNode) prof1.voidDuplicate();
@@ -417,7 +387,7 @@ public class ClusterIdentifier {
 				ProfileNode child2 = map2.get(child1.getID());
 				ProfileNode mergedChild = (ProfileNode) mergeNode(child1, w1, child2, w2, accumulate, scoreOnly);
 				if (!scoreOnly) mergedProfile.addChild(mergedChild);
-				inclusiveDiff += mergedChild.getInclusiveDiffScore(); // belongs to 1.3) when not accumulating and 1) when accumulating
+				inclusiveDiff += mergedChild.getMetrics().getInclusiveDiffScore(); // belongs to 1.3) when not accumulating and 1) when accumulating
 			}
 			// Children that only profile 1 has.
 			else {
@@ -425,7 +395,7 @@ public class ClusterIdentifier {
 				child2.setWeight(w2);
 				ProfileNode mergedChild = (ProfileNode) mergeNode(child1, w1, child2, w2, accumulate, scoreOnly);
 				if (!scoreOnly) mergedProfile.addChild(mergedChild);
-				inclusiveDiff += mergedChild.getInclusiveDiffScore(); // belongs to 1.3) when not accumulating and 1) when accumulating
+				inclusiveDiff += mergedChild.getMetrics().getInclusiveDiffScore(); // belongs to 1.3) when not accumulating and 1) when accumulating
 			}
 		}
 		
@@ -436,7 +406,7 @@ public class ClusterIdentifier {
 				child1.setWeight(w1);
 				ProfileNode mergedChild = (ProfileNode) mergeNode(child1, w1, child2, w2, accumulate, scoreOnly);
 				if (!scoreOnly) mergedProfile.addChild(mergedChild);
-				inclusiveDiff += mergedChild.getInclusiveDiffScore(); // belongs to 1.3) when not accumulating and 1) when accumulating
+				inclusiveDiff += mergedChild.getMetrics().getInclusiveDiffScore(); // belongs to 1.3) when not accumulating and 1) when accumulating
 			}
 		
 		inclusiveDiff += (double)computeRangeDiff(prof1.getMinDurationExclusive(), prof1.getMaxDurationExclusive(), 
@@ -446,29 +416,29 @@ public class ClusterIdentifier {
 				prof2.getMinDurationInclusive(), prof2.getMaxDurationInclusive()) * (double)w1 * w2;
 		
 		if (accumulate) {
-			exclusiveDiff += prof1.getExclusiveDiffScore() + prof2.getExclusiveDiffScore(); 
+			exclusiveDiff += prof1.getMetrics().getExclusiveDiffScore() + prof2.getMetrics().getExclusiveDiffScore(); 
 			
 			// The above code has added 1) and 2.3) to inclusive diff score. Add 2.1) and 2.2) to inclusive diff score below.
 			// Add 2.1)
-			inclusiveDiff += prof1.getInclusiveDiffScore();
+			inclusiveDiff += prof1.getMetrics().getInclusiveDiffScore();
 			for (ProfileNode child : prof1.getChildMap().values())
-				inclusiveDiff -= child.getInclusiveDiffScore();
+				inclusiveDiff -= child.getMetrics().getInclusiveDiffScore();
 			
 			// add 2.2)
-			inclusiveDiff += prof2.getInclusiveDiffScore();
+			inclusiveDiff += prof2.getMetrics().getInclusiveDiffScore();
 			for (ProfileNode child : prof2.getChildMap().values())
-				inclusiveDiff -= child.getInclusiveDiffScore();
+				inclusiveDiff -= child.getMetrics().getInclusiveDiffScore();
 		}
 		
 		if (accumulate)
 			inclusiveDiff = Math.max(inclusiveDiff, (double)computeRangeDiff(prof1.getMinDurationInclusive(), prof1.getMaxDurationInclusive(), 
-				prof2.getMinDurationInclusive(), prof2.getMaxDurationInclusive()) * (double)w1 * w2 + prof1.getInclusiveDiffScore() + prof2.getInclusiveDiffScore());
+				prof2.getMinDurationInclusive(), prof2.getMaxDurationInclusive()) * (double)w1 * w2 + prof1.getMetrics().getInclusiveDiffScore() + prof2.getMetrics().getInclusiveDiffScore());
 		else
 			inclusiveDiff = Math.max(inclusiveDiff, (double)computeRangeDiff(prof1.getMinDurationInclusive(), prof1.getMaxDurationInclusive(), 
 				prof2.getMinDurationInclusive(), prof2.getMaxDurationInclusive()) * (double)w1 * w2);
 
-		mergedProfile.setExclusiveDiffScore(exclusiveDiff);
-		mergedProfile.setInclusiveDiffScore(inclusiveDiff);
+		mergedProfile.getMetrics().setExclusiveDiffScore(exclusiveDiff);
+		mergedProfile.getMetrics().setInclusiveDiffScore(inclusiveDiff);
 		
 		return mergedProfile;
 	}
@@ -494,7 +464,7 @@ public class ClusterIdentifier {
 		else {
 			AbstractTreeNode rep = null;
 			if (!scoreOnly) {
-				rep = computeAveragedRep(cluster);
+				rep = computeAveragedRep(cluster, 1);
 				rep.clearDiffScore();
 			} else
 				rep = cluster[0].getRep().voidDuplicate();
@@ -545,7 +515,7 @@ public class ClusterIdentifier {
 					//diffTreeNode[i][j] = mergeNode(rep1[i], rep1[i].getWeight(), rep2[j], rep2[j].getWeight(), false);
 					//diffRatio[i][j] = diffTreeNode[i][j].getInclusiveDiffScore() / (double)(rep1[i].getWeight() * rep2[j].getWeight()) / (double)(rep1[i].getDuration() + rep2[j].getDuration());
 					diffTreeNode[i][j] = mergeNode(rep1[i], rep1[i].getWeight(), rep2[j], rep2[j].getWeight(), false, true);
-					diffRatio[i][j] = diffTreeNode[i][j].getInclusiveDiffScore() / (double)(rep1[i].getWeight() * rep2[j].getWeight()) / (double)(rep1[i].getDuration() + rep2[j].getDuration());
+					diffRatio[i][j] = diffTreeNode[i][j].getMetrics().getInclusiveDiffScore() / (double)(rep1[i].getWeight() * rep2[j].getWeight()) / (double)(rep1[i].getDuration() + rep2[j].getDuration());
 				}
 
 			/*if (clusterDebug && node1.getID() == clusterDebugID) {
@@ -674,16 +644,22 @@ public class ClusterIdentifier {
 			System.err.println("Merging node at different depth.");
 		}
 		
+		AbstractTreeNode mergedNode = null;;
+		
 		if ((node1 instanceof AbstractTraceNode) && (node2 instanceof AbstractTraceNode))
-			return mergeTraceNode((AbstractTraceNode)node1, weight1, (AbstractTraceNode)node2, weight2, accumulate, scoreOnly);
+			mergedNode = mergeTraceNode((AbstractTraceNode)node1, weight1, (AbstractTraceNode)node2, weight2, accumulate, scoreOnly);
 		else if ((node1 instanceof IterationTrace) && (node2 instanceof IterationTrace))
-			return mergeTraceNode((AbstractTraceNode)node1, weight1, (AbstractTraceNode)node2, weight2, accumulate, scoreOnly);
+			mergedNode =  mergeTraceNode((AbstractTraceNode)node1, weight1, (AbstractTraceNode)node2, weight2, accumulate, scoreOnly);
 		else if ((node1 instanceof ClusterSetNode) && (node2 instanceof ClusterSetNode))
-			return mergeClusterNode((ClusterSetNode)node1, weight1, (ClusterSetNode)node2, weight2, accumulate, scoreOnly);
+			mergedNode =  mergeClusterNode((ClusterSetNode)node1, weight1, (ClusterSetNode)node2, weight2, accumulate, scoreOnly);
 		//TODO IteratedLoopTrace
 		//TODO Trace/Profile with Cluster
-		else return mergeProfileNode(node1, weight1, node2, weight2, accumulate, scoreOnly);
+		else mergedNode =  mergeProfileNode(node1, weight1, node2, weight2, accumulate, scoreOnly);
 		
+		if (!scoreOnly) 
+			mergedNode.setTraceTime(TraceTimeStruct.mergeTimeStruct(node1.getTraceTime(), weight1, node2.getTraceTime(), weight2));
+		
+		return mergedNode;
 	}
 	
 	class ComputeDiffThread implements Callable<double[]> {
@@ -721,7 +697,7 @@ public class ClusterIdentifier {
 			int count = 0;
 			while (count < end - start) {
 				diff[count] = (double)mergeNode(cluster[i].getRep(), cluster[i].getRep().getWeight(),
-						cluster[j].getRep(), cluster[j].getRep().getWeight(), false, true).getInclusiveDiffScore()
+						cluster[j].getRep(), cluster[j].getRep().getWeight(), false, true).getMetrics().getInclusiveDiffScore()
 						/ cluster[i].getRep().getWeight() / cluster[j].getRep().getWeight() 
 						/ (double)(cluster[i].getRep().getDuration() + cluster[j].getRep().getDuration());
 				j++;
@@ -788,7 +764,7 @@ public class ClusterIdentifier {
 			for (int i = 0; i < numCluster; i++)
 				for (int j = i+1; j < numCluster; j++) 
 						diff[i][j] = (double)mergeNode(cluster[i].getRep(), cluster[i].getRep().getWeight(),
-								cluster[j].getRep(), cluster[j].getRep().getWeight(), false, true).getInclusiveDiffScore()
+								cluster[j].getRep(), cluster[j].getRep().getWeight(), false, true).getMetrics().getInclusiveDiffScore()
 								/ cluster[i].getRep().getWeight() / cluster[j].getRep().getWeight() 
 								/ (double)(cluster[i].getRep().getDuration() + cluster[j].getRep().getDuration());
 		
@@ -846,7 +822,7 @@ if (cluster[0].getRep().getID() == 7159) {
 			// recompute diff values for the merged cluster.
 			for (int i = 0; i < idx1; i++)
 				diff[i][idx1] = (double)mergeNode(cluster[i].getRep(), cluster[i].getRep().getWeight(),
-						cluster[idx1].getRep(), cluster[idx1].getRep().getWeight(), false, true).getInclusiveDiffScore()
+						cluster[idx1].getRep(), cluster[idx1].getRep().getWeight(), false, true).getMetrics().getInclusiveDiffScore()
 						/ cluster[i].getRep().getWeight() / cluster[idx1].getRep().getWeight() 
 						/ (double)(cluster[i].getRep().getDuration() + cluster[idx1].getRep().getDuration());
 				
@@ -854,7 +830,7 @@ if (cluster[0].getRep().getID() == 7159) {
 			//		/ (double)(cluster[i].getRep().getDuration() + cluster[idx1].getRep().getDuration());
 			for (int i = idx1+1; i < numCluster; i++)
 				diff[idx1][i] = (double)mergeNode(cluster[i].getRep(), cluster[i].getRep().getWeight(),
-						cluster[idx1].getRep(), cluster[idx1].getRep().getWeight(), false, true).getInclusiveDiffScore()
+						cluster[idx1].getRep(), cluster[idx1].getRep().getWeight(), false, true).getMetrics().getInclusiveDiffScore()
 						/ cluster[i].getRep().getWeight() / cluster[idx1].getRep().getWeight() 
 						/ (double)(cluster[i].getRep().getDuration() + cluster[idx1].getRep().getDuration());
 				
@@ -898,7 +874,7 @@ if (cluster[0].getRep().getID() == 7159) {
 		else return null;
 	}
 	
-	private AbstractTreeNode computeAveragedRep(Cluster[] cluster) {
+	private AbstractTreeNode computeAveragedRep(Cluster[] cluster, int numProc) {
 		AbstractTreeNode node = cluster[0].getRep().duplicate();
 		for (int i = 1; i < cluster.length; i++)
 			node = mergeNode(node, node.getWeight(), cluster[i].getRep(), cluster[i].getWeight(), false, false);
@@ -999,7 +975,7 @@ if (cluster[0].getRep().getID() == 7159) {
 				cluster[i+cluster1.length] = cluster2[i];
 			
 			cluster = mergeCluster(cluster, maxNumCluster, numProc);
-System.out.println("Finish merge from " + begin + " to " + end + ".");			
+//System.out.println("Finish merge from " + begin + " to " + end + ". # clusters = " + cluster.length + ".");			
 			return cluster;
 		}
 	}
@@ -1040,9 +1016,9 @@ System.out.println("Finish merge from " + begin + " to " + end + ".");
 
 		if (cluster == null) return ProfileNode.toProfile(noDiffLoop);
 		else if (this.procNum >= 0) 
-			return new ClusterSetNode(loop, "data\\P" + this.procNum + "_C" + this.clusterCount++, computeAveragedRep(cluster), cluster);
+			return new ClusterSetNode(loop, "data\\P" + this.procNum + "_C" + this.clusterCount++, computeAveragedRep(cluster, numProc), cluster);
 		else 
-			return new ClusterSetNode(loop, "data\\AllProcs", computeAveragedRep(cluster), cluster);
+			return new ClusterSetNode(loop, "data\\AllProcs", computeAveragedRep(cluster, numProc), cluster);
 	}
 	
 	public AbstractTreeNode clusterLoops(AbstractTreeNode node) {
@@ -1094,7 +1070,7 @@ System.out.println("Finish merge from " + begin + " to " + end + ".");
 				for (int i = 0; i < loop.getNumOfChildren(); i++) {
 					for (int j = 0; j < loop.getNumOfChildren(); j++) {
 						AbstractTreeNode diffNode = mergeNode(loop.getChild(i), 1, loop.getChild(j), 1, false, true);
-						double diff = diffNode.getInclusiveDiffScore();
+						double diff = diffNode.getMetrics().getInclusiveDiffScore();
 						//boolean test = (diff != computeDiff(loop.getChild(i), loop.getChild(j), false));
 						diff = diff / (loop.getChild(i).getDuration() + loop.getChild(j).getDuration()) * 100;
 						System.out.print("\t" + String.format("%.2f", diff) + "%");

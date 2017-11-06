@@ -6,9 +6,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
-import edu.rice.cs.hpc.traceAnalysis.operator.ClusterIdentifier;
 import edu.rice.cs.hpc.traceAnalysis.utils.TraceAnalysisUtils;
-
 
 public class ClusterSetNode extends AbstractTreeNode {
 	private static final long serialVersionUID = -1173018873034372326L;
@@ -40,8 +38,8 @@ public class ClusterSetNode extends AbstractTreeNode {
 		this.rep = rep;
 		rep.setName("Average for " + rep.weight + " iterations/threads of " + origin.name);
 		
-		this.inclusiveDiffScore = 0;
-		this.exclusiveDiffScore = 0;
+		this.metrics.setInclusiveDiffScore(0);
+		this.metrics.setExclusiveDiffScore(0);
 		
 		this.originFileName = originFileName;
 		this.originVoidDuplicate = (AbstractTraceNode)origin.voidDuplicate();
@@ -58,17 +56,18 @@ public class ClusterSetNode extends AbstractTreeNode {
 				e.printStackTrace();
 			}
 		}
+		
+		this.setDepth(origin.depth);
 	}
 	
 	// Build new ClusterTreeNode from two existing ClusterTreeNode.
 	public ClusterSetNode(ClusterSetNode node1, ClusterSetNode node2, AbstractTreeNode rep, Cluster[] clusters) {
-		super(node1.getID(), node1.getName(), node1.getDepth());
+		super(node1.getID(), node1.getName(), node1.getDepth(), node1.getCFGGraph(), node1.getAddrNode());
 		this.originFileName = null;
-		this.originVoidDuplicate = null;
-		//this.origin = (AbstractTraceNode) node1.origin.voidDuplicate();
+		this.originVoidDuplicate = (AbstractTraceNode) node1.originVoidDuplicate.duplicate();
 		this.weight = node1.weight + node2.weight;
-		this.minDuration = ClusterIdentifier.computeWeightedAverage(node1.getMinDuration(), node1.getWeight(), node2.getMinDuration(), node2.getWeight());
-		this.maxDuration = ClusterIdentifier.computeWeightedAverage(node1.getMaxDuration(), node1.getWeight(), node2.getMaxDuration(), node2.getWeight());
+		this.minDuration = TraceAnalysisUtils.computeWeightedAverage(node1.getMinDuration(), node1.getWeight(), node2.getMinDuration(), node2.getWeight());
+		this.maxDuration = TraceAnalysisUtils.computeWeightedAverage(node1.getMaxDuration(), node1.getWeight(), node2.getMaxDuration(), node2.getWeight());
 		
 		this.clusters = clusters;
 		for (int i = 0; i < clusters.length; i++) {
@@ -79,8 +78,9 @@ public class ClusterSetNode extends AbstractTreeNode {
 		this.rep = rep;
 		rep.setName("Average for " + rep.weight + " iterations/threads of " + node1.getName().substring(11));
 		
-		this.inclusiveDiffScore = this.rep.inclusiveDiffScore;
-		this.exclusiveDiffScore = this.rep.exclusiveDiffScore;
+		this.metrics = rep.metrics.duplicate();
+		
+		this.setDepth(node1.depth);
 	}
 	
 	protected ClusterSetNode(ClusterSetNode other) {
@@ -113,6 +113,7 @@ public class ClusterSetNode extends AbstractTreeNode {
 				FileInputStream fileIn = new FileInputStream(this.originFileName);
 				ObjectInputStream in = new ObjectInputStream(fileIn);
 				origin = (AbstractTraceNode) in.readObject();
+				origin.setDepth(depth);
 				in.close();
 				fileIn.close();
 			} catch (IOException e) {
@@ -127,6 +128,7 @@ public class ClusterSetNode extends AbstractTreeNode {
 	
 	public void setDepth(int depth) {
 		super.setDepth(depth);
+		originVoidDuplicate.setDepth(depth);
 		rep.setDepth(depth+1);
 		for (Cluster c : clusters)
 			c.setDepth(depth+1);
@@ -181,10 +183,10 @@ public class ClusterSetNode extends AbstractTreeNode {
 			cluster.addLabel(ID);
 	}
 
-	public String printLargeDiffNodes(int maxDepth, long durationCutoff, TraceTimeStruct ts, long totalDiff) {
+	public String printLargeDiffNodes(int maxDepth, long durationCutoff, long totalDiff) {
 		if (this.depth > maxDepth) return "";
 		if (this.getDuration() < durationCutoff) return "";
-		if (this.inclusiveDiffScore < totalDiff / TraceAnalysisUtils.diffCutoffDivider) return "";
+		if (this.metrics.getInclusiveDiffScore() < totalDiff / TraceAnalysisUtils.diffCutoffDivider) return "";
 		
 		String ret = "C ";
 
@@ -192,9 +194,9 @@ public class ClusterSetNode extends AbstractTreeNode {
 
 		ret += name + "(" + ID + ")";
 		
-		if (ts != null)
-			ret += " " + (ts.startTimeExclusive + ts.startTimeInclusive) / 2 / printDivisor + 
-					" ~ " + (ts.endTimeInclusive + ts.endTimeExclusive) / 2 / printDivisor;
+		if (this.getTraceTime() != null)
+			ret += " " + (getTraceTime().startTimeExclusive + getTraceTime().startTimeInclusive) / 2 / printDivisor + 
+					" ~ " + (getTraceTime().endTimeInclusive + getTraceTime().endTimeExclusive) / 2 / printDivisor;
 		ret += "  Duration = " + (minDuration + maxDuration) / 2 / printDivisor;
 		
 		String retChild = "";
@@ -202,21 +204,26 @@ public class ClusterSetNode extends AbstractTreeNode {
 		retChild += "\n";
 		
 		for (int i = 0; i < clusters.length; i++) 
-			retChild += clusters[i].printLargeDiffNodes(maxDepth, durationCutoff, null, totalDiff);
+			retChild += clusters[i].printLargeDiffNodes(maxDepth, durationCutoff, totalDiff);
 		
 		if (totalDiff < 0) {
-			retChild += rep.printLargeDiffNodes(maxDepth, durationCutoff, null, rep.getDuration() * rep.weight * (rep.weight - 1));
+			retChild += rep.printLargeDiffNodes(maxDepth, durationCutoff, rep.getDuration() * rep.weight * (rep.weight - 1));
 			return ret + retChild;
 		}
 		else {
-			retChild += rep.printLargeDiffNodes(maxDepth, durationCutoff, null, totalDiff);
+			retChild += rep.printLargeDiffNodes(maxDepth, durationCutoff, totalDiff);
 			if (retChild.length() > 1) return ret + retChild;
 			else return "";
 		}
 	}
 	
 	public String toString(int maxDepth, long durationCutoff, int weight) {
-		String ret = "C               ";
+		String ret = "CL";
+		
+		if (cfgGraph == null) ret += "       ";
+		else ret += Long.toHexString(cfgGraph.vma) + " ";
+		
+		ret += "       ";
 		
 		for (int i = 0; i < depth; i++) ret += "    ";
 
@@ -226,13 +233,13 @@ public class ClusterSetNode extends AbstractTreeNode {
 		
 		if (weight == 0) weight = rep.weight;
 		
-		if (inclusiveDiffScore != 0)
+		if (metrics.getInclusiveDiffScore() != 0)
 			ret += diffScoreString(weight);
 		
 		ret += '\n';
 		
 		for (int i = 0; i < clusters.length; i++) 
-			ret += clusters[i].printLargeDiffNodes(maxDepth, durationCutoff, null, 0);
+			ret += clusters[i].printLargeDiffNodes(maxDepth, durationCutoff, 0);
 		
 		//if (this.ID == 1598) maxDepth += 5;
 		ret += rep.toString(maxDepth+1, durationCutoff, weight);

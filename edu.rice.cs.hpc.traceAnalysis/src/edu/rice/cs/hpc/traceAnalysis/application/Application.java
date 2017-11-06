@@ -36,7 +36,7 @@ public class Application {
 	private final PrintStream objError;
 
 	private final int printDepth = 25;
-	private final int nProc = 192;
+	private final int nProc = 12;
 	
 	private final long startTime = System.currentTimeMillis();
 
@@ -80,6 +80,7 @@ public class Application {
 			
 			if (procNum == 0) {
 				objPrint.println(tree.printLargeDiffNodes(printDepth));
+				objPrint.println(tree.toString(10));
 				SignificantDiffNodePrinter.printAllCluster(objPrint, tree.root);
 			}
 			
@@ -148,9 +149,9 @@ public class Application {
 	}
 	
 	private boolean crossThreadAnalysis() {
-		//objError.println("\n\nReading all threads at " + printTime());
+		objError.println("\n\nReading all threads at " + printTime());
 		
-		/*
+		
 		ExecutorService threadExecutor = Executors.newFixedThreadPool( Runtime.getRuntime().availableProcessors()); 
 		ArrayList<Future<TraceTree>> futures = new ArrayList<Future<TraceTree>>();
 		for (int procNum = 0; procNum < nProc; procNum += 1) { 
@@ -158,24 +159,25 @@ public class Application {
 			Future<TraceTree> future = threadExecutor.submit(reader);
 			futures.add(future);
 		}
-		*/
+		
 		
 		RootTrace root = new RootTrace("Root for all procs");
-		root.getTime().setStartTimeExclusive(0);
-		root.getTime().setStartTimeInclusive(0);
-		root.getTime().setEndTimeInclusive(traceReader.getDurantion());
-		root.getTime().setEndTimeExclusive(traceReader.getDurantion());
+		root.getTraceTime().setStartTimeExclusive(0);
+		root.getTraceTime().setStartTimeInclusive(0);
+		root.getTraceTime().setEndTimeInclusive(traceReader.getDurantion());
+		root.getTraceTime().setEndTimeExclusive(traceReader.getDurantion());
 		
+		/*
 		for (int procNum = 0; procNum < nProc; procNum += 1) { 
 			ShadowTraceTree shadow = new ShadowTraceTree("data\\P"+procNum);
 			root.addChild(shadow, null, null);
-		}
+		}*/
 		
-		/*
+		
 		for (Future<TraceTree> future : futures) {
 			try {
 				TraceTree tree = future.get();
-				root.addChild(tree.root, tree.root.getTime(), null);
+				root.addChild(tree.root);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 				return false;
@@ -186,13 +188,13 @@ public class Application {
 		}
 		
 		threadExecutor.shutdown();
-		*/
+		
 		
 		objError.println("\n\nMerging all threads at " + printTime());
 		root.setDepth(0);
 		
 		ClusterIdentifier clusteror = new ClusterIdentifier(-1, null);
-		ClusterSetNode node = (ClusterSetNode) clusteror.findCluster(root, Runtime.getRuntime().availableProcessors());
+		ClusterSetNode node = (ClusterSetNode) clusteror.findCluster(root, 1); //Runtime.getRuntime().availableProcessors());
 		
 		objError.println("\n\nFinished all threads at " + printTime());
 		
@@ -204,15 +206,15 @@ public class Application {
 			for (int j = i+1; j < node.getNumOfClusters(); j++) {
 				AbstractTreeNode diff = clusteror.mergeNode(node.getCluster(i).getRep(), node.getCluster(i).getWeight(), 
 						node.getCluster(j).getRep(), node.getCluster(j).getWeight(), false, true);
-				double ratio = diff.getInclusiveDiffScore() / node.getCluster(i).getWeight() / node.getCluster(j).getWeight() / 
+				double ratio = diff.getMetrics().getInclusiveDiffScore() / node.getCluster(i).getWeight() / node.getCluster(j).getWeight() / 
 						(node.getCluster(i).getRep().getDuration() + node.getCluster(j).getRep().getDuration());
 				maxDiffRatio = Math.max(maxDiffRatio, ratio);
 			}
 		objPrint.println("Max diff ratio = " + String.format("%.2f", maxDiffRatio*100) + "%");
 		//objPrint.println(node.toString(10, 10000, 2));
-		objPrint.println(node.printLargeDiffNodes(printDepth, 0, null, Long.MIN_VALUE));
+		objPrint.println(node.printLargeDiffNodes(printDepth, 0, Long.MIN_VALUE));
 		
-		//SignificantDiffNodePrinter.printAllCluster(objPrint, node);
+		SignificantDiffNodePrinter.printAllCluster(objPrint, node);
 		
 		objError.println("Exit at " + printTime());
 		
@@ -227,7 +229,7 @@ public class Application {
 		this.traceReader = new HPCToolkitTraceReader(objFile, objPrint, objError);
 		objError.println("Init finished at " + printTime());
 		
-		//if (!this.perThreadAnalysis()) return false;
+		if (!this.perThreadAnalysis()) return false;
 		if (!this.crossThreadAnalysis()) return false;
 
 		return true;
