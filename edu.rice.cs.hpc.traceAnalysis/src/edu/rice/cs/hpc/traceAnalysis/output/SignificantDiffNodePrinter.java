@@ -51,7 +51,7 @@ public class SignificantDiffNodePrinter {
 		
 		this.clusterNode.getRep().stretchDiffScore(1, (double)this.clusterNode.getRep().getDuration()
 				* (double)this.clusterNode.getRep().getWeight() * (this.clusterNode.getRep().getWeight() - 1));
-		this.totalDiffRatio = this.clusterNode.getRep().getMetrics().getInclusiveDiffScore();
+		this.totalDiffRatio = this.clusterNode.getRep().getInclusiveDiffScore();
 		
 		this.numIterations = this.originNode.getNumOfChildren();
 		
@@ -223,8 +223,8 @@ public class SignificantDiffNodePrinter {
 		// Sort by significance
 		for (int i = 0; i < majorCallPaths.size(); i++)
 			for (int j = i+1; j < majorCallPaths.size(); j++)
-				if (majorCallPaths.get(i)[majorCallPaths.get(i).length-1].getMetrics().getExclusiveDiffScore() < 
-						majorCallPaths.get(j)[majorCallPaths.get(j).length-1].getMetrics().getExclusiveDiffScore()) {
+				if (majorCallPaths.get(i)[majorCallPaths.get(i).length-1].getExclusiveDiffScore() < 
+						majorCallPaths.get(j)[majorCallPaths.get(j).length-1].getExclusiveDiffScore()) {
 					AbstractTreeNode[] swap = majorCallPaths.get(j);
 					majorCallPaths.set(j, majorCallPaths.get(i));
 					majorCallPaths.set(i, swap);
@@ -240,21 +240,21 @@ public class SignificantDiffNodePrinter {
 	}
 	
 	private void findSignificantDiffNode(AbstractTreeNode node, ArrayList<AbstractTreeNode> callpath) {
-		if (node.getMetrics().getInclusiveDiffScore() < totalDiffRatio * inclusiveMinimunRatio) return;
+		if (node.getInclusiveDiffScore() < totalDiffRatio * inclusiveMinimunRatio) return;
 		
 		// First, determine if child of the node would be better chosen as a significant diff node
 		boolean betterChild = false;
 		if (node instanceof AbstractTraceNode) {
 			AbstractTraceNode trace = (AbstractTraceNode) node;
 			for (int i = 0; i < trace.getNumOfChildren(); i++) {
-				if (trace.getChild(i).getMetrics().getInclusiveDiffScore() > node.getMetrics().getExclusiveDiffScore() * inclusiveHotpathRatio) {
+				if (trace.getChild(i).getInclusiveDiffScore() > node.getExclusiveDiffScore() * inclusiveHotpathRatio) {
 					betterChild = true;
 					break;
 				}
 			}
 		} else if (node instanceof ProfileNode) {
 			for (ProfileNode child : ((ProfileNode) node).getChildMap().values())
-				if (child.getMetrics().getInclusiveDiffScore() > node.getMetrics().getExclusiveDiffScore() * inclusiveHotpathRatio) {
+				if (child.getInclusiveDiffScore() > node.getExclusiveDiffScore() * inclusiveHotpathRatio) {
 					betterChild = true;
 					break;
 				}
@@ -263,7 +263,7 @@ public class SignificantDiffNodePrinter {
 		if (callpath.size() == 0) betterChild = true;
 		
 		if (!betterChild) {
-			sumDiffRatio += node.getMetrics().getExclusiveDiffScore();
+			sumDiffRatio += node.getExclusiveDiffScore();
 			callpath.add(node);
 			majorCallPaths.add(callpath.toArray(new AbstractTreeNode[callpath.size()]));
 			callpath.remove(callpath.size()-1);

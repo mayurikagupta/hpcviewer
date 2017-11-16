@@ -29,9 +29,9 @@ abstract public class AbstractTraceNode extends AbstractTreeNode {
 	public long getMaxGapDurationBeforeChild(int index) {
 		long duration;
 		if (index == 0 && getNumOfChildren() == 0) duration = getMaxDuration();
-		else if (index == 0) duration = getChild(index).getTraceTime().getStartTimeInclusive() - getTraceTime().getStartTimeExclusive() - 1;
-		else if (index == getNumOfChildren()) duration = getTraceTime().getEndTimeExclusive() - getChild(index-1).getTraceTime().getEndTimeInclusive() - 1;
-		else duration = getChild(index).getTraceTime().getStartTimeInclusive() - getChild(index-1).getTraceTime().getEndTimeInclusive() - 1;
+		else if (index == 0) duration = getChild(index).traceTime.getStartTimeInclusive() - traceTime.getStartTimeExclusive() - 1;
+		else if (index == getNumOfChildren()) duration = traceTime.getEndTimeExclusive() - getChild(index-1).traceTime.getEndTimeInclusive() - 1;
+		else duration = getChild(index).traceTime.getStartTimeInclusive() - getChild(index-1).traceTime.getEndTimeInclusive() - 1;
 		
 		if (duration < 0) duration = 0;
 		return duration;
@@ -40,9 +40,9 @@ abstract public class AbstractTraceNode extends AbstractTreeNode {
 	public long getMinGapDurationBeforeChild(int index) {
 		long duration;
 		if (index == 0 && getNumOfChildren() == 0) duration = getMinDuration();
-		else if (index == 0) duration = getChild(index).getTraceTime().getStartTimeExclusive() - getTraceTime().getStartTimeInclusive() + 1;
-		else if (index == getNumOfChildren()) duration = getTraceTime().getEndTimeInclusive() - getChild(index-1).getTraceTime().getEndTimeExclusive() + 1;
-		else duration = getChild(index).getTraceTime().getStartTimeExclusive() - getChild(index-1).getTraceTime().getEndTimeExclusive() + 1;
+		else if (index == 0) duration = getChild(index).traceTime.getStartTimeExclusive() - traceTime.getStartTimeInclusive() + 1;
+		else if (index == getNumOfChildren()) duration = traceTime.getEndTimeInclusive() - getChild(index-1).traceTime.getEndTimeExclusive() + 1;
+		else duration = getChild(index).traceTime.getStartTimeExclusive() - getChild(index-1).traceTime.getEndTimeExclusive() + 1;
 		
 		if (duration < 0) duration = 0;
 		return duration;
@@ -68,7 +68,8 @@ abstract public class AbstractTraceNode extends AbstractTreeNode {
 		traceTime.shiftTime(variable);
 		for (int i = 0; i < children.size(); i++)
 			if (getChild(i) instanceof AbstractTraceNode) ((AbstractTraceNode)getChild(i)).shiftTime(variable);
-			else getChild(i).getTraceTime().shiftTime(variable);
+			else getChild(i).traceTime.shiftTime(variable);
+		//TODO only adjusted traceTime in TraceNode
 	}
 	
 	public void setDepth(int depth) {
@@ -103,6 +104,12 @@ abstract public class AbstractTraceNode extends AbstractTreeNode {
 			node.stretchDiffScore(multiplier, divisor);
 	}
 	
+	public void initDurationRep() {
+		super.initDurationRep();
+		for (AbstractTreeNode node : children)
+			node.initDurationRep();
+	}
+	
 	public long getMinDuration() {
 		if (traceTime.endTimeInclusive == traceTime.startTimeExclusive) return 0; // for dummey trace nodes
 		return traceTime.endTimeInclusive - traceTime.startTimeInclusive + 1;
@@ -116,7 +123,7 @@ abstract public class AbstractTraceNode extends AbstractTreeNode {
 	public String printLargeDiffNodes(int maxDepth, long durationCutoff, long totalDiff) {
 		if (this.depth > maxDepth) return "";
 		if (this.getDuration() < durationCutoff) return "";
-		if (this.metrics.getInclusiveDiffScore() < totalDiff / TraceAnalysisUtils.diffCutoffDivider) return "";
+		if (this.inclusiveDiffScore < totalDiff / TraceAnalysisUtils.diffCutoffDivider) return "";
 		
 		String info = "T ";
 
@@ -126,6 +133,9 @@ abstract public class AbstractTraceNode extends AbstractTreeNode {
 		
 		info += " " + (traceTime.startTimeExclusive + traceTime.startTimeInclusive) / 2 / printDivisor + 
 				" ~ " + (traceTime.endTimeInclusive + traceTime.endTimeExclusive) / 2 / printDivisor;
+		
+		info += " " + this.totalDurationRep / this.weight / printDivisor + "[" + this.minDurationRep / printDivisor
+				+ "," + this.maxDurationRep / printDivisor + "]";
 		
 		String ret = "";
 		if (totalDiff > 0) ret += diffRatioString(totalDiff);
@@ -151,7 +161,7 @@ abstract public class AbstractTraceNode extends AbstractTreeNode {
 		ret += " " + traceTime.startTimeExclusive / printDivisor + "/" +traceTime.startTimeInclusive / printDivisor + 
 				" ~ " + traceTime.endTimeInclusive / printDivisor + "/" + + traceTime.endTimeExclusive / printDivisor;
 		
-		if (metrics.getInclusiveDiffScore() != 0)
+		if (this.inclusiveDiffScore != 0)
 			ret += diffScoreString(weight);
 		
 		ret += "\n";

@@ -280,10 +280,10 @@ public class HPCToolkitTraceReader {
 				AbstractTraceNode inactiveNode = activeTraceStack.pop();
 				inactiveNode.getTraceTime().setEndTimeInclusive(lastTime);
 				inactiveNode.getTraceTime().setEndTimeExclusive(lastTime+1);
-				//inactiveNode.setEndSampleInclusive(sampleNum);
 			}
 			
 			long endTime = lastTime;
+			root.initDurationRep();
 			return new TraceTree(root, begTime, endTime, sampleNum+1);
 			
 		} catch (IOException e) {

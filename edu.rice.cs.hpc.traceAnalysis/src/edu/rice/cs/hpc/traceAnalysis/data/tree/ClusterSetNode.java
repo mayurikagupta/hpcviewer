@@ -38,9 +38,6 @@ public class ClusterSetNode extends AbstractTreeNode {
 		this.rep = rep;
 		rep.setName("Average for " + rep.weight + " iterations/threads of " + origin.name);
 		
-		this.metrics.setInclusiveDiffScore(0);
-		this.metrics.setExclusiveDiffScore(0);
-		
 		this.originFileName = originFileName;
 		this.originVoidDuplicate = (AbstractTraceNode)origin.voidDuplicate();
 		
@@ -65,7 +62,9 @@ public class ClusterSetNode extends AbstractTreeNode {
 		super(node1.getID(), node1.getName(), node1.getDepth(), node1.getCFGGraph(), node1.getAddrNode());
 		this.originFileName = null;
 		this.originVoidDuplicate = (AbstractTraceNode) node1.originVoidDuplicate.duplicate();
-		this.weight = node1.weight + node2.weight;
+	
+		this.traceTime = TraceTimeStruct.mergeTimeStruct(node1.traceTime, node1.weight, node2.traceTime, node2.weight);
+		
 		this.minDuration = TraceAnalysisUtils.computeWeightedAverage(node1.getMinDuration(), node1.getWeight(), node2.getMinDuration(), node2.getWeight());
 		this.maxDuration = TraceAnalysisUtils.computeWeightedAverage(node1.getMaxDuration(), node1.getWeight(), node2.getMaxDuration(), node2.getWeight());
 		
@@ -78,7 +77,13 @@ public class ClusterSetNode extends AbstractTreeNode {
 		this.rep = rep;
 		rep.setName("Average for " + rep.weight + " iterations/threads of " + node1.getName().substring(11));
 		
-		this.metrics = rep.metrics.duplicate();
+		this.weight = node1.weight + node2.weight;
+		this.inclusiveDiffScore = rep.inclusiveDiffScore;
+		this.exclusiveDiffScore = rep.exclusiveDiffScore;
+		
+		this.minDurationRep = Math.min(node1.minDurationRep, node2.minDurationRep);
+		this.maxDurationRep = Math.max(node1.maxDurationRep, node2.maxDurationRep);
+		this.totalDurationRep = node1.totalDurationRep + node2.totalDurationRep;
 		
 		this.setDepth(node1.depth);
 	}
@@ -157,6 +162,13 @@ public class ClusterSetNode extends AbstractTreeNode {
 		super.stretchDiffScore(multiplier, divisor);
 		rep.stretchDiffScore(multiplier, divisor);
 	}
+	
+	public void initDurationRep() {
+		super.initDurationRep();
+		rep.initDurationRep();
+		for (Cluster c : clusters)
+			c.initDurationRep();
+	}
 
 	public long getMinDuration() {
 		return minDuration;
@@ -186,7 +198,7 @@ public class ClusterSetNode extends AbstractTreeNode {
 	public String printLargeDiffNodes(int maxDepth, long durationCutoff, long totalDiff) {
 		if (this.depth > maxDepth) return "";
 		if (this.getDuration() < durationCutoff) return "";
-		if (this.metrics.getInclusiveDiffScore() < totalDiff / TraceAnalysisUtils.diffCutoffDivider) return "";
+		if (this.inclusiveDiffScore < totalDiff / TraceAnalysisUtils.diffCutoffDivider) return "";
 		
 		String ret = "C ";
 
@@ -194,10 +206,13 @@ public class ClusterSetNode extends AbstractTreeNode {
 
 		ret += name + "(" + ID + ")";
 		
-		if (this.getTraceTime() != null)
-			ret += " " + (getTraceTime().startTimeExclusive + getTraceTime().startTimeInclusive) / 2 / printDivisor + 
-					" ~ " + (getTraceTime().endTimeInclusive + getTraceTime().endTimeExclusive) / 2 / printDivisor;
+		if (this.traceTime != null)
+			ret += " " + (traceTime.startTimeExclusive + traceTime.startTimeInclusive) / 2 / printDivisor + 
+					" ~ " + (traceTime.endTimeInclusive + traceTime.endTimeExclusive) / 2 / printDivisor;
 		ret += "  Duration = " + (minDuration + maxDuration) / 2 / printDivisor;
+		
+		ret += " " + this.totalDurationRep / this.weight / printDivisor + "[" + this.minDurationRep / printDivisor
+				+ "," + this.maxDurationRep / printDivisor + "]";
 		
 		String retChild = "";
 		if (totalDiff > 0) retChild += diffRatioString(totalDiff);
@@ -229,11 +244,15 @@ public class ClusterSetNode extends AbstractTreeNode {
 
 		ret += name + "(" + ID + ")";
 		
-		ret += " " + minDuration / printDivisor + " ~ " + maxDuration / printDivisor;
+		if (this.traceTime != null)
+			ret += " " + traceTime.startTimeExclusive / printDivisor + "/" +traceTime.startTimeInclusive / printDivisor + 
+			" ~ " + traceTime.endTimeInclusive / printDivisor + "/" + + traceTime.endTimeExclusive / printDivisor;
+		else
+			ret += " " + minDuration / printDivisor + " ~ " + maxDuration / printDivisor;
 		
 		if (weight == 0) weight = rep.weight;
 		
-		if (metrics.getInclusiveDiffScore() != 0)
+		if (this.inclusiveDiffScore != 0)
 			ret += diffScoreString(weight);
 		
 		ret += '\n';

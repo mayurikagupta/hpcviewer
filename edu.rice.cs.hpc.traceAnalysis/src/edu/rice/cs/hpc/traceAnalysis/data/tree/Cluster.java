@@ -14,24 +14,25 @@ public class Cluster extends AbstractTreeNode {
 	public Cluster(AbstractTreeNode node, int id) {
 		super(node);
 		this.rep = node.duplicate();
-		this.weight = rep.weight;
+		
 		if (this.rep instanceof AbstractTraceNode) {
-			((AbstractTraceNode) this.rep).shiftTime(-((AbstractTraceNode) this.rep).getTraceTime().getStartTimeExclusive());
+			((AbstractTraceNode) this.rep).shiftTime(-this.rep.traceTime.getStartTimeExclusive());
 		}
+		this.clearDiffScore();
+		this.initDurationRep();
+		
 		this.members.add(new ClusterMemberID(id));
 	}
 	
 	public Cluster(AbstractTreeNode node, Vector<ClusterMemberID> members) {
 		super(node);
 		this.rep = node.duplicate();
-		this.weight = rep.weight;
 		this.members.addAll(members);
 	}
 	
 	protected Cluster(Cluster other) {
 		super(other);
 		this.rep = other.rep.duplicate();
-		this.weight = rep.weight;
 		for (ClusterMemberID otherMember : other.members)
 			this.members.add(otherMember.duplicate());
 	}
@@ -112,6 +113,11 @@ public class Cluster extends AbstractTreeNode {
 		rep.stretchDiffScore(multiplier, divisor);
 	}
 
+	public void initDurationRep() {
+		super.initDurationRep();
+		rep.initDurationRep();
+	}
+	
 	public long getMinDuration() {
 		return rep.getMinDuration();
 	}

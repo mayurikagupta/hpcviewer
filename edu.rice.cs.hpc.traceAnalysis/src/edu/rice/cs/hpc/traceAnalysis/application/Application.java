@@ -28,6 +28,7 @@ import edu.rice.cs.hpc.traceAnalysis.data.tree.TraceTree;
 import edu.rice.cs.hpc.traceAnalysis.operator.ClusterIdentifier;
 import edu.rice.cs.hpc.traceAnalysis.operator.LoopDetector;
 import edu.rice.cs.hpc.traceAnalysis.operator.TraceFilter;
+import edu.rice.cs.hpc.traceAnalysis.output.PerformanceImprovementEstimator;
 import edu.rice.cs.hpc.traceAnalysis.output.SignificantDiffNodePrinter;
 
 public class Application {
@@ -166,6 +167,7 @@ public class Application {
 		root.getTraceTime().setStartTimeInclusive(0);
 		root.getTraceTime().setEndTimeInclusive(traceReader.getDurantion());
 		root.getTraceTime().setEndTimeExclusive(traceReader.getDurantion());
+		root.initDurationRep();
 		
 		/*
 		for (int procNum = 0; procNum < nProc; procNum += 1) { 
@@ -201,12 +203,13 @@ public class Application {
 		objPrint.println();
 		objPrint.println();
 		
+		/*
 		double maxDiffRatio = 0;
 		for (int i = 0; i < node.getNumOfClusters(); i++)
 			for (int j = i+1; j < node.getNumOfClusters(); j++) {
 				AbstractTreeNode diff = clusteror.mergeNode(node.getCluster(i).getRep(), node.getCluster(i).getWeight(), 
 						node.getCluster(j).getRep(), node.getCluster(j).getWeight(), false, true);
-				double ratio = diff.getMetrics().getInclusiveDiffScore() / node.getCluster(i).getWeight() / node.getCluster(j).getWeight() / 
+				double ratio = diff.getInclusiveDiffScore() / node.getCluster(i).getWeight() / node.getCluster(j).getWeight() / 
 						(node.getCluster(i).getRep().getDuration() + node.getCluster(j).getRep().getDuration());
 				maxDiffRatio = Math.max(maxDiffRatio, ratio);
 			}
@@ -215,6 +218,9 @@ public class Application {
 		objPrint.println(node.printLargeDiffNodes(printDepth, 0, Long.MIN_VALUE));
 		
 		SignificantDiffNodePrinter.printAllCluster(objPrint, node);
+		*/
+		
+		PerformanceImprovementEstimator.printSignificantImprovement(objPrint, node);
 		
 		objError.println("Exit at " + printTime());
 		
