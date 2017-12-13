@@ -140,6 +140,28 @@ public class HPCToolkitTraceReader {
 		return fileTrace.getAbsolutePath();
 	}
 	
+	private String getRankNames(int rankNum) {
+		if (rankNum < 0) return null;
+		if (rankNum >= this.getNumberOfRanks()) return null;
+		return dataTrace.getListOfRanks()[rankNum];
+	}
+	
+	public int getProcNum(int rankNum) {
+		String rankName = this.getRankNames(rankNum);
+		if (rankName.contains(".")) rankName = rankName.substring(0, rankName.indexOf('.'));
+		
+		return Integer.valueOf(rankName);
+	}
+	
+	public int getThreadNum(int rankNum) {
+		String rankName = this.getRankNames(rankNum);
+		
+		if (rankName.contains(".")) rankName = rankName.substring(rankName.indexOf('.')+1);
+		else rankName = "0";
+		
+		return Integer.valueOf(rankName);
+	}
+	
 	public int getNumberOfRanks() {
 		return dataTrace.getNumberOfRanks();
 	}
@@ -203,8 +225,8 @@ public class HPCToolkitTraceReader {
 						node = new FunctionTrace(scope.getCCTIndex(), scope.getName(), depth+1, 
 							cfgReader.CFGFuncMap.get(((CallSiteScope)scope).getVMA()), 
 							findCFGCall(activeTraceStack.peek().getCFGGraph(), ra));
-						if (activeTraceStack.peek().getCFGGraph() != null && node.getAddrNode() == null)
-							System.err.println("RA " + Long.toHexString(ra) + " not found under " + activeTraceStack.peek().getCFGGraph());
+						//if (activeTraceStack.peek().getCFGGraph() != null && node.getAddrNode() == null)
+						//	System.err.println("RA " + Long.toHexString(ra) + " not found under " + activeTraceStack.peek().getCFGGraph());
 					}
 				}
 				
@@ -226,7 +248,7 @@ public class HPCToolkitTraceReader {
 				final CallPathWithLoop curCP = new CallPathWithLoop(scopeMap.get(dataTrace.getInt(pos + Constants.SIZEOF_LONG)));
 				final int lcaDepth = computeLCADepth(lastCP, curCP);
 				
-				if (curCP.getScopeAt(0).getName().equals("Partial Call Paths")) continue;
+				if (!curCP.isValid()) continue;
 				
 				while (activeTraceStack.size() > lcaDepth + 2) {
 					AbstractTraceNode inactiveNode = activeTraceStack.pop();
@@ -254,8 +276,8 @@ public class HPCToolkitTraceReader {
 							node = new FunctionTrace(scope.getCCTIndex(), scope.getName(), depth+1, 
 								cfgReader.CFGFuncMap.get(((CallSiteScope)scope).getVMA()), 
 								findCFGCall(activeTraceStack.peek().getCFGGraph(), ra));
-							if (activeTraceStack.peek().getCFGGraph() != null && node.getAddrNode() == null)
-								System.err.println("RA " + Long.toHexString(ra) + " not found under " + activeTraceStack.peek().getCFGGraph());
+//							if (activeTraceStack.peek().getCFGGraph() != null && node.getAddrNode() == null)
+//								System.err.println("RA " + Long.toHexString(ra) + " not found under " + activeTraceStack.peek().getCFGGraph());
 						}
 					}
 					
@@ -325,7 +347,8 @@ public class HPCToolkitTraceReader {
 }
 
 class CallPathWithLoop {
-	Scope[] scopes;
+	Scope root = null;
+	Scope[] scopes = null;
 	
 	CallPathWithLoop(LineScope leafscope) {
 		LinkedList<Scope> stack = new LinkedList<Scope>();
@@ -333,9 +356,25 @@ class CallPathWithLoop {
 		while ((scope != null) && !(scope instanceof RootScope)) {
 			if ((scope instanceof CallSiteScope) || (scope instanceof LoopScope))
 				stack.push(scope);
+			if ((scope instanceof ProcedureScope) && (scope.getParentScope() instanceof RootScope))
+				root = scope;
 			scope = scope.getParentScope();
 		}
 		scopes = stack.toArray(new Scope[0]);
+	}
+	
+	boolean isValid() {
+		if (scopes.length == 0) return false;
+		
+		if (root == null) {
+			if (!scopes[0].getName().equals("main")) 
+				return false;
+		} else {
+			if (root.getName().toLowerCase().contains("partial call paths")) 
+				return false;
+		}
+		
+		return true;
 	}
 	
 	int getMaxDepth() {

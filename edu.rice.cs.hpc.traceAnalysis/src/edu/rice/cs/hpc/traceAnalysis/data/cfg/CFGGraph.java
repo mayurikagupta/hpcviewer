@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 
+import edu.rice.cs.hpc.traceAnalysis.data.tree.AbstractTreeNode;
+
 public abstract class CFGGraph extends CFGNode {
 	public final boolean valid;
 	public final String label;
@@ -51,6 +53,25 @@ public abstract class CFGGraph extends CFGNode {
 		if (successors.get(idx1).contains(node2)) return -1;
 		if (successors.get(idx2).contains(node1)) return 1;
 		return 0;
+	}
+	
+	/**
+	 * @return 
+	 * <0 if node1 should be placed ahead of node2;
+	 * >0 if node2 should be placed ahead of node1;
+	 */
+	public int compareNodeOrder(AbstractTreeNode node1, AbstractTreeNode node2) {
+		if (childIndexMap == null) buildChildIndex();
+		
+		if (!childIndexMap.containsKey(node1.getAddrNode())) return -1;
+		if (!childIndexMap.containsKey(node2.getAddrNode())) return 1;
+		
+		int compare = compareChild(node1.getAddrNode(), node2.getAddrNode());
+		
+		// tie is broken by simply comparing CCT ID
+		if (compare == 0) compare = node1.getID() - node2.getID();
+		
+		return compare;
 	}
 	
 	public boolean hasChild(CFGNode node) {

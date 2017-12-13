@@ -271,7 +271,7 @@ public class LoopDetector {
 			if (!rawLoop.getCFGGraph().hasChild(curCFGNode)) { 
 				/* When we are unable to locate a child within the cfgNode, we will omit it.
 				 */
-				System.err.println("Ignored: unexpected CFG ID " + rawLoop.getChild(i).getAddrNode() + " in loop 0x" + Long.toHexString(rawLoop.getCFGGraph().vma) + " @ CCT Node #" + rawLoop.getID());
+				//System.err.println("Ignored: unexpected CFG ID " + rawLoop.getChild(i).getAddrNode() + " in loop 0x" + Long.toHexString(rawLoop.getCFGGraph().vma) + " @ CCT Node #" + rawLoop.getID());
 				continue;
 			}
 			
@@ -307,6 +307,12 @@ public class LoopDetector {
 			retLoop.addChild(iter);
 			iter.setDepth(retLoop.getDepth()+1);
 		}
+		
+		//TODO
+    	if (retLoop.getNumOfChildren() == 0) {
+    		FunctionTrace trace = new FunctionTrace(rawLoop);
+    		return trace;
+    	}
 		
 		if (retLoop.getDuration() / retLoop.getNumOfChildren() < 
 				TraceAnalysisUtils.loopAverageIterationLengthCutoffMultiplier * traceTree.sampleFrequency) 

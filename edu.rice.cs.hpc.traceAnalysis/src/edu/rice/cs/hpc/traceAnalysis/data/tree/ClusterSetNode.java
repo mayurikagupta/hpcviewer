@@ -154,7 +154,7 @@ public class ClusterSetNode extends AbstractTreeNode {
 	public void clearDiffScore() {
 		super.clearDiffScore();
 		rep.clearDiffScore();
-		for (Cluster c : clusters)
+		for (Cluster c : clusters) //TODO
 			c.clearDiffScore();
 	}
 	
@@ -166,7 +166,7 @@ public class ClusterSetNode extends AbstractTreeNode {
 	public void initDurationRep() {
 		super.initDurationRep();
 		rep.initDurationRep();
-		for (Cluster c : clusters)
+		for (Cluster c : clusters) //TODO
 			c.initDurationRep();
 	}
 
@@ -258,7 +258,7 @@ public class ClusterSetNode extends AbstractTreeNode {
 		ret += '\n';
 		
 		for (int i = 0; i < clusters.length; i++) 
-			ret += clusters[i].printLargeDiffNodes(maxDepth, durationCutoff, 0);
+			ret += clusters[i].toString(maxDepth, durationCutoff, weight);
 		
 		//if (this.ID == 1598) maxDepth += 5;
 		ret += rep.toString(maxDepth+1, durationCutoff, weight);

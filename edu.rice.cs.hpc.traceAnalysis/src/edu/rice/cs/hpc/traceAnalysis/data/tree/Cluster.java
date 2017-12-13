@@ -82,7 +82,7 @@ public class Cluster extends AbstractTreeNode {
 		for (int i = 0; i < depth; i++) ret += "    ";
 		
 		Collections.sort(members);
-		return ret + "Members in " + rep.getName() + " : " + members.toString() + "\n" + rep.toString(maxDepth, durationCutoff, weight);
+		return ret + "Members in " + rep.getName() + " : " + members.toString() + "\n";// + rep.toString(maxDepth, durationCutoff, weight);
 	}
 
 	public void setDepth(int depth) {

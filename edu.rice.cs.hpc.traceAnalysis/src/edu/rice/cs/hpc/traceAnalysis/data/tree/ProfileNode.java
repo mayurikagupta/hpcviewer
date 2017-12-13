@@ -58,12 +58,16 @@ public class ProfileNode extends AbstractTreeNode {
 			this.merge(prof);
 		}*/
 		ProfileNode prof = toProfile(cluster.getRep());
-		prof.stretch(cluster.getRep().getWeight(), 1);
+		prof.stretch(cluster.getRep().getWeight() / cluster.weight, 1);
 		this.childMap = prof.childMap;
 		this.minDurationExclusive = prof.minDurationExclusive;
 		this.minDurationInclusive = prof.minDurationInclusive;
 		this.maxDurationExclusive = prof.maxDurationExclusive;
 		this.maxDurationInclusive = prof.maxDurationInclusive;
+		
+		this.minDurationRep = prof.minDurationRep;
+		this.maxDurationRep = prof.maxDurationRep;
+		
 		this.setWeight(cluster.weight);
 		this.setDepth(cluster.getDepth());
 	}

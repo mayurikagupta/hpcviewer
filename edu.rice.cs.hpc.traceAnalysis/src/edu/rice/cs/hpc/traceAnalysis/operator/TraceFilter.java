@@ -7,6 +7,9 @@ public class TraceFilter {
 	public static void filterTrace(AbstractTreeNode node) {
     	if (node.getName().length()>=5 && node.getName().substring(0, 5).equals("PMPI_"))
     		node.clearChildren();
+    	
+    	if (node.getName().length()>=4 && node.getName().substring(0, 4).equals("MPI_"))
+    		node.clearChildren();
 		
 		if (!(node instanceof AbstractTraceNode)) return;
 		

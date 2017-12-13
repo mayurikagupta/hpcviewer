@@ -25,12 +25,12 @@ public class ClusterIdentifier {
 	static public final double maxClusterDiff = 0.20;
 	static public final double maxMinRatio = 4;
 	
-	public final int procNum;
+	public final String rankName;
 	public final TraceTree tree;
 	private long clusterCount;
 	
-	public ClusterIdentifier(int procNum, TraceTree tree) {
-		this.procNum = procNum;
+	public ClusterIdentifier(String rankName, TraceTree tree) {
+		this.rankName = rankName;
 		this.tree = tree;
 		this.clusterCount = 0;
 	}
@@ -204,21 +204,12 @@ public class ClusterIdentifier {
 				if (k1 == trace1.getNumOfChildren()) compare = 1; 
 				if (k2 == trace2.getNumOfChildren()) compare = -1; // increase k1 if k2 points to end
 				
-				if (compare == 0) {
-					assert (trace1.getCFGGraph().equals(trace2.getCFGGraph()));
-					if (trace1.getCFGGraph() == null || !trace1.getCFGGraph().valid)
-						return mergeProfileNode(trace1, w1, trace2, w2, accumulate, scoreOnly);
-					
-					if (!trace1.getCFGGraph().hasChild(trace1.getChild(k1).getAddrNode())) compare = -1; // increase k1 if the current child's cfgNode is not found.
-					if (!trace1.getCFGGraph().hasChild(trace2.getChild(k2).getAddrNode())) compare = 1;
-				}
+				if (compare == 0 && (trace1.getCFGGraph() == null || !trace1.getCFGGraph().valid))
+					return mergeProfileNode(trace1, w1, trace2, w2, accumulate, scoreOnly);
 				
-				if (compare == 0) // increase k1 if k1 is a predecessor of k2; increase k2 of k2 is a predecessor of k1.
-					compare = trace1.getCFGGraph().compareChild(trace1.getChild(k1).getAddrNode(), trace2.getChild(k2).getAddrNode());
+				if (compare == 0) // increase k1 if k1 should be placed ahead of k2; increase k2 otherwise.
+					compare = trace1.getCFGGraph().compareNodeOrder(trace1.getChild(k1), trace2.getChild(k2));
 
-				if (compare == 0) // tie is broken by simply comparing CCT ID
-					compare = trace1.getChild(k1).getID() - trace2.getChild(k2).getID();
-				
 				if (compare < 0) { // increase k1
 					startExclusive2 += trace1.getChild(k1).getTraceTime().getStartTimeExclusive() - startExclusive1;
 					startInclusive2 += trace1.getChild(k1).getTraceTime().getStartTimeInclusive() - startInclusive1;
@@ -461,12 +452,23 @@ public class ClusterIdentifier {
 	}
 	
 	private AbstractTreeNode mergeClusterNode(ClusterSetNode node1, int weight1, ClusterSetNode node2, int weight2, boolean accumulate, boolean scoreOnly) {
+		// Adjust weight of rep for dummy node
+		if (node1.getNumOfClusters() == 0)  
+			node1.getRep().setWeight(node1.getWeight() * node2.getRep().getWeight());
+		if (node2.getNumOfClusters() == 0)
+			node2.getRep().setWeight(node2.getWeight() * node1.getRep().getWeight());
+		
+		// TODO Adjust weight of rep if two nodes have diff number of iterations
+		
 		Cluster[] cluster = new Cluster[node1.getNumOfClusters() + node2.getNumOfClusters()];
 		
+		//if (node1.getID() == 85162 && !scoreOnly)
+		//	System.out.println();
+		
 		for (int i = 0; i < node1.getNumOfClusters(); i++)
-			cluster[i] = node1.getCluster(i);
+			cluster[i] = (Cluster) node1.getCluster(i).duplicate();
 		for (int i = 0; i < node2.getNumOfClusters(); i++)
-			cluster[i+node1.getNumOfClusters()] = node2.getCluster(i);
+			cluster[i+node1.getNumOfClusters()] = (Cluster) node2.getCluster(i).duplicate();
 		
 		if (!scoreOnly) {
 			int numMembers = 0;
@@ -671,6 +673,7 @@ public class ClusterIdentifier {
 			return mergeClusterNode((ClusterSetNode)node1, weight1, (ClusterSetNode)node2, weight2, accumulate, scoreOnly);
 		else 
 			return mergeProfileNode(node1, weight1, node2, weight2, accumulate, scoreOnly);
+		//TODO add a case for TraceNode vs ClusterNode
 	}
 	
 	class ComputeDiffThread implements Callable<double[]> {
@@ -935,6 +938,8 @@ if (cluster[0].getRep().getID() == 7159) {
 				
 				if (node instanceof ShadowTraceTree)
 					node = ((ShadowTraceTree) node).getRootTrace();
+				else
+					node = node.duplicate();
 				
 				labelCluster(node, begin);
 				
@@ -1030,8 +1035,8 @@ if (cluster[0].getRep().getID() == 7159) {
 			ret.clearDiffScore();
 			return ret;
 		}
-		else if (this.procNum >= 0) 
-			return new ClusterSetNode(loop, "data\\P" + this.procNum + "_C" + this.clusterCount++, computeClusterRep(cluster, numProc), cluster);
+		else if (this.rankName != null) 
+			return new ClusterSetNode(loop, "data\\P" + this.rankName + "_C" + this.clusterCount++, computeClusterRep(cluster, numProc), cluster);
 		else 
 			return new ClusterSetNode(loop, "data\\AllProcs", computeClusterRep(cluster, numProc), cluster);
 	}

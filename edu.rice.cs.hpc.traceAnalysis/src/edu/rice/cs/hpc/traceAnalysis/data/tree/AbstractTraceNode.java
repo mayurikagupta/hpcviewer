@@ -47,6 +47,10 @@ abstract public class AbstractTraceNode extends AbstractTreeNode {
 		if (duration < 0) duration = 0;
 		return duration;
 	}
+	
+	public long getGapDurationBeforeChild(int index) {
+		return (getMaxGapDurationBeforeChild(index) + getMinGapDurationBeforeChild(index))/2;
+	}
 
 	public int getNumOfChildren() {
 		return children.size();

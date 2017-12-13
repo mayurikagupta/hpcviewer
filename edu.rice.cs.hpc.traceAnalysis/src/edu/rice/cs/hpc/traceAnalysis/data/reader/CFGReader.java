@@ -132,7 +132,7 @@ public class CFGReader {
 					break;
 				}
 			if (nextNode == null) {
-				System.err.println("Unexpected backedge detected while reading DOT file for " + g.getId().getId());
+//System.err.println("Unexpected backedge detected while reading DOT file for " + g.getId().getId());
 				String[] split = gid.split("_");
 				assert(split[2].subSequence(0, 2).equals("0x"));
 				long addr = Long.decode(split[2]);

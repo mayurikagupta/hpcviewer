@@ -37,7 +37,7 @@ public class Application {
 	private final PrintStream objError;
 
 	private final int printDepth = 25;
-	private final int nProc = 12;
+	private int nRanks;
 	
 	private final long startTime = System.currentTimeMillis();
 
@@ -51,42 +51,51 @@ public class Application {
 		return diff/1000 + "." + diff/100%10 + diff/10%10 + diff%10 + "s";
 	}
 	
-	class PerThreadAnalyzer implements Runnable {
+	class PerRankAnalyzer implements Runnable {
+		private final int rankNum;
 		private final int procNum;
+		private final int threadNum;
 		
-		PerThreadAnalyzer(int procNum) {
-			this.procNum = procNum;
+		PerRankAnalyzer(int rankNum) {
+			this.rankNum = rankNum;
+			this.procNum = traceReader.getProcNum(rankNum);
+			this.threadNum = traceReader.getThreadNum(rankNum);
 		}
 		
 		@Override
 		public void run() {
+			if (threadNum > 0) { 
+				objError.println("Skipping building for proc #" + procNum + " thread #" + threadNum + ".");
+				return;
+			}
+			
 			TraceTree tree = null;
 			synchronized (this) {
-				tree = traceReader.buildTraceTree(procNum);
+				tree = traceReader.buildTraceTree(rankNum);
 			}
-			objError.println("Build traceline #" + procNum + " finished at " + printTime());
+			objError.println("Build proc #" + procNum + " finished at " + printTime());
 			//objPrint.println(tree.toString(printDepth));
 			
 			TraceFilter.filterTrace(tree.root);
 			LoopDetector detector = new LoopDetector(tree);
 			detector.detectLoop(tree.root);
-			objError.println("Detect loop traceline #" + procNum + " finished at " + printTime());
+			objError.println("Detect loop proc #" + procNum + " finished at " + printTime());
 			//objPrint.println("*************************************************");
 			//objPrint.println(tree.toString(printDepth));
 			
-			ClusterIdentifier clusteror = new ClusterIdentifier(procNum, tree);
+			ClusterIdentifier clusteror = new ClusterIdentifier(Integer.toString(procNum), tree);
 			clusteror.clusterLoops(tree.root);
-			objError.println("Cluster traceline #" + procNum + " finished at " + printTime());
+			objError.println("Cluster proc #" + procNum + " finished at " + printTime());
 			//objPrint.println("*************************************************");
-			
-			if (procNum == 0) {
-				objPrint.println(tree.printLargeDiffNodes(printDepth));
-				objPrint.println(tree.toString(10));
-				SignificantDiffNodePrinter.printAllCluster(objPrint, tree.root);
-			}
 			
 			tree.root.setName("P" + procNum);
 			
+			if (procNum <= 1) {
+				objPrint.println(tree.printLargeDiffNodes(printDepth));
+				//objPrint.println("\n\n" + tree.toString(4));
+				//SignificantDiffNodePrinter.printAllCluster(objPrint, tree.root);
+			}
+
 			try {
 				FileOutputStream fileOut = new FileOutputStream("data\\P"+procNum);
 				ObjectOutputStream out = new ObjectOutputStream(fileOut);
@@ -100,11 +109,11 @@ public class Application {
 		}
 	}
 	
-	private boolean perThreadAnalysis() {
+	private boolean perRankAnalysis() {
 		ExecutorService threadExecutor = Executors.newFixedThreadPool( Runtime.getRuntime().availableProcessors()); 
 
-		for (int procNum = 0; procNum < nProc; procNum += 1) { 
-			Runnable worker = new PerThreadAnalyzer(procNum);
+		for (int rankNum = 0; rankNum < nRanks; rankNum += 1) { 
+			Runnable worker = new PerRankAnalyzer(rankNum);
 			threadExecutor.execute(worker);
 		}
 		threadExecutor.shutdown();
@@ -120,15 +129,22 @@ public class Application {
 		return true;
 	}
 	
-	class PerThreadReader implements Callable<TraceTree> {
+	class PerRankReader implements Callable<TraceTree> {
 		private final int procNum;
+		private final int threadNum;
 		
-		PerThreadReader(int procNum) {
-			this.procNum = procNum;
+		PerRankReader(int rankNum) {
+			this.procNum = traceReader.getProcNum(rankNum);
+			this.threadNum = traceReader.getThreadNum(rankNum);
 		}
 		
 		@Override
 		public TraceTree call() throws Exception {
+			if (threadNum > 0) { 
+				objError.println("Skipping reading for proc #" + procNum + " thread #" + threadNum + ".");
+				return null;
+			}
+			
 			try {
 				FileInputStream fileIn = new FileInputStream("data\\P"+procNum);
 				ObjectInputStream in = new ObjectInputStream(fileIn);
@@ -149,20 +165,19 @@ public class Application {
 		
 	}
 	
-	private boolean crossThreadAnalysis() {
-		objError.println("\n\nReading all threads at " + printTime());
-		
+	private boolean crossRankAnalysis() {
+		objError.println("\n\nReading all ranks at " + printTime());
 		
 		ExecutorService threadExecutor = Executors.newFixedThreadPool( Runtime.getRuntime().availableProcessors()); 
 		ArrayList<Future<TraceTree>> futures = new ArrayList<Future<TraceTree>>();
-		for (int procNum = 0; procNum < nProc; procNum += 1) { 
-			PerThreadReader reader = new PerThreadReader(procNum);
+		for (int rankNum = 0; rankNum < nRanks; rankNum += 1) { 
+			PerRankReader reader = new PerRankReader(rankNum);
 			Future<TraceTree> future = threadExecutor.submit(reader);
 			futures.add(future);
 		}
 		
 		
-		RootTrace root = new RootTrace("Root for all procs");
+		RootTrace root = new RootTrace("Root for all ranks");
 		root.getTraceTime().setStartTimeExclusive(0);
 		root.getTraceTime().setStartTimeInclusive(0);
 		root.getTraceTime().setEndTimeInclusive(traceReader.getDurantion());
@@ -179,7 +194,7 @@ public class Application {
 		for (Future<TraceTree> future : futures) {
 			try {
 				TraceTree tree = future.get();
-				root.addChild(tree.root);
+				if (tree != null) root.addChild(tree.root);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 				return false;
@@ -192,13 +207,13 @@ public class Application {
 		threadExecutor.shutdown();
 		
 		
-		objError.println("\n\nMerging all threads at " + printTime());
+		objError.println("\n\nMerging all ranks at " + printTime());
 		root.setDepth(0);
 		
-		ClusterIdentifier clusteror = new ClusterIdentifier(-1, null);
+		ClusterIdentifier clusteror = new ClusterIdentifier(null, null);
 		ClusterSetNode node = (ClusterSetNode) clusteror.findCluster(root, 1); //Runtime.getRuntime().availableProcessors());
 		
-		objError.println("\n\nFinished all threads at " + printTime());
+		objError.println("\n\nFinished all ranks at " + printTime());
 		
 		objPrint.println();
 		objPrint.println();
@@ -220,6 +235,7 @@ public class Application {
 		SignificantDiffNodePrinter.printAllCluster(objPrint, node);
 		*/
 		
+		objPrint.println(node.printLargeDiffNodes(printDepth, 0, Long.MIN_VALUE));
 		PerformanceImprovementEstimator.printSignificantImprovement(objPrint, node);
 		
 		objError.println("Exit at " + printTime());
@@ -233,10 +249,11 @@ public class Application {
 		objError.println("Started at " + printTime());
 		
 		this.traceReader = new HPCToolkitTraceReader(objFile, objPrint, objError);
+		this.nRanks = traceReader.getNumberOfRanks();
 		objError.println("Init finished at " + printTime());
 		
-		if (!this.perThreadAnalysis()) return false;
-		if (!this.crossThreadAnalysis()) return false;
+		//if (!this.perRankAnalysis()) return false;
+		if (!this.crossRankAnalysis()) return false;
 
 		return true;
 	}
