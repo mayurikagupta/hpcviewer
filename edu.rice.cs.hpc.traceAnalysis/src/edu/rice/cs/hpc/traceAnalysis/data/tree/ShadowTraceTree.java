@@ -10,8 +10,6 @@ public class ShadowTraceTree extends AbstractTreeNode {
 	 */
 	private static final long serialVersionUID = 4352918726216186961L;
 
-	private boolean clearedDiffScore = false;
-	
 	public ShadowTraceTree(String filename) {
 		super(0, filename, 0, null, null);
 	}
@@ -24,7 +22,6 @@ public class ShadowTraceTree extends AbstractTreeNode {
 			in.close();
 			fileIn.close();
 			tree.root.setDepth(this.depth);
-			if (clearedDiffScore) tree.root.clearDiffScore();
 			return tree.root;
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -34,11 +31,7 @@ public class ShadowTraceTree extends AbstractTreeNode {
 	        return null;
 	    }
 	}
-	
-	public void clearDiffScore() {
-		this.clearedDiffScore = true;
-	}
-	
+
 	@Override
 	public boolean isLeaf() {
 		return getRootTrace().isLeaf();

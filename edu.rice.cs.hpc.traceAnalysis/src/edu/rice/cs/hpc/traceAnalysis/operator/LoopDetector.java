@@ -265,6 +265,8 @@ public class LoopDetector {
 		
 		CFGNode lastCFGNode = null;
 		
+		long minDuration = Long.MAX_VALUE;
+		
 		for (int i = 0; i < rawLoop.getNumOfChildren(); i++) {
 			CFGNode curCFGNode = rawLoop.getChild(i).getAddrNode();
 			
@@ -290,6 +292,8 @@ public class LoopDetector {
 				retLoop.addChild(iter);
 				iter.setDepth(retLoop.getDepth()+1);
 				
+				if (iter.getDuration() < minDuration) minDuration = iter.getDuration();
+				
 				// new iteration
 				iter = new IterationTrace(retLoop, retLoop.getNumOfChildren());
 				iter.getTraceTime().setStartTimeExclusive(startTimeExclusive);
@@ -314,6 +318,9 @@ public class LoopDetector {
     		return trace;
     	}
 		
+    	if (minDuration < TraceAnalysisUtils.loopMinimunIterationLengthCutoffMultiplier * traceTree.sampleFrequency)
+    		return null;
+    	
 		if (retLoop.getDuration() / retLoop.getNumOfChildren() < 
 				TraceAnalysisUtils.loopAverageIterationLengthCutoffMultiplier * traceTree.sampleFrequency) 
 			return null;

@@ -7,6 +7,7 @@ import edu.rice.cs.hpc.traceAnalysis.data.cfg.CFGLoop;
 
 public class TraceAnalysisUtils {
 	static public final int traceCutoffMultiplier = 0;
+	static public final int loopMinimunIterationLengthCutoffMultiplier = 3;
 	static public final int loopAverageIterationLengthCutoffMultiplier = 100;
 	
 	static public final int diffCutoffDivider = 1000;

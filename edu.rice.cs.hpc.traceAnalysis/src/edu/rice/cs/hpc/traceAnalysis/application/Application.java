@@ -90,14 +90,14 @@ public class Application {
 			
 			tree.root.setName("P" + procNum);
 			
-			if (procNum <= 1) {
-				objPrint.println(tree.printLargeDiffNodes(printDepth));
+			//if (procNum <= 1) {
+			//	objPrint.println(tree.printLargeDiffNodes(printDepth));
 				//objPrint.println("\n\n" + tree.toString(4));
 				//SignificantDiffNodePrinter.printAllCluster(objPrint, tree.root);
-			}
+			//}
 
 			try {
-				FileOutputStream fileOut = new FileOutputStream("data\\P"+procNum);
+				FileOutputStream fileOut = new FileOutputStream("data"+File.separator+"P"+procNum);
 				ObjectOutputStream out = new ObjectOutputStream(fileOut);
 				out.writeObject(tree);
 				out.close();
@@ -146,7 +146,7 @@ public class Application {
 			}
 			
 			try {
-				FileInputStream fileIn = new FileInputStream("data\\P"+procNum);
+				FileInputStream fileIn = new FileInputStream("data"+File.separator+"P"+procNum);
 				ObjectInputStream in = new ObjectInputStream(fileIn);
 				TraceTree tree = (TraceTree) in.readObject();
 				in.close();
@@ -166,16 +166,7 @@ public class Application {
 	}
 	
 	private boolean crossRankAnalysis() {
-		objError.println("\n\nReading all ranks at " + printTime());
-		
-		ExecutorService threadExecutor = Executors.newFixedThreadPool( Runtime.getRuntime().availableProcessors()); 
-		ArrayList<Future<TraceTree>> futures = new ArrayList<Future<TraceTree>>();
-		for (int rankNum = 0; rankNum < nRanks; rankNum += 1) { 
-			PerRankReader reader = new PerRankReader(rankNum);
-			Future<TraceTree> future = threadExecutor.submit(reader);
-			futures.add(future);
-		}
-		
+		objError.println("\n\nMerging all ranks at " + printTime());
 		
 		RootTrace root = new RootTrace("Root for all ranks");
 		root.getTraceTime().setStartTimeExclusive(0);
@@ -184,12 +175,31 @@ public class Application {
 		root.getTraceTime().setEndTimeExclusive(traceReader.getDurantion());
 		root.initDurationRep();
 		
-		/*
-		for (int procNum = 0; procNum < nProc; procNum += 1) { 
-			ShadowTraceTree shadow = new ShadowTraceTree("data\\P"+procNum);
-			root.addChild(shadow, null, null);
-		}*/
 		
+		for (int rankNum = 0; rankNum < nRanks; rankNum += 1) { 
+			int procNum = traceReader.getProcNum(rankNum);
+			int threadNum = traceReader.getThreadNum(rankNum);
+			
+			if (threadNum > 0) { 
+				objError.println("Skipping merging for proc #" + procNum + " thread #" + threadNum + ".");
+				continue;
+			}
+			
+			ShadowTraceTree shadow = new ShadowTraceTree("data"+File.separator+"P"+procNum);
+			root.addChild(shadow);
+		}
+		
+		
+		/*objError.println("\n\nReading all ranks at " + printTime());
+		
+		ExecutorService threadExecutor = Executors.newFixedThreadPool( Runtime.getRuntime().availableProcessors()); 
+		ArrayList<Future<TraceTree>> futures = new ArrayList<Future<TraceTree>>();
+		for (int rankNum = 0; rankNum < nRanks; rankNum += 1) { 
+			PerRankReader reader = new PerRankReader(rankNum);
+			Future<TraceTree> future = threadExecutor.submit(reader);
+			futures.add(future);
+		}
+
 		
 		for (Future<TraceTree> future : futures) {
 			try {
@@ -204,14 +214,13 @@ public class Application {
 			}
 		}
 		
-		threadExecutor.shutdown();
+		threadExecutor.shutdown();*/
 		
 		
-		objError.println("\n\nMerging all ranks at " + printTime());
 		root.setDepth(0);
 		
 		ClusterIdentifier clusteror = new ClusterIdentifier(null, null);
-		ClusterSetNode node = (ClusterSetNode) clusteror.findCluster(root, 1); //Runtime.getRuntime().availableProcessors());
+		ClusterSetNode node = (ClusterSetNode) clusteror.findCluster(root, Runtime.getRuntime().availableProcessors());
 		
 		objError.println("\n\nFinished all ranks at " + printTime());
 		
@@ -252,7 +261,9 @@ public class Application {
 		this.nRanks = traceReader.getNumberOfRanks();
 		objError.println("Init finished at " + printTime());
 		
-		//if (!this.perRankAnalysis()) return false;
+		objError.println("Num of avail procs = " + Runtime.getRuntime().availableProcessors());
+		
+		if (!this.perRankAnalysis()) return false;
 		if (!this.crossRankAnalysis()) return false;
 
 		return true;

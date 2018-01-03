@@ -1,5 +1,6 @@
 package edu.rice.cs.hpc.traceAnalysis.operator;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.Callable;
@@ -36,7 +37,8 @@ public class ClusterIdentifier {
 	}
 	
 	public int maxNumOfClusters(int numOfInstances) {
-		return (int)Math.round(Math.sqrt(numOfInstances)) + 20; //31 - Integer.numberOfLeadingZeros(numOfInstances) + 1; // which is log2(numOfInstance) + 1
+		//return (int)Math.round(Math.sqrt(numOfInstances)) + 20; 
+		return 31 - Integer.numberOfLeadingZeros(numOfInstances) + 3; // which is log2(numOfInstance) + 3
 		//return 10;
 	}
 
@@ -98,7 +100,6 @@ public class ClusterIdentifier {
 	private void addClusterDiffScore(ClusterSetNode dest, ClusterSetNode src) {
 		dest.setExclusiveDiffScore(dest.getExclusiveDiffScore() + src.getExclusiveDiffScore());
 		dest.setInclusiveDiffScore(dest.getInclusiveDiffScore() + src.getInclusiveDiffScore());
-		dest.setMaxDurationRep(Math.max(dest.getMaxDurationRep(), src.getMaxDurationRep()));
 		
 		addDiffScore(dest.getRep(), src.getRep());
 		//TODO need some deeper thought
@@ -454,9 +455,9 @@ public class ClusterIdentifier {
 	private AbstractTreeNode mergeClusterNode(ClusterSetNode node1, int weight1, ClusterSetNode node2, int weight2, boolean accumulate, boolean scoreOnly) {
 		// Adjust weight of rep for dummy node
 		if (node1.getNumOfClusters() == 0)  
-			node1.getRep().setWeight(node1.getWeight() * node2.getRep().getWeight());
+			node1.getRep().setWeight(node1.getWeight() * (node2.getRep().getWeight() / node2.getWeight()));
 		if (node2.getNumOfClusters() == 0)
-			node2.getRep().setWeight(node2.getWeight() * node1.getRep().getWeight());
+			node2.getRep().setWeight(node2.getWeight() * (node1.getRep().getWeight() / node1.getWeight()));
 		
 		// TODO Adjust weight of rep if two nodes have diff number of iterations
 		
@@ -889,6 +890,7 @@ if (cluster[0].getRep().getID() == 7159) {
 	}
 	
 	private AbstractTreeNode computeClusterRep(Cluster[] cluster, int numProc) {
+		//TODO parallelize
 		AbstractTreeNode node = cluster[0].getRep().duplicate();
 		for (int i = 1; i < cluster.length; i++)
 			node = mergeNode(node, node.getWeight(), cluster[i].getRep(), cluster[i].getWeight(), false, false);
@@ -906,8 +908,11 @@ if (cluster[0].getRep().getID() == 7159) {
 	}
 	
 	private void labelCluster(AbstractTreeNode node, int ID) {
-		if (node instanceof ClusterSetNode)
-			((ClusterSetNode) node).addLabel(ID);
+		if (node instanceof ClusterSetNode) {
+			ClusterSetNode cluster = (ClusterSetNode) node;
+			cluster.addLabel(ID);
+			labelCluster(cluster.getRep(), ID);
+		}
 		else if (node instanceof AbstractTraceNode) {
 			AbstractTraceNode trace = (AbstractTraceNode) node;
 			for (int i = 0; i < trace.getNumOfChildren(); i++)
@@ -937,7 +942,7 @@ if (cluster[0].getRep().getID() == 7159) {
 				AbstractTreeNode node = loop.getChild(begin);
 				
 				if (node instanceof ShadowTraceTree)
-					node = ((ShadowTraceTree) node).getRootTrace();
+					node = ((ShadowTraceTree) node).getRootTrace(); // see a little different result if the node is duplicated.
 				else
 					node = node.duplicate();
 				
@@ -1036,9 +1041,10 @@ if (cluster[0].getRep().getID() == 7159) {
 			return ret;
 		}
 		else if (this.rankName != null) 
-			return new ClusterSetNode(loop, "data\\P" + this.rankName + "_C" + this.clusterCount++, computeClusterRep(cluster, numProc), cluster);
+			//return new ClusterSetNode(loop, "data" + File.separator + "P" + this.rankName + "_C" + this.clusterCount++, computeClusterRep(cluster, numProc), cluster);
+			return new ClusterSetNode(loop, "", computeClusterRep(cluster, numProc), cluster);
 		else 
-			return new ClusterSetNode(loop, "data\\AllProcs", computeClusterRep(cluster, numProc), cluster);
+			return new ClusterSetNode(loop, "data" + File.separator + "AllProcs", computeClusterRep(cluster, numProc), cluster);
 	}
 	
 	public AbstractTreeNode clusterLoops(AbstractTreeNode node) {

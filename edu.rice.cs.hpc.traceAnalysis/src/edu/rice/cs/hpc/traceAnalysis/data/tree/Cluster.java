@@ -15,7 +15,7 @@ public class Cluster extends AbstractTreeNode {
 		super(node);
 		this.rep = node.duplicate();
 		
-		if (this.rep instanceof AbstractTraceNode) {
+		if (this.rep instanceof AbstractTraceNode) { //TODO may need to adjust TraceTime for other node types
 			((AbstractTraceNode) this.rep).shiftTime(-this.rep.traceTime.getStartTimeExclusive());
 		}
 		this.clearDiffScore();

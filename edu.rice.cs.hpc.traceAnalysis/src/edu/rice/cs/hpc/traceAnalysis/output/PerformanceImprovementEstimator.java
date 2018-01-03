@@ -3,7 +3,6 @@ package edu.rice.cs.hpc.traceAnalysis.output;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Stack;
 
 import edu.rice.cs.hpc.traceAnalysis.data.cfg.CFGLoop;
@@ -56,6 +55,16 @@ public class PerformanceImprovementEstimator {
 		
     	if (node.getName().length()>=5 && node.getName().substring(0, 5).equals("PMPI_")) return NodeType.WaitNode;
     	if (node.getName().length()>=4 && node.getName().substring(0, 4).equals("MPI_")) return NodeType.WaitNode;
+		
+		return NodeType.CompNode;
+	}
+	
+	private NodeType getNodeType(String name) {
+		if (name.toLowerCase().contains("mpi_allgather")) return NodeType.SyncNode;
+		if (name.toLowerCase().contains("mpi_barrier")) return NodeType.SyncNode;
+		
+    	if (name.length()>=5 && name.substring(0, 5).equals("PMPI_")) return NodeType.WaitNode;
+    	if (name.length()>=4 && name.substring(0, 4).equals("MPI_")) return NodeType.WaitNode;
 		
 		return NodeType.CompNode;
 	}
@@ -136,9 +145,6 @@ public class PerformanceImprovementEstimator {
 	@SuppressWarnings("unchecked")
 	private void generateImprovementReport(Stack<AbstractTreeNode> callpath, ArrayList<SignificantCallpath> significantCallpaths) {
 		AbstractTreeNode node = callpath.peek();
-		
-		if (node.getID() == 86038)
-			System.out.println();
 		
 		NodeType type = getNodeType(node);
 		
@@ -514,8 +520,31 @@ public class PerformanceImprovementEstimator {
 		return ret;
 	}
 	
+	private String callpathToString(Stack<String> callpath, Stack<Boolean> allPresent, Stack<String> lastCallpath, String indent, String append) {
+		String ret = "";
+		
+		int idx = 0;
+		while (idx < callpath.size() && idx < lastCallpath.size() && callpath.get(idx).equals(lastCallpath.get(idx)))
+			idx++;
+		
+		for (int i = 0; i < idx; i++) indent += "  ";
+		
+		for (int i = idx; i < callpath.size() - 1; i++) {
+			if (allPresent.get(i) == true)
+				ret += indent + callpath.get(i) + "\n";
+			else 
+				ret += indent + "(" + callpath.get(i) + ")\n";
+			indent += "  ";
+		}
+		ret += indent + "**" + callpath.peek() + append + "\n";
+		
+		return ret;
+	}
+	
 	private void printImprovementReport() {
 		AbstractTraceNode origin = clusterNode.getOrigin();
+		
+		objPrint.println("Detailed Report:");
 		
 		for (int k = 0; k < this.improvementReport.size(); k++) {
 			ImprovementGroup group = this.improvementReport.get(k);
@@ -546,6 +575,7 @@ public class PerformanceImprovementEstimator {
 			
 			objPrint.print(str);
 			
+			/*
 			runTime = new long [numProc][group.callpaths.size()];
 			gapTime = new long [numProc][group.callpaths.size()+1];
 			improvementGroup = group;
@@ -573,6 +603,76 @@ public class PerformanceImprovementEstimator {
 			}
 			
 			objPrint.println("\n\n");
+			*/
+		}
+		
+		objPrint.println("\n\nMerged Report:");
+		for (int k = 0; k < this.improvementReport.size(); k++) {
+			ImprovementGroup group = this.improvementReport.get(k);
+			String str = "Group #" + k + ":  imbalance = " + String.format("%.2f", group.imbalanceImprovementRatio * 100) + "%  " + 
+					"wait = " + String.format("%.2f", group.waitImprovementRatio * 100) + "%\n";
+			
+			int countCause = 0;
+			int countSync = 0;
+			
+			Stack<String> lastCallPath = new Stack<String>();
+			if (group.priorSyncCallpath != null) {
+				Stack<Boolean> allPresent = new Stack<Boolean>();
+				for (AbstractTreeNode node : group.priorSyncCallpath) {
+					lastCallPath.add(node.getName());
+					allPresent.add(true);
+				}
+				str += this.callpathToString(lastCallPath, allPresent, new Stack<String>(), "  ", " ** PRIOR **");
+			}
+			
+			ArrayList<MergedCallpath> callpaths = new ArrayList<MergedCallpath>();
+			for (SignificantCallpath item : group.callpaths) callpaths.add(new MergedCallpath(item));
+			this.mergeCallPaths(callpaths);
+			
+			for (MergedCallpath item : callpaths) {
+				String temp = "";
+				
+				if (item.isSync) temp += "  Sync #" + (++countSync);
+				else temp += "  Cause #" + (++countCause);
+				
+				temp += ":  imbalance = " + String.format("%.2f", item.imbalanceImprovementRatio * 100) + "%  " + 
+						"wait = " + String.format("%.2f", item.waitImprovementRatio * 100) + "%";
+				str += this.callpathToString(item.callpath, item.allPresent, lastCallPath, "  ", temp);
+				lastCallPath = item.callpath;
+			}
+
+			str += "\n\n";
+			
+			objPrint.print(str);
+		}
+	}
+
+	private void mergeCallPaths(ArrayList<MergedCallpath> callpaths) {
+		for (int i = 1; i < callpaths.size(); i++) {
+			for (int k = i-1; k >=0; k--)
+				if (this.getNodeType(callpaths.get(i).callpath.peek()) == NodeType.CompNode) {
+					if (callpaths.get(i).callpath.peek().equals(callpaths.get(k).callpath.peek())) { // ending with the same function
+						MergedCallpath merged = new MergedCallpath(callpaths.get(k), callpaths.get(i));
+						if (merged.callpath.size() <= Math.max(callpaths.get(i).callpath.size(), callpaths.get(k).callpath.size())*1.25) {
+							callpaths.set(k, merged);
+							callpaths.remove(i);
+							i--;
+							break;
+						}
+					}
+				} else {
+					if (callpaths.get(i).callpath.peek().equals(callpaths.get(k).callpath.peek()) &&
+							callpaths.get(i).callpath.get(callpaths.get(i).callpath.size()-2).equals
+							(callpaths.get(k).callpath.get(callpaths.get(k).callpath.size()-2))) { // ending with the same last 2 functions
+						MergedCallpath merged = new MergedCallpath(callpaths.get(k), callpaths.get(i));
+						if (merged.callpath.size() <= Math.max(callpaths.get(i).callpath.size(), callpaths.get(k).callpath.size())*1.25) {
+							callpaths.set(k, merged);
+							callpaths.remove(i);
+							i--;
+							break;
+						}
+					}
+				}
 		}
 	}
 	
@@ -626,5 +726,61 @@ class SignificantCallpath {
 		this.imbalanceImprovementRatio = imbalanceImprovementRatio;
 		this.waitImprovementRatio = waitImprovementRatio;
 		this.isSync = isSync;
+	}
+}
+
+class MergedCallpath {
+	Stack<String> callpath;
+	Stack<Boolean> allPresent;
+	double imbalanceImprovementRatio;
+	double waitImprovementRatio;
+	boolean isSync;
+	
+	public MergedCallpath(SignificantCallpath origin) {
+		this.callpath = new Stack<String>();
+		this.allPresent = new Stack<Boolean>();
+		for (AbstractTreeNode node : origin.callpath) {
+			callpath.add(node.getName());
+			allPresent.add(true);
+		}
+		
+		this.imbalanceImprovementRatio = origin.imbalanceImprovementRatio;
+		this.waitImprovementRatio = origin.waitImprovementRatio;
+		this.isSync = origin.isSync;
+	}
+	
+	public MergedCallpath(MergedCallpath p1, MergedCallpath p2) {
+		this.callpath = new Stack<String>();
+		this.allPresent = new Stack<Boolean>();
+		
+		int i = 0, j = 0;
+		while (i < p1.callpath.size() && j < p2.callpath.size()) {
+			if (p1.callpath.get(i).equals(p2.callpath.get(j))) {
+				this.callpath.add(p1.callpath.get(i));
+				this.allPresent.add(p1.allPresent.get(i) & p2.allPresent.get(j));
+				i++;j++;
+			} else {
+				boolean found = false;
+				for (int k = j+1; k < p2.callpath.size(); k++)
+					if (p1.callpath.get(i).equals(p2.callpath.get(k))) {
+						found = true;
+						break;
+					}
+				
+				if (found) {
+					this.callpath.add(p2.callpath.get(j));
+					this.allPresent.add(false);
+					j++;
+				} else {
+					this.callpath.add(p1.callpath.get(i));
+					this.allPresent.add(false);
+					i++;
+				}
+			}
+		}
+		
+		this.imbalanceImprovementRatio = p1.imbalanceImprovementRatio + p2.imbalanceImprovementRatio;
+		this.waitImprovementRatio = p1.waitImprovementRatio + p2.waitImprovementRatio;
+		this.isSync = p1.isSync & p2.isSync;
 	}
 }

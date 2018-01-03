@@ -60,6 +60,7 @@ public class ClusterSetNode extends AbstractTreeNode {
 	// Build new ClusterTreeNode from two existing ClusterTreeNode.
 	public ClusterSetNode(ClusterSetNode node1, ClusterSetNode node2, AbstractTreeNode rep, Cluster[] clusters) {
 		super(node1.getID(), node1.getName(), node1.getDepth(), node1.getCFGGraph(), node1.getAddrNode());
+		
 		this.originFileName = null;
 		this.originVoidDuplicate = (AbstractTraceNode) node1.originVoidDuplicate.duplicate();
 	
@@ -90,14 +91,14 @@ public class ClusterSetNode extends AbstractTreeNode {
 	
 	protected ClusterSetNode(ClusterSetNode other) {
 		super(other);
+		this.originFileName = other.originFileName;
+		this.originVoidDuplicate = other.originVoidDuplicate;
 		this.minDuration = other.minDuration;
 		this.maxDuration = other.maxDuration;
 		this.clusters = new Cluster[other.clusters.length];
 		for (int i = 0; i < clusters.length; i++)
 			clusters[i] = (Cluster) other.clusters[i].duplicate();
 		this.rep = other.rep.duplicate();
-		this.originFileName = other.originFileName;
-		this.originVoidDuplicate = other.originVoidDuplicate;
 	}
 	
 	public int getNumOfClusters() {
@@ -166,8 +167,8 @@ public class ClusterSetNode extends AbstractTreeNode {
 	public void initDurationRep() {
 		super.initDurationRep();
 		rep.initDurationRep();
-		for (Cluster c : clusters) //TODO
-			c.initDurationRep();
+		//for (Cluster c : clusters) //TODO
+			//c.initDurationRep();
 	}
 
 	public long getMinDuration() {
@@ -187,6 +188,14 @@ public class ClusterSetNode extends AbstractTreeNode {
 		ret.minDuration = 0;
 		ret.maxDuration = 0;
 		ret.name = this.name;
+		
+		ret.traceTime = null;
+		ret.inclusiveDiffScore = 0;
+		ret.exclusiveDiffScore = 0;
+		ret.minDurationRep = 0;
+		ret.maxDurationRep = 0;
+		ret.totalDurationRep = 0;
+		
 		return ret;
 	}
 	
