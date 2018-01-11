@@ -9,6 +9,8 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Vector;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -21,6 +23,7 @@ import edu.rice.cs.hpc.data.util.Util;
 
 import edu.rice.cs.hpc.traceAnalysis.data.reader.HPCToolkitTraceReader;
 import edu.rice.cs.hpc.traceAnalysis.data.tree.AbstractTreeNode;
+import edu.rice.cs.hpc.traceAnalysis.data.tree.Cluster.ClusterMemberID;
 import edu.rice.cs.hpc.traceAnalysis.data.tree.ClusterSetNode;
 import edu.rice.cs.hpc.traceAnalysis.data.tree.RootTrace;
 import edu.rice.cs.hpc.traceAnalysis.data.tree.ShadowTraceTree;
@@ -29,6 +32,7 @@ import edu.rice.cs.hpc.traceAnalysis.operator.ClusterIdentifier;
 import edu.rice.cs.hpc.traceAnalysis.operator.LoopDetector;
 import edu.rice.cs.hpc.traceAnalysis.operator.TraceFilter;
 import edu.rice.cs.hpc.traceAnalysis.output.PerformanceImprovementEstimator;
+import edu.rice.cs.hpc.traceAnalysis.output.RuntimeExtractor;
 import edu.rice.cs.hpc.traceAnalysis.output.SignificantDiffNodePrinter;
 
 public class Application {
@@ -92,7 +96,7 @@ public class Application {
 			
 			//if (procNum <= 1) {
 			//	objPrint.println(tree.printLargeDiffNodes(printDepth));
-				//objPrint.println("\n\n" + tree.toString(4));
+				//objPrint.println("\n\n" + tree.toString(10));
 				//SignificantDiffNodePrinter.printAllCluster(objPrint, tree.root);
 			//}
 
@@ -165,6 +169,42 @@ public class Application {
 		
 	}
 	
+	class PerRankExtractor implements Runnable {
+		private final int rankNum;
+		private final int procNum;
+		private final int threadNum;
+		private final RuntimeExtractor extractor;
+		
+		PerRankExtractor(RuntimeExtractor extractor, int rankNum) {
+			this.extractor = extractor;
+			this.rankNum = rankNum;
+			this.procNum = traceReader.getProcNum(rankNum);
+			this.threadNum = traceReader.getThreadNum(rankNum);
+		}
+		
+		@Override
+		public void run() {
+			if (threadNum > 0) { 
+				objError.println("Skipping building for proc #" + procNum + " thread #" + threadNum + ".");
+				return;
+			}
+			
+			TraceTree tree = null;
+			synchronized (this) {
+				tree = traceReader.buildTraceTree(rankNum);
+			}
+			objError.println("Build proc #" + procNum + " finished at " + printTime());
+			
+			TraceFilter.filterTrace(tree.root);
+			LoopDetector detector = new LoopDetector(tree);
+			detector.detectLoop(tree.root);
+			objError.println("Detect loop proc #" + procNum + " finished at " + printTime());
+			
+			extractor.extractTime(procNum, tree.root);
+		}
+	}
+	
+	
 	private boolean crossRankAnalysis() {
 		objError.println("\n\nMerging all ranks at " + printTime());
 		
@@ -222,11 +262,28 @@ public class Application {
 		ClusterIdentifier clusteror = new ClusterIdentifier(null, null);
 		ClusterSetNode node = (ClusterSetNode) clusteror.findCluster(root, Runtime.getRuntime().availableProcessors());
 		
-		objError.println("\n\nFinished all ranks at " + printTime());
+		objError.println("\n\nFinished merge all ranks at " + printTime());
+	/*	
+		try {
+			FileOutputStream fileOut = new FileOutputStream("summary");
+			ObjectOutputStream out = new ObjectOutputStream(fileOut);
+			out.writeObject(node);
+			out.close();
+			fileOut.close();
+		} catch (IOException e) {
+			objError.println("file not found when outputing summary.");
+			e.printStackTrace();
+			return false;
+		}
 		
 		objPrint.println();
-		objPrint.println();
 		
+		return true;
+	}
+	
+	private boolean summaryAnalysis() {
+		ClusterSetNode node = null;
+		*/
 		/*
 		double maxDiffRatio = 0;
 		for (int i = 0; i < node.getNumOfClusters(); i++)
@@ -244,8 +301,57 @@ public class Application {
 		SignificantDiffNodePrinter.printAllCluster(objPrint, node);
 		*/
 		
+		objError.println("Analyzing summary at " + printTime());
+		/*
+		try {
+			FileInputStream fileIn = new FileInputStream("summary");
+			ObjectInputStream in = new ObjectInputStream(fileIn);
+			node = (ClusterSetNode) in.readObject();
+			in.close();
+			fileIn.close();
+		} catch (IOException e) {
+			objError.println("file not found when reading summary");
+			e.printStackTrace();
+			return false;
+		} catch (ClassNotFoundException c) {
+	         objError.println("class not found when reading summary");
+	         c.printStackTrace();
+	         return false;
+	    }
+		*/
+		
 		objPrint.println(node.printLargeDiffNodes(printDepth, 0, Long.MIN_VALUE));
-		PerformanceImprovementEstimator.printSignificantImprovement(objPrint, node);
+		PerformanceImprovementEstimator callpathPrinter = new PerformanceImprovementEstimator(objPrint, node);
+		callpathPrinter.printImprovementReport();
+		
+		Vector<HashSet<Integer>> cluster = new Vector<HashSet<Integer>>();
+		for (int i = 0; i < node.getNumOfClusters(); i++) {
+			cluster.add(new HashSet<Integer>());
+			for (ClusterMemberID member : node.getCluster(i).getMembers()) {
+				cluster.get(i).add(Integer.valueOf(member.toString()));
+			}
+		}
+		
+		node = null;
+		
+		RuntimeExtractor extractor = new RuntimeExtractor(root.getNumOfChildren(), callpathPrinter.getSignificantCallpaths(), cluster);
+		ExecutorService threadExecutor = Executors.newFixedThreadPool( Runtime.getRuntime().availableProcessors()); 
+
+		for (int rankNum = 0; rankNum < nRanks; rankNum += 1) { 
+			Runnable worker = new PerRankExtractor(extractor, rankNum);
+			threadExecutor.execute(worker);
+		}
+		threadExecutor.shutdown();
+		
+		try {
+			while (!threadExecutor.awaitTermination(60, TimeUnit.SECONDS)) {}
+		} catch (InterruptedException e1) {
+			objError.println("Analysis thread interrupted!");
+			e1.printStackTrace();
+			return false;
+		}
+		
+		extractor.printTime(objError);
 		
 		objError.println("Exit at " + printTime());
 		
@@ -263,9 +369,10 @@ public class Application {
 		
 		objError.println("Num of avail procs = " + Runtime.getRuntime().availableProcessors());
 		
-		if (!this.perRankAnalysis()) return false;
+		//if (!this.perRankAnalysis()) return false;
 		if (!this.crossRankAnalysis()) return false;
-
+		//if (!this.summaryAnalysis()) return false;
+		
 		return true;
 	}
 	

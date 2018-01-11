@@ -7,14 +7,16 @@ import java.util.Stack;
 
 import edu.rice.cs.hpc.traceAnalysis.data.cfg.CFGLoop;
 import edu.rice.cs.hpc.traceAnalysis.data.tree.AbstractTraceNode;
+import edu.rice.cs.hpc.traceAnalysis.data.tree.IterationTrace;
 import edu.rice.cs.hpc.traceAnalysis.data.tree.AbstractTreeNode;
 import edu.rice.cs.hpc.traceAnalysis.data.tree.ClusterSetNode;
 import edu.rice.cs.hpc.traceAnalysis.data.tree.ProfileNode;
 
 public class PerformanceImprovementEstimator {
 	
-	static private final double minimumImprovementGroupRatio = 0.01;
-	static private final double minimumImprovementItemRatio = 0.003;
+	static private final double minimumImprovementGroupRatio = 0.02;
+	static private final double minimumImprovementItemRatio = 0.003; // 0.005
+	static private final double minimumSyncRatio = 0.001; //0.0005; // 0.001;
 	
 	static private final double hotpathRatio = 0.7;
 	static private final double minimunChildRatio = 0.02;
@@ -30,7 +32,7 @@ public class PerformanceImprovementEstimator {
 	
 	private Stack<AbstractTreeNode> lastSyncCallpath;
 	
-	private PerformanceImprovementEstimator(PrintStream objPrint, ClusterSetNode clusterNode) {
+	public PerformanceImprovementEstimator(PrintStream objPrint, ClusterSetNode clusterNode) {
 		this.objPrint = objPrint;
 		this.clusterNode = clusterNode;
 		
@@ -51,6 +53,7 @@ public class PerformanceImprovementEstimator {
 	
 	private NodeType getNodeType(AbstractTreeNode node) {
 		if (node.getName().toLowerCase().contains("mpi_allgather")) return NodeType.SyncNode;
+		if (node.getName().toLowerCase().contains("mpi_allreduce")) return NodeType.SyncNode;
 		if (node.getName().toLowerCase().contains("mpi_barrier")) return NodeType.SyncNode;
 		
     	if (node.getName().length()>=5 && node.getName().substring(0, 5).equals("PMPI_")) return NodeType.WaitNode;
@@ -150,24 +153,29 @@ public class PerformanceImprovementEstimator {
 		
 		if (type == NodeType.SyncNode) {
 			double imbalanceImprovementRatio = (double) node.getExclusiveImprovement() / (double) this.totalDuration;
-			double waitImprovementRatio = 0;
-			for (SignificantCallpath item : significantCallpaths)
-				waitImprovementRatio += item.waitImprovementRatio;
-			
-			SignificantCallpath syncCallpath = new SignificantCallpath(callpath, imbalanceImprovementRatio, 0, true);
-			significantCallpaths.add(syncCallpath); //TODO may not need to show sync node if its imbalanceImprovementRatio is low.
-			
-			if (imbalanceImprovementRatio + waitImprovementRatio > minimumImprovementGroupRatio)
-				this.improvementReport.add(new ImprovementGroup(this.lastSyncCallpath, imbalanceImprovementRatio, waitImprovementRatio,
-						significantCallpaths));
-			
-			significantCallpaths.clear();
-			this.lastSyncCallpath = (Stack<AbstractTreeNode>) callpath.clone();
+			if (imbalanceImprovementRatio > minimumSyncRatio) {
+				double waitImprovementRatio = 0;
+				double totalImprovementRatio = imbalanceImprovementRatio;
+				for (SignificantCallpath item : significantCallpaths) {
+					waitImprovementRatio += item.waitImprovementRatio;
+					totalImprovementRatio += item.imbalanceImprovementRatio + item.waitImprovementRatio;
+				}
+				
+				SignificantCallpath syncCallpath = new SignificantCallpath(callpath, imbalanceImprovementRatio, 0, true);
+				significantCallpaths.add(syncCallpath); //TODO may not need to show sync node if its imbalanceImprovementRatio is low.
+				
+				if (totalImprovementRatio > minimumImprovementGroupRatio)
+					this.improvementReport.add(new ImprovementGroup(this.lastSyncCallpath, imbalanceImprovementRatio, waitImprovementRatio,
+							significantCallpaths));
+				
+				significantCallpaths.clear();
+				this.lastSyncCallpath = (Stack<AbstractTreeNode>) callpath.clone();
+			}
 			return;
 		}
 		
 		if (type == NodeType.WaitNode) {
-			if (node.getExclusiveImprovement() > this.totalDuration * minimumImprovementItemRatio) {
+			if (node.getExclusiveImprovement() > this.totalDuration * minimumImprovementItemRatio * 2) {
 				double waitImprovementRatio = computeAverage(node.getTotalDurationRep(), node.getWeight());
 				waitImprovementRatio *= (node.getWeight() / numProc);
 				waitImprovementRatio /= (double) this.totalDuration;
@@ -216,15 +224,12 @@ public class PerformanceImprovementEstimator {
 		// If visiting children is necessary or there is sync child
 		ArrayList<AbstractTreeNode> syncChildNodes = this.syncChildNodesMap.get(node);
 		
-		boolean isLoop = false;
-		if (node.getCFGGraph() != null)
-			isLoop = node.getCFGGraph() instanceof CFGLoop;
-		else
-			isLoop = node.getName().contains("loop at");
+		boolean isLoop = (node instanceof IterationTrace);
 		
 		if (node instanceof AbstractTraceNode) {
 			AbstractTraceNode trace = (AbstractTraceNode) node;
 			
+			/*
 			if (hasSyncChild && isLoop) { // if a loop with sync child
 				// find the index of the last sync child
 				int indexLastSyncChild = 0;
@@ -267,37 +272,60 @@ public class PerformanceImprovementEstimator {
 				}
 				
 				significantCallpaths.clear();
-			}
-			else { // if not a loop, or a loop with no sync, visit children in control flow order
+			}*/
+			//else { // if not a loop, or a loop with no sync, visit children in control flow order
 				for (int i = 0; i < trace.getNumOfChildren(); i++) {
 					callpath.push(trace.getChild(i));
 					generateImprovementReport(callpath, significantCallpaths);
 					callpath.pop();
 				}
-			}
+			//}
 		} 
 		else if (node instanceof ProfileNode) {
 			ProfileNode prof = (ProfileNode) node;
-			//if (hasSyncChild && syncChildNodes.size() > 1) System.out.println("error!!!!!!!!!!!!!!");
-			int sizeReport = this.improvementReport.size();
 			
-			for (ProfileNode child : prof.getChildMap().values())
-				if ((!hasSyncChild) || child != syncChildNodes.get(syncChildNodes.size()-1)) {
-					callpath.push(child);
+			if (prof.getCFGGraph() != null && prof.getCFGGraph().valid) {
+				ProfileNode children[] = new ProfileNode[prof.getChildMap().values().size()];
+				int i = 0;
+				for (ProfileNode child : prof.getChildMap().values())
+					children[i++] = child;
+				
+				for (i = 0; i < children.length; i++)
+					for (int j = i+1; j < children.length; j++)
+						if (prof.getCFGGraph().compareNodeOrder(children[i], children[j]) > 0) {
+							ProfileNode swap = children[i];
+							children[i] = children[j];
+							children[j] = swap;
+						}
+				
+				for (i = 0; i < children.length; i++) {
+					callpath.push(children[i]);
 					generateImprovementReport(callpath, significantCallpaths);
 					callpath.pop();
 				}
-			
-			if (hasSyncChild) {
-				callpath.push(syncChildNodes.get(syncChildNodes.size()-1));
-				generateImprovementReport(callpath, significantCallpaths);
-				callpath.pop();
 			}
-			
-			// Merge all generated improvement group into one group
-			if (this.improvementReport.size() > sizeReport + 1) {
-				this.improvementReport.get(this.improvementReport.size()-2).merge(this.improvementReport.get(this.improvementReport.size()-1));
-				this.improvementReport.remove(this.improvementReport.size()-1);
+			else {
+				//if (hasSyncChild && syncChildNodes.size() > 1) System.out.println("error!!!!!!!!!!!!!!");
+				int sizeReport = this.improvementReport.size();
+				
+				for (ProfileNode child : prof.getChildMap().values())
+					if ((!hasSyncChild) || child != syncChildNodes.get(syncChildNodes.size()-1)) {
+						callpath.push(child);
+						generateImprovementReport(callpath, significantCallpaths);
+						callpath.pop();
+					}
+				
+				if (hasSyncChild) {
+					callpath.push(syncChildNodes.get(syncChildNodes.size()-1));
+					generateImprovementReport(callpath, significantCallpaths);
+					callpath.pop();
+				}
+				
+				// Merge all generated improvement group into one group
+				if (this.improvementReport.size() > sizeReport + 1) {
+					this.improvementReport.get(this.improvementReport.size()-2).merge(this.improvementReport.get(this.improvementReport.size()-1));
+					this.improvementReport.remove(this.improvementReport.size()-1);
+				}
 			}
 		}
 		else if (node instanceof ClusterSetNode) {
@@ -541,7 +569,7 @@ public class PerformanceImprovementEstimator {
 		return ret;
 	}
 	
-	private void printImprovementReport() {
+	public void printImprovementReport() {
 		AbstractTraceNode origin = clusterNode.getOrigin();
 		
 		objPrint.println("Detailed Report:");
@@ -676,10 +704,23 @@ public class PerformanceImprovementEstimator {
 		}
 	}
 	
-	public static void printSignificantImprovement(PrintStream objPrint, ClusterSetNode node) {
-		PerformanceImprovementEstimator printer = new PerformanceImprovementEstimator(objPrint, node);
-		printer.printImprovementReport();
-		//objPrint.print(printer.printImprovement(node));
+	public int[][] getSignificantCallpaths() {
+		int[][] callpaths = null;
+		
+		int numCallpaths = 0;
+		for (int k = 0; k < this.improvementReport.size(); k++) 
+			numCallpaths += improvementReport.get(k).callpaths.size();
+		
+		callpaths = new int [numCallpaths][];
+		
+		int i = 0;
+		for (ImprovementGroup group : this.improvementReport)
+			for (SignificantCallpath callpath : group.callpaths) {
+				callpaths[i] = callpath.toArray();
+				i++;
+			}
+		
+		return callpaths;
 	}
 }
 
@@ -726,6 +767,13 @@ class SignificantCallpath {
 		this.imbalanceImprovementRatio = imbalanceImprovementRatio;
 		this.waitImprovementRatio = waitImprovementRatio;
 		this.isSync = isSync;
+	}
+	
+	int[] toArray() {
+		int[] ret = new int[callpath.size()];
+		for (int i = 0; i < ret.length; i++)
+			ret[i] = callpath.get(i).getID();
+		return ret;
 	}
 }
 
