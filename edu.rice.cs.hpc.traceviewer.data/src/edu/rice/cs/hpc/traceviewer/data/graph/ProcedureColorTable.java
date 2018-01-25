@@ -8,8 +8,8 @@ import org.eclipse.swt.graphics.RGB;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import edu.rice.cs.hpc.common.util.ProcedureClassData;
-import edu.rice.cs.hpc.traceviewer.data.abstraction.AbstractStack;
 import edu.rice.cs.hpc.traceviewer.data.abstraction.AbstractColorTable;
+import edu.rice.cs.hpc.traceviewer.data.abstraction.AbstractStack;
 import edu.rice.cs.hpc.traceviewer.data.util.ProcedureClassMap;
 
 /**************************************************************
@@ -28,7 +28,7 @@ public class ProcedureColorTable extends AbstractColorTable
 		
 		// Initializes the CSS that represents time values outside of the
 		// time-line.
-		names.add(AbstractStack.NULL_NAME);
+		keys.add(AbstractStack.NULL_NAME);
 	}
 	
 	/*********************************************************************
@@ -45,26 +45,24 @@ public class ProcedureColorTable extends AbstractColorTable
 		
 		//This is where the data file is converted to the colorTable using colorMatcher.
 		//creates name-function-color colorMatcher for each function.
-		colorMatcher = new HashMap<String,ColorImagePair>();
+		colorMatcher = new HashMap<Object,ColorImagePair>();
 		{
 			// rework the color assignment to use a single random number stream
 			Random r = new Random((long)612543231);
 			int cmin = 16;
 			int cmax = 200 - cmin;
-			for (int l=0; l<names.size(); l++) {
+			for (int l=0; l<keys.size(); l++) {
 				
-				String procName = names.get(l);
+				Object key = keys.get(l);
 				
-				if (procName != AbstractStack.NULL_NAME) {
-					
-					if (!colorMatcher.containsKey(procName)) {
-						
-						RGB rgb = getProcedureColor( procName, cmin, cmax, r );
+				if (key != AbstractStack.NULL_NAME) {
+					if (!colorMatcher.containsKey(key)) {
+						RGB rgb = getProcedureColor( key, cmin, cmax, r );
 						Color c = new Color(display, rgb);
-						colorMatcher.put(procName, new ColorImagePair(c));
+						colorMatcher.put(key, new ColorImagePair(c));
 					}
 				} else {
-					colorMatcher.put(procName, imageWhite);
+					colorMatcher.put(key, imageWhite);
 				}
 			}
 		}
@@ -81,8 +79,10 @@ public class ProcedureColorTable extends AbstractColorTable
 	 * @param r
 	 * @return
 	 ***********************************************************************/
-	private RGB getProcedureColor( String name, int colorMin, int colorMax, Random r ) {
-		ProcedureClassData value = this.classMap.get(name);
+	private RGB getProcedureColor( Object key, int colorMin, int colorMax, Random r ) {
+		ProcedureClassData value = null;
+		if (key instanceof String) value = this.classMap.get((String)key);
+		
 		final RGB rgb;
 		if (value != null)
 			rgb = value.getRGB();

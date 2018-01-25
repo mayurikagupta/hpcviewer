@@ -5,6 +5,8 @@ import org.eclipse.swt.graphics.Color;
 import edu.rice.cs.hpc.traceviewer.data.abstraction.AbstractColorTable;
 import edu.rice.cs.hpc.traceviewer.data.abstraction.AbstractProcessData;
 import edu.rice.cs.hpc.traceviewer.data.abstraction.AbstractStack;
+import edu.rice.cs.hpc.traceviewer.data.graph.CallPath;
+import edu.rice.cs.hpc.traceviewer.data.graph.CallPathColorTable;
 
 /***********************************************************************
  * 
@@ -63,10 +65,14 @@ public abstract class DataPreparation
 		if (currStack==null)
 			return;
 		
-		String succColorName = currStack.getColorNameAt(depth);
-		Color succColor = colorTable.getColor(succColorName);
+		Color succColor = null;
+		
+		if (colorTable instanceof CallPathColorTable)
+			succColor = colorTable.getColor(currStack);
+		else 
+			succColor = colorTable.getColor(currStack.getColorNameAt(depth));
+		
 		int last_ptl_index = ptl.size() - 1;
-
 		
 		// The following three variables keeps track of separator-related statuses.
 		int sameInstanceAccumulator = 0;
@@ -106,7 +112,10 @@ public abstract class DataPreparation
 						succIsSeparator = true;
 					}
 					else {	
-						succColor = colorTable.getColor(succStack.getColorNameAt(depth));
+						if (colorTable instanceof CallPathColorTable)
+							succColor = colorTable.getColor(currStack);
+						else
+							succColor = colorTable.getColor(succStack.getColorNameAt(depth));
 						
 						// the color will be the same if and only if the two regions have the save function name
 						// regardless they are from different max depth and different call path.

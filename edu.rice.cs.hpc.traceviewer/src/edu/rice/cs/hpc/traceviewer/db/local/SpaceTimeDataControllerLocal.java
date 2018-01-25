@@ -19,6 +19,7 @@ import edu.rice.cs.hpc.traceviewer.data.db.ImageTraceAttributes;
 import edu.rice.cs.hpc.traceviewer.data.db.TraceDataByRank;
 import edu.rice.cs.hpc.traceviewer.data.timeline.ProcessTimeline;
 import edu.rice.cs.hpc.traceviewer.data.version2.BaseData;
+import edu.rice.cs.hpc.traceviewer.data.version2.ClusteredBaseData;
 import edu.rice.cs.hpc.traceviewer.data.version2.FilteredBaseData;
 import edu.rice.cs.hpc.traceviewer.data.version3.FileDB3;
 import edu.rice.cs.hpc.traceviewer.util.TraceProgressReport;
@@ -65,7 +66,8 @@ public class SpaceTimeDataControllerLocal extends TraceDataController
 			((FileDB3)fileDB).open(databaseDirectory);
 		}
 		this.fileDB = fileDB;
-		dataTrace 	= new BaseData(fileDB);
+		//dataTrace 	= new BaseData(fileDB);
+		dataTrace 	= new ClusteredBaseData(fileDB, reader);
 	}
 
 	/*********************

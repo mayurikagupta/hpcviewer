@@ -19,6 +19,7 @@ import edu.rice.cs.hpc.data.experiment.scope.RootScopeType;
 
 import edu.rice.cs.hpc.traceviewer.data.abstraction.AbstractDataController;
 import edu.rice.cs.hpc.traceviewer.data.db.ImageTraceAttributes;
+import edu.rice.cs.hpc.traceviewer.data.graph.CallPathColorTable;
 import edu.rice.cs.hpc.traceviewer.data.graph.ProcedureColorTable;
 import edu.rice.cs.hpc.traceviewer.data.graph.CallPath;
 import edu.rice.cs.hpc.traceviewer.data.timeline.ProcessTimeline;
@@ -50,6 +51,8 @@ public abstract class TraceDataController extends AbstractDataController
 	//AtomicInteger depthLineNum;
 
 	final protected ExperimentWithoutMetrics exp;
+	
+	final protected TraceReportReader reader;
 
 	/***
 	 * Constructor to create a data based on File. This constructor is more suitable
@@ -76,6 +79,9 @@ public abstract class TraceDataController extends AbstractDataController
 					"Unable to read the file: " + expFile.getAbsolutePath() + "\n" +
 					e.getMessage());
 		}
+		
+		reader = new TraceReportReader(exp.getDefaultDirectory().getAbsolutePath());
+		
 		init(_window);
 	}
 	
@@ -100,6 +106,8 @@ public abstract class TraceDataController extends AbstractDataController
 		// Without metrics, so param 3 is false
 		exp.open(expStream, new ProcedureAliasMap(), Name);
 		
+		reader = new TraceReportReader(exp.getDefaultDirectory().getAbsolutePath());
+		
 		init(_window);
 	}
 	
@@ -117,17 +125,22 @@ public abstract class TraceDataController extends AbstractDataController
 
 			@Override
 			public void run() {
+				if (reader.isValid()) 
+					colorTable = new CallPathColorTable(window);
+				else
+					colorTable = new ProcedureColorTable(window);
+				
 				// tree traversal to get the list of cpid, procedures and max depth
-				TraceDataVisitor visitor = new TraceDataVisitor(window);
+				TraceDataVisitor visitor = new TraceDataVisitor(window, colorTable);
 				RootScope root = exp.getRootScope(RootScopeType.CallingContextTree);
 				root.dfsVisitScopeTree(visitor);
 
 				maxDepth   = visitor.getMaxDepth();
 				scopeMap   = visitor.getMap();
-				colorTable = (ProcedureColorTable) visitor.getProcedureTable();
-				
+		
 				// initialize colors
 				colorTable.setColorTable();
+				reader.colorCallpaths((CallPathColorTable)colorTable);
 				
 				//lineNum 	 = new AtomicInteger(0);
 				//depthLineNum = new AtomicInteger(0);

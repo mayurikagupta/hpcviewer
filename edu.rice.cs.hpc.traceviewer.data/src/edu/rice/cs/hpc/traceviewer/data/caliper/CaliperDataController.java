@@ -42,7 +42,7 @@ public class CaliperDataController extends AbstractDataController {
 	
 			this.colorTable = new CaliperColorTable(window);
 			for (CaliperStackFrame frame : summary.getStackFrames())
-				colorTable.addName(frame.getDisplayName());
+				colorTable.addKey(frame.getDisplayName());
 			this.colorTable.setColorTable();
 		}
 	}

@@ -20,7 +20,6 @@ import edu.rice.cs.hpc.data.experiment.scope.visitors.IScopeVisitor;
 
 import edu.rice.cs.hpc.traceviewer.data.abstraction.AbstractColorTable;
 import edu.rice.cs.hpc.traceviewer.data.graph.CallPath;
-import edu.rice.cs.hpc.traceviewer.data.graph.ProcedureColorTable;
 
 /**********************************************************
  * Visitor class for gathering procedure names and the 
@@ -36,9 +35,9 @@ public class TraceDataVisitor implements IScopeVisitor
 	final private AbstractColorTable colorTable;
 	private int maxDepth = 0;
 
-	public TraceDataVisitor(IWorkbenchWindow window) {
+	public TraceDataVisitor(IWorkbenchWindow window, AbstractColorTable colorTable) {
 		map = new HashMap<Integer, CallPath>();
-		colorTable = new ProcedureColorTable(window);
+		this.colorTable = colorTable;
 	}
 
 	//----------------------------------------------------
@@ -114,6 +113,6 @@ public class TraceDataVisitor implements IScopeVisitor
 	
 	private void addProcedure(Scope scope)
 	{
-		colorTable.addName(scope.getName());
+		colorTable.addKey(scope.getName());
 	}
 }

@@ -94,9 +94,9 @@ public class Application {
 			
 			tree.root.setName("P" + procNum);
 			
-			//if (procNum <= 1) {
-			//	objPrint.println(tree.printLargeDiffNodes(printDepth));
-				//objPrint.println("\n\n" + tree.toString(10));
+			//if (procNum == 0) {
+				//objPrint.println(tree.printLargeDiffNodes(printDepth));
+				//objPrint.println("\n\n" + tree.toString(15));
 				//SignificantDiffNodePrinter.printAllCluster(objPrint, tree.root);
 			//}
 
@@ -323,7 +323,9 @@ public class Application {
 		objPrint.println(node.printLargeDiffNodes(printDepth, 0, Long.MIN_VALUE));
 		PerformanceImprovementEstimator callpathPrinter = new PerformanceImprovementEstimator(objPrint, node);
 		callpathPrinter.printImprovementReport();
+		callpathPrinter.printCallPaths();
 		
+		/*
 		Vector<HashSet<Integer>> cluster = new Vector<HashSet<Integer>>();
 		for (int i = 0; i < node.getNumOfClusters(); i++) {
 			cluster.add(new HashSet<Integer>());
@@ -352,7 +354,7 @@ public class Application {
 		}
 		
 		extractor.printTime(objError);
-		
+		*/
 		objError.println("Exit at " + printTime());
 		
 		return true;

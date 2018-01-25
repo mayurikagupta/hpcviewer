@@ -19,8 +19,9 @@ public class CaliperColorTable extends AbstractColorTable {
 	/**
 	 * Returns the color that corresponds to the name's class
 	 */
-	public Color getColor(String name)
+	public Color getColor(Object key)
 	{
+		String name = renderName((String)key);
 		return super.getColor(name);
 	}
 	
@@ -29,15 +30,20 @@ public class CaliperColorTable extends AbstractColorTable {
 	 * @param name
 	 * @return
 	 */
-	public Image getImage(String name) 
+	public Image getImage(Object key) 
 	{
+		String name = renderName((String)key);
+		return super.getImage(name);
+	}
+	
+	private String renderName(String name) {
 		/* The name is the display name. As a result, we need to render the display name 
 		 * to get the color name when necessary.
 		 */
 		if (name.contains(CaliperUtils.ITERATION_AT)) 
 			name = name.substring(name.indexOf(CaliperUtils.ITERATION_AT) 
 					+ CaliperUtils.ITERATION_AT.length());
-		return super.getImage(name);
+		return name;
 	}
 	
 	/*********************************************************************
@@ -51,15 +57,15 @@ public class CaliperColorTable extends AbstractColorTable {
 		
 		//This is where the data file is converted to the colorTable using colorMatcher.
 		//creates name-function-color colorMatcher for each function.
-		colorMatcher = new HashMap<String,ColorImagePair>();
+		colorMatcher = new HashMap<Object,ColorImagePair>();
 		{
 			// rework the color assignment to use a single random number stream
 			Random r = new Random((long)612543231);
 			int cmin = 16;
 			int cmax = 200 - cmin;
-			for (int l=0; l<names.size(); l++) {
+			for (int l=0; l<keys.size(); l++) {
 				
-				String name = names.get(l);
+				String name = (String) keys.get(l);
 				
 				if (!colorMatcher.containsKey(name)) {
 						

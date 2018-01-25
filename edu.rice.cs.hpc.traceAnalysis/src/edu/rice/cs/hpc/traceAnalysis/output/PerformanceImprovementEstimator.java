@@ -569,15 +569,40 @@ public class PerformanceImprovementEstimator {
 		return ret;
 	}
 	
-	public void printImprovementReport() {
-		AbstractTraceNode origin = clusterNode.getOrigin();
+	public void printCallPaths(){
+		int numCallpaths = 0;
+		for (int k = 0; k < this.improvementReport.size(); k++) 
+			numCallpaths += improvementReport.get(k).callpaths.size();
 		
+		objPrint.println(numCallpaths);
+		
+		for (ImprovementGroup group : this.improvementReport)
+			for (SignificantCallpath callpath : group.callpaths) {
+				objPrint.print(callpath.callpath.peek().getID() + " ");
+				
+				if (callpath.isSync) objPrint.println("S");
+				else if (callpath.waitImprovementRatio == 0) objPrint.println("C");
+				else objPrint.println("W");
+			}
+	}
+	
+	public void printImprovementReport() {	
 		objPrint.println("Detailed Report:");
 		
 		for (int k = 0; k < this.improvementReport.size(); k++) {
 			ImprovementGroup group = this.improvementReport.get(k);
+			double totalImb = 0;
+			double totalWait = 0;
+			
 			String str = "Group #" + k + ":  imbalance = " + String.format("%.2f", group.imbalanceImprovementRatio * 100) + "%  " + 
 					"wait = " + String.format("%.2f", group.waitImprovementRatio * 100) + "%\n";
+			for (SignificantCallpath item : group.callpaths) {
+				totalWait += item.waitImprovementRatio;
+				if (!item.isSync) totalImb += item.imbalanceImprovementRatio;
+			}
+			
+			str += "Total imbalance = " + String.format("%.2f", totalImb * 100) + "%  " + 
+					"Total wait = " + String.format("%.2f", totalWait * 100) + "%\n";
 			
 			int countCause = 0;
 			int countSync = 0;

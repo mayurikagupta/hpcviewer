@@ -12,7 +12,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IWorkbenchWindow;
 
 /**
- * Provides the color for different names.
+ * Provides the color for different keys.
  * 
  * @log
  * - 2016.7 (by Lai Wei) Added this abstraction layer so that hpctraceviewer can display data from multiple sources.
@@ -20,22 +20,26 @@ import org.eclipse.ui.IWorkbenchWindow;
 public abstract class AbstractColorTable {
 	static final public int COLOR_ICON_SIZE = 8;
 	final protected ColorImagePair imageWhite;
+	final protected ColorImagePair imageGrey;
 	
 	// data members
-	protected HashMap<String, ColorImagePair> colorMatcher;
+	protected HashMap<Object, ColorImagePair> colorMatcher;
 	
-	/**All of the names stored in this colorTable.*/
-	protected ArrayList<String> names;
+	/**All of the keys stored in this colorTable.*/
+	protected ArrayList<Object> keys;
 	
 	/**The display this ColorTable uses to generate the random colors.*/
 	protected Display display;
 	
 	public AbstractColorTable(IWorkbenchWindow window) {
-		names = new ArrayList<String>();
 		display = window.getShell().getDisplay();
+		keys = new ArrayList<Object>();
 		
 		RGB rgb_white = new RGB(255, 255, 255); 
 		imageWhite = new ColorImagePair( new Color(display, rgb_white));
+		
+		RGB rgb_grey = new RGB(128, 128, 128); 
+		imageGrey = new ColorImagePair( new Color(display, rgb_grey));
 	}
 	
 	public abstract void setColorTable();
@@ -44,11 +48,11 @@ public abstract class AbstractColorTable {
 		for (ColorImagePair pair: colorMatcher.values()) {
 			pair.dispose();
 		}
-		imageWhite.dispose();
+		//imageWhite.dispose();
 	}
 	
 	/**
-	 * Returns the color that is used to separate different instances of the same name.
+	 * Returns the color that is used to separate different instances of the same thing.
 	 */
 	public Color getSeparatorColor()
 	{
@@ -56,58 +60,60 @@ public abstract class AbstractColorTable {
 	}
 	
 	/**
-	 * Returns the color that corresponds to the name's class
-	 * @param name
+	 * Returns the color that corresponds to the key
+	 * @param key
 	 * @return
 	 */
-	public Color getColor(String name)
+	public Color getColor(Object key)
 	{
-		return colorMatcher.get(name).getColor();
-	}
-	
-	/**
-	 * returns the image that corresponds to the name's class
-	 * @param name
-	 * @return
-	 */
-	public Image getImage(String name) 
-	{
-		final ColorImagePair cipair = colorMatcher.get(name);
-		if (cipair != null) {
-			return cipair.getImage();
+		if (colorMatcher.containsKey(key)) {
+			return colorMatcher.get(key).getColor();
 		} else {
 			return null;
 		}
 	}
-
+	
+	/**
+	 * returns the image that corresponds to the key
+	 * @param key
+	 * @return
+	 */
+	public Image getImage(Object key) 
+	{
+		if (colorMatcher.containsKey(key)) {
+			return colorMatcher.get(key).getImage();
+		} else {
+			return null;
+		}
+	}
+	
+	/************************************************************************
+	 * Adds a key to the list of keys in this ColorTable.
+	 * NOTE: Doesn't create a color for this key. All the color creating
+	 * is done in setColorTable.
+	 * @param key The key to be added.
+	 ************************************************************************/
+	public void addKey(Object key)
+	{
+		if(!keys.contains(key))
+			keys.add(key);
+	}
+	
 	/***
-	 * set the name with a new color
-	 * @param name
+	 * set the key with a new color
+	 * @param nkey
 	 * @param color
 	 */
-	public void setColor(String name, RGB rgb) {
+	public void setColor(Object key, RGB rgb) {
 		// dispose old value
-		final ColorImagePair oldValue = colorMatcher.get(name);
+		final ColorImagePair oldValue = colorMatcher.get(key);
 		if (oldValue != null) {
 			oldValue.dispose();
 		}
 		// create new value
 		final ColorImagePair newValue = new ColorImagePair(new Color(display,rgb));
-		colorMatcher.put(name, newValue);
+		colorMatcher.put(key, newValue);
 	}
-	
-	/************************************************************************
-	 * Adds a name to the list of names in this ColorTable.
-	 * NOTE: Doesn't create a color for this name. All the color creating
-	 * is done in setColorTable.
-	 * @param name The name to be added.
-	 ************************************************************************/
-	public void addName(String name)
-	{
-		if(!names.contains(name))
-			names.add(name);
-	}
-	
 	
 	/***********************************************************************
 	 * create an image based on the color
