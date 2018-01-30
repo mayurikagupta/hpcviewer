@@ -64,7 +64,8 @@ More information can be found at
 Download required software:
 
     * Eclipse 3.7 (Indigo) version
-          o RCP package is necessary  
+          o RCP package is necessary. 
+	    See http://www.eclipse.org/downloads/packages/eclipse-rcp-and-rap-developers/indigor  
 	  o Eclipse Git (egit) plugin
     * Java JDK (ver 1.6 or above). SUN or IBM (IceTea) JDK is recommended
 
