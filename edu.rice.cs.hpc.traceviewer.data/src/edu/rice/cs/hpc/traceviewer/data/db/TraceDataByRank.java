@@ -22,8 +22,6 @@ public class TraceDataByRank implements ITraceDataCollector
 
 	//	tallent: safe to assume version 1.01 and greater here
 	public final static int HeaderSzMin = Header.MagicLen + Header.VersionLen + Header.EndianLen + Header.FlagsLen;
-	public final static int RecordSzMin = Constants.SIZEOF_LONG // time stamp
-										+ Constants.SIZEOF_INT; // call path id
 	
 	//These must be initialized in local mode. They should be considered final unless the data is remote.
 	private AbstractBaseData data;
@@ -69,8 +67,8 @@ public class TraceDataByRank implements ITraceDataCollector
 	public void readInData(int rank, long timeStart, long timeRange, double pixelLength) throws IOException
 	{
 			
-		long minloc = data.getMinLoc(rank);
-		long maxloc = data.getMaxLoc(rank);
+		long minloc = 0;
+		long maxloc = data.getNumSamples(rank)-1;
 		
 		Debugger.printDebug(4, "getData loc [" + minloc+","+ maxloc + "]");
 		
@@ -91,10 +89,8 @@ public class TraceDataByRank implements ITraceDataCollector
 		if (numRec<=numPixelH) {
 			
 			// display all the records
-			for(long i=startLoc;i<=endLoc; ) {
+			for(long i=startLoc;i<=endLoc;i++) {
 				listcpid.add(getData(i));
-				// one record of data contains of an integer (cpid) and a long (time)
-				i =  i + data.getRecordSize();
 			}
 			
 		} else {
@@ -286,15 +282,12 @@ public class TraceDataByRank implements ITraceDataCollector
 	 * @param right_boundary_offset: the end location.
 	 * @throws IOException 
 	 ********************************************************************************/
-	private long findTimeInInterval(long time, long left_boundary_offset, long right_boundary_offset) throws IOException
+	private long findTimeInInterval(long time, long left_index, long right_index) throws IOException
 	{
-		if (left_boundary_offset == right_boundary_offset) return left_boundary_offset;
-
-		long left_index = getRelativeLocation(left_boundary_offset);
-		long right_index = getRelativeLocation(right_boundary_offset);
+		if (left_index == right_index) return left_index;
 		
-		long left_time = data.getLong(left_boundary_offset);
-		long right_time = data.getLong(right_boundary_offset);
+		long left_time = data.getTimestamp(rank, left_index);
+		long right_time = data.getTimestamp(rank, right_index);
 		
 		// apply "Newton's method" to find target time
 		while (right_index - left_index > 1) {
@@ -302,7 +295,7 @@ public class TraceDataByRank implements ITraceDataCollector
 			final double time_range = right_time - left_time;
 			final double rate = time_range / (right_index - left_index);
 			final long mtime = (long) (time_range / 2);
-			if (time <= mtime) {
+			if ((time-left_time) <= mtime) {
 				predicted_index = Math.max((long) ((time - left_time) / rate) + left_index, left_index);
 			} else {
 				predicted_index = Math.min((right_index - (long) ((right_time - time) / rate)), right_index); 
@@ -316,7 +309,7 @@ public class TraceDataByRank implements ITraceDataCollector
 			if (predicted_index >= right_index)
 				predicted_index = right_index - 1;
 
-			long temp = data.getLong(getAbsoluteLocation(predicted_index));
+			long temp = data.getTimestamp(rank, predicted_index);;
 			if (time >= temp) {
 				left_index = predicted_index;
 				left_time = temp;
@@ -325,32 +318,19 @@ public class TraceDataByRank implements ITraceDataCollector
 				right_time = temp;
 			}
 		}
-		long left_offset = getAbsoluteLocation(left_index);
-		long right_offset = getAbsoluteLocation(right_index);
-
-		left_time = data.getLong(left_offset);
-		right_time = data.getLong(right_offset);
+		
+		left_time = data.getTimestamp(rank, left_index);
+		right_time = data.getTimestamp(rank, right_index);
 
 		// return the closer sample or the maximum sample if the 
 		// time is at or beyond the right boundary of the interval
 		final boolean is_left_closer = Math.abs(time - left_time) < Math.abs(right_time - time);
-		long maxloc = data.getMaxLoc(rank);
+		long maxloc = data.getNumSamples(rank) - 1;
 		
-		if ( is_left_closer ) return left_offset;
-		else if (right_offset < maxloc) return right_offset;
+		if ( is_left_closer ) return left_index;
+		else if (right_index < maxloc) return right_index;
 		else return maxloc;
 	}
-	
-	private long getAbsoluteLocation(long relativePosition)
-	{
-		return data.getMinLoc(rank) + (relativePosition * data.getRecordSize());
-	}
-	
-	private long getRelativeLocation(long absolutePosition)
-	{
-		return (absolutePosition-data.getMinLoc(rank)) / data.getRecordSize();
-	}
-	
 	
 	/**Adds a sample to times and timeLine.*/
 	private void addSample( int index, DataRecord datacpid)
@@ -368,8 +348,8 @@ public class TraceDataByRank implements ITraceDataCollector
 	
 	private DataRecord getData(long location) throws IOException
 	{
-		final long time = data.getLong(location);
-		final int cpId = data.getInt(location + Constants.SIZEOF_LONG);
+		final long time = data.getTimestamp(rank, location);
+		final int cpId = data.getCpid(rank, location);
 		int metricId = edu.rice.cs.hpc.traceviewer.data.util.Constants.dataIdxNULL;
 		
 		return new DataRecord(time, cpId, metricId);
@@ -377,7 +357,7 @@ public class TraceDataByRank implements ITraceDataCollector
 	
 	private long getNumberOfRecords(long start, long end)
 	{
-		return (end-start) / (data.getRecordSize());
+		return end-start;
 	}
 
 	/*********************************************************************************************

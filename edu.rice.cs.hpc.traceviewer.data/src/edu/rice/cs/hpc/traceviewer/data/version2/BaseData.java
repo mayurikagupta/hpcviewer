@@ -30,17 +30,6 @@ public class BaseData extends AbstractBaseData {
 	public int getNumberOfRanks() {
 		return baseDataFile.getNumberOfRanks();
 	}
-	
-
-	@Override
-	public long getMinLoc(int rank) {
-		return baseDataFile.getMinLoc(rank);
-	}
-
-	@Override
-	public long getMaxLoc(int rank) {
-		return baseDataFile.getMaxLoc(rank);
-	}
 
 	@Override
 	public int getFirstIncluded() {

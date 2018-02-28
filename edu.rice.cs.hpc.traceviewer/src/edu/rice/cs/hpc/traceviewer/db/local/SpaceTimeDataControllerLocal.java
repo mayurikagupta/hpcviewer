@@ -31,8 +31,7 @@ import edu.rice.cs.hpc.traceviewer.util.TraceProgressReport;
  */
 public class SpaceTimeDataControllerLocal extends SpaceTimeDataController 
 {	
-	final static private int MIN_TRACE_SIZE = TraceDataByRank.HeaderSzMin + TraceDataByRank.RecordSzMin * 2;
-	final static public int RECORD_SIZE    = Constants.SIZEOF_LONG + Constants.SIZEOF_INT;
+	final static private int MIN_TRACE_SIZE = TraceDataByRank.HeaderSzMin + (Constants.SIZEOF_LONG + Constants.SIZEOF_INT) * 2;
 	private String traceFilePath;
 	final private IFileDB fileDB;
 
@@ -56,7 +55,7 @@ public class SpaceTimeDataControllerLocal extends SpaceTimeDataController
 		if (version == 1 || version == 2)
 		{	// original format
 			traceFilePath = getTraceFile(exp.getDefaultDirectory().getAbsolutePath(), statusMgr);
-			fileDB.open(traceFilePath, trAttribute.dbHeaderSize, RECORD_SIZE);
+			fileDB.open(traceFilePath, trAttribute.dbHeaderSize);
 			
 		} else if (version == 3) 
 		{

@@ -22,7 +22,6 @@ public class ThreadLevelDataFile extends FileDB2
 
 	// header bytes to skip
 	static private final int HEADER_LONG	=	32;
-	static int recordSz = Constants.SIZEOF_LONG + Constants.SIZEOF_LONG;
 
 	private ExecutorService threadExecutor;
 	private int num_threads;
@@ -33,7 +32,7 @@ public class ThreadLevelDataFile extends FileDB2
 	
 	public void open(String filename) throws IOException
 	{
-		super.open(filename, HEADER_LONG, recordSz);
+		super.open(filename, HEADER_LONG);
 		final int numWork = getNumberOfRanks();
 		num_threads = Math.min(numWork, Runtime.getRuntime().availableProcessors());
 		threadExecutor = Executors.newFixedThreadPool( num_threads ); 

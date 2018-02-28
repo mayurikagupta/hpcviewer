@@ -7,6 +7,7 @@ import edu.rice.cs.hpc.data.db.DataThread;
 import edu.rice.cs.hpc.data.experiment.BaseExperiment;
 import edu.rice.cs.hpc.data.experiment.extdata.FileDB2;
 import edu.rice.cs.hpc.data.experiment.extdata.IFileDB;
+import edu.rice.cs.hpc.data.util.Constants;
 
 /********************************************************************
  * 
@@ -31,7 +32,7 @@ public class FileDB3 implements IFileDB
 	 * @see edu.rice.cs.hpc.data.experiment.extdata.IFileDB#open(java.lang.String, int, int)
 	 */
 	@Override
-	public void open(String filename, int headerSize, int recordSize)
+	public void open(String filename, int headerSize)
 			throws IOException 
 	{
 		File file  = new File(filename);
@@ -135,6 +136,26 @@ public class FileDB3 implements IFileDB
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+
+	@Override
+	public boolean isLCARecorded() {
+		return false;
+	}
+
+	@Override
+	public boolean isDataCentric() {
+		return false;
+	}
+
+	@Override
+	public int getRecordSize() {
+		return Constants.SIZEOF_INT + Constants.SIZEOF_LONG;
+	}
+
+	@Override
+	public long getNumSamples(int rank) {
+		return (dataTrace.getLength(rank) - DataTrace.RECORD_ENTRY_SIZE) / this.getRecordSize();
 	}
 
 }
