@@ -28,8 +28,7 @@ import edu.rice.cs.hpc.traceviewer.data.version2.BaseData;
 import edu.rice.cs.hpc.traceviewer.data.version3.FileDB3;
 
 public class HPCToolkitTraceReader {
-	final static private int MIN_TRACE_SIZE = TraceDataByRank.HeaderSzMin + TraceDataByRank.RecordSzMin * 2;
-	final static public int RECORD_SIZE    = Constants.SIZEOF_LONG + Constants.SIZEOF_INT;
+	final static private int MIN_TRACE_SIZE = TraceDataByRank.HeaderSzMin + (Constants.SIZEOF_LONG + Constants.SIZEOF_INT) * 2;
 	
 	private PrintStream objPrint;
 	private PrintStream objError;
@@ -81,7 +80,7 @@ public class HPCToolkitTraceReader {
 			{	// original format
 				fileDB = new FileDB2();
 				traceFilePath = getTraceFile(exp.getDefaultDirectory().getAbsolutePath());
-				fileDB.open(traceFilePath, trAttribute.dbHeaderSize, RECORD_SIZE);
+				fileDB.open(traceFilePath, trAttribute.dbHeaderSize);
 				
 			} else if (version == 3) 
 			{
@@ -101,6 +100,8 @@ public class HPCToolkitTraceReader {
 			return;
 		}
 		
+		dataTrace = new BaseData(fileDB);
+		
 		cfgReader = new CFGReader(this.getCFGFile());
 		if (!cfgReader.read(objError)) {
 			objError.println("Error while processing CFG graphviz file.");
@@ -109,8 +110,6 @@ public class HPCToolkitTraceReader {
 		
 		TraceAnalysisUtils.setCFGFuncMap(cfgReader.CFGFuncMap);
 		TraceAnalysisUtils.setCFGLoopMap(cfgReader.CFGLoopMap);
-		
-		dataTrace = new BaseData(fileDB);
 	}
 	
 	public String getCFGFile() {
@@ -170,10 +169,17 @@ public class HPCToolkitTraceReader {
 		return maxTime - minTime;
 	}
 	
-	private int computeLCADepth(CallPathWithLoop last, CallPathWithLoop cur) {
-		int depth = Math.min(last.getMaxDepth(), cur.getMaxDepth()) - 1;
+	private int computeLCADepth(CallPathWithLoop last, CallPathWithLoop cur, int dLCA) {
+		int depth = cur.getMaxDepth() - 1;
+		if (dLCA != Integer.MAX_VALUE) {
+			while (depth >=0 && dLCA > 0) {
+				if (cur.getScopeAt(depth) instanceof CallSiteScope)
+					dLCA--;
+				depth--;
+			}
+		}
+		depth = Math.min(depth, last.getMaxDepth() - 1);
 		while (depth >= 0 && last.getScopeAt(depth).getCCTIndex() != cur.getScopeAt(depth).getCCTIndex()) depth--;
-		
 		return depth;
 	}
 	
@@ -189,9 +195,6 @@ public class HPCToolkitTraceReader {
 		if (rank >= dataTrace.getNumberOfRanks())
 			return null;
 		
-		long minloc = dataTrace.getMinLoc(rank);
-		long maxloc = dataTrace.getMaxLoc(rank);
-		
 		RootTrace root = new RootTrace("Root for proc #" + rank);
 		
 		Stack<AbstractTraceNode> activeTraceStack = new Stack<AbstractTraceNode>();
@@ -200,10 +203,10 @@ public class HPCToolkitTraceReader {
 			long sampleNum = 0;
 			
 			// Get the first sample
-			long begTime = dataTrace.getLong(minloc) - minTime;
+			long begTime = dataTrace.getTimestamp(rank, 0) - minTime;
 			
 			long lastTime = begTime;
-			CallPathWithLoop lastCP = new CallPathWithLoop(scopeMap.get(dataTrace.getInt(minloc + Constants.SIZEOF_LONG)));
+			CallPathWithLoop lastCP = new CallPathWithLoop(scopeMap.get(dataTrace.getCpid(rank, 0)));
 			root.getTraceTime().setStartTimeInclusive(lastTime);
 			root.getTraceTime().setStartTimeExclusive(lastTime-1);
 			
@@ -243,10 +246,11 @@ public class HPCToolkitTraceReader {
 			}
 			
 			// Get remaining samples
-			for (long pos = minloc + RECORD_SIZE; pos <= maxloc; pos += RECORD_SIZE) {
-				final long curTime = dataTrace.getLong(pos) - minTime;
-				final CallPathWithLoop curCP = new CallPathWithLoop(scopeMap.get(dataTrace.getInt(pos + Constants.SIZEOF_LONG)));
-				final int lcaDepth = computeLCADepth(lastCP, curCP);
+			for (long sample = 1; sample < dataTrace.getNumSamples(rank); sample ++) {
+				final long curTime = dataTrace.getTimestamp(rank, sample) - minTime;
+				final CallPathWithLoop curCP = new CallPathWithLoop(scopeMap.get(dataTrace.getCpid(rank, sample)));
+				final int lcaDepth = computeLCADepth(lastCP, curCP, 
+						dataTrace.isLCARecorded() ? dataTrace.getdLCA(rank, sample) : Integer.MAX_VALUE);
 				
 				if (!curCP.isValid()) continue;
 				
@@ -320,13 +324,10 @@ public class HPCToolkitTraceReader {
 		if (rank >= dataTrace.getNumberOfRanks())
 			return false;
 		
-		long minloc = dataTrace.getMinLoc(rank);
-		long maxloc = dataTrace.getMaxLoc(rank);
-		
 		try {
-			for (long pos = minloc; pos <= maxloc; pos += RECORD_SIZE) {
-				final long time = dataTrace.getLong(pos) - minTime;
-				final int cpid = dataTrace.getInt(pos + Constants.SIZEOF_LONG);
+			for (long sample = 0; sample < dataTrace.getNumSamples(rank); sample ++) {
+				final long time = dataTrace.getTimestamp(rank, sample) - minTime;
+				final int cpid = dataTrace.getCpid(rank, sample);
 
 				LineScope scope = scopeMap.get(cpid);
 				if (scope == null) 

@@ -140,7 +140,8 @@ public abstract class TraceDataController extends AbstractDataController
 		
 				// initialize colors
 				colorTable.setColorTable();
-				reader.colorCallpaths((CallPathColorTable)colorTable);
+				
+				if (reader.isValid()) reader.colorCallpaths((CallPathColorTable)colorTable);
 				
 				//lineNum 	 = new AtomicInteger(0);
 				//depthLineNum = new AtomicInteger(0);

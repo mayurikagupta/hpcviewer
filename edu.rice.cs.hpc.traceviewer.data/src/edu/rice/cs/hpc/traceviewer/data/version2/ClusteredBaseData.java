@@ -1,5 +1,6 @@
 package edu.rice.cs.hpc.traceviewer.data.version2;
 
+import java.io.IOException;
 import java.util.HashMap;
 
 import edu.rice.cs.hpc.data.experiment.extdata.IFileDB;
@@ -31,7 +32,7 @@ public class ClusteredBaseData extends AbstractBaseData {
 		}
 		
 		String[][] clusters = reader.getClusters();
-		// find the biggest cluster
+		// find the biggest clustersample
 		int max = 0;
 		for (String[] cluster : clusters)
 			max = Math.max(max, cluster.length);
@@ -64,16 +65,26 @@ public class ClusteredBaseData extends AbstractBaseData {
 		//System.out.println(i + ": " + listOfFakeRank[i] + " " + fakeRankMap[i]);
 	}
 
-	@Override
-	public long getMinLoc(int rank) {
-		return baseDataFile.getMinLoc(fakeRankMap[rank]);
+	public long getNumSamples(int rank) {
+		return super.getNumSamples(fakeRankMap[rank]);
 	}
-
-	@Override
-	public long getMaxLoc(int rank) {
-		return baseDataFile.getMaxLoc(fakeRankMap[rank]);
+	
+	public long getTimestamp(int rank, long sample) throws IOException {
+		return super.getTimestamp(fakeRankMap[rank], sample);
 	}
-
+	
+	public int getCpid(int rank, long sample) throws IOException {
+		return super.getCpid(fakeRankMap[rank], sample);
+	}
+	
+	public int getdLCA(int rank, long sample) throws IOException {
+		return super.getdLCA(fakeRankMap[rank], sample);
+	}
+	
+	public int getMetricID(int rank, long sample) throws IOException {
+		return super.getMetricID(fakeRankMap[rank], sample);
+	}
+	
 	@Override
 	public String[] getListOfRanks() {
 		return listOfFakeRank;

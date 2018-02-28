@@ -1,5 +1,7 @@
 package edu.rice.cs.hpc.data.experiment.extdata;
 
+import java.io.DataInputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
@@ -30,13 +32,16 @@ public class FileDB2 implements IFileDB
 	private int headerSize;
 	
 	private RandomAccessFile file; 
+	
+	private boolean isLCARecorded = false;
+	private boolean isDataCentric = false;
 
 	@Override
-	public void open(String filename, int headerSize, int recordSz)  throws IOException 
+	public void open(String filename, int headerSize) throws IOException 
 	{
 		if (filename != null) {
 			// read header file
-			readHeader(filename, headerSize, recordSz);
+			readHeader(filename, headerSize);
 		}
 	}
 	
@@ -69,13 +74,38 @@ public class FileDB2 implements IFileDB
 	 * @param f: array of files
 	 * @throws IOException 
 	 */
-	private void readHeader(String filename, int headerSize, int recordSz)
+	private void readHeader(String filename, int headerSize)
 			throws IOException {
 		
-		this.recordSz   = recordSz; 
 		this.headerSize = headerSize;
+		this.recordSz = Constants.SIZEOF_INT + Constants.SIZEOF_LONG;
 		
 		file = new RandomAccessFile(filename, "r");
+		if (headerSize == 32) {
+			DataInputStream in = new DataInputStream(new FileInputStream(filename));
+			in.readInt(); // type
+			in.readInt(); // numFiles
+			
+			in.readInt(); // proc_id
+			in.readInt(); // thread_id
+			
+			long offset = in.readLong();
+			in.skip(offset - 4 * Constants.SIZEOF_INT - Constants.SIZEOF_LONG + 24);
+			
+			long mask = in.readLong();
+	System.out.println("Mask = " + Long.toHexString(mask));
+			if ((mask & 1) != 0) {
+				this.recordSz += Constants.SIZEOF_INT;
+				this.isDataCentric = true;
+			}
+			if ((mask & 2) != 0) {
+				this.recordSz += Constants.SIZEOF_INT;
+				this.isLCARecorded = true;
+	System.out.println("LCA recorded! RecordSz = " + this.recordSz);
+			}
+			in.close();
+		}
+		
 		final FileChannel f = file.getChannel();
 		masterBuff = new LargeByteBuffer(f, headerSize, recordSz);
 
@@ -211,5 +241,28 @@ public class FileDB2 implements IFileDB
 				offsets[rank+1] : masterBuff.size()-1 )
 				- recordSz;
 		return maxloc;
+	}
+
+	@Override
+	public boolean isLCARecorded() {
+		return this.isLCARecorded;
+	}
+
+	@Override
+	public boolean isDataCentric() {
+		return this.isDataCentric;
+	}
+
+	@Override
+	public long getNumSamples(int rank) {
+		long maxloc = (rank+1<getNumberOfRanks())? 
+				offsets[rank+1] : masterBuff.size();
+		long minloc = offsets[rank] + headerSize;
+		return (maxloc - minloc) / this.recordSz;
+	}
+
+	@Override
+	public int getRecordSize() {
+		return this.recordSz;
 	}
 }

@@ -1,5 +1,7 @@
 package edu.rice.cs.hpc.traceviewer.data.version2;
 
+import java.io.IOException;
+
 import edu.rice.cs.hpc.data.experiment.extdata.IFileDB;
 
 
@@ -29,17 +31,6 @@ public class BaseData extends AbstractBaseData {
 	 */
 	public int getNumberOfRanks() {
 		return baseDataFile.getNumberOfRanks();
-	}
-	
-
-	@Override
-	public long getMinLoc(int rank) {
-		return baseDataFile.getMinLoc(rank);
-	}
-
-	@Override
-	public long getMaxLoc(int rank) {
-		return baseDataFile.getMaxLoc(rank);
 	}
 
 	@Override

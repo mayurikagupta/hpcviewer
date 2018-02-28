@@ -21,24 +21,37 @@ public abstract class AbstractBaseData implements IBaseTraceData
 		this.baseDataFile = baseDataFile;
 	}
 	
-	/*
-	 * (non-Javadoc)
-	 * @see edu.rice.cs.hpc.data.experiment.extdata.IBaseData#getLong(long)
-	 */
-	@Override
-	public long getLong(long position) throws IOException {
-		return baseDataFile.getLong(position);
+	private long getSamplePos(int rank, long sample) {
+		return baseDataFile.getMinLoc(rank) + sample * baseDataFile.getRecordSize();
 	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see edu.rice.cs.hpc.data.experiment.extdata.IBaseData#getInt(long)
-	 */
-	@Override
-	public int getInt(long position) throws IOException {
-		return baseDataFile.getInt(position);
+	
+	public long getNumSamples(int rank) {
+		return baseDataFile.getNumSamples(rank);
 	}
-
+	
+	public long getTimestamp(int rank, long sample) throws IOException {
+		return baseDataFile.getLong(this.getSamplePos(rank, sample));
+	}
+	
+	public int getCpid(int rank, long sample) throws IOException {
+		return baseDataFile.getInt(this.getSamplePos(rank, sample) + Constants.SIZEOF_LONG);
+	}
+	
+	public boolean isLCARecorded() {
+		return baseDataFile.isLCARecorded();
+	}
+	
+	public int getdLCA(int rank, long sample) throws IOException {
+		return baseDataFile.getInt(this.getSamplePos(rank, sample) + Constants.SIZEOF_LONG + Constants.SIZEOF_INT);
+	}
+	
+	public boolean isDataCentric() {
+		return baseDataFile.isDataCentric();
+	}
+	
+	public int getMetricID(int rank, long sample) throws IOException {
+		return -1;
+	}
 
 	@Override
 	public boolean isHybridRank() {
@@ -61,7 +74,7 @@ public abstract class AbstractBaseData implements IBaseTraceData
 	 */
 	@Override
 	public int getRecordSize() {
-		return Constants.SIZEOF_INT + Constants.SIZEOF_LONG;
+		return baseDataFile.getRecordSize();
 	}
 
 }

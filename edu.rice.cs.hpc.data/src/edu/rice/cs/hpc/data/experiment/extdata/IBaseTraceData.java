@@ -10,7 +10,7 @@ public interface IBaseTraceData extends IBaseData{
 	 * @return
 	 * @throws IOException
 	 */
-	long getLong(long position) throws IOException;
+	//long getLong(long position) throws IOException;
 
 	/********
 	 * Retrieve a 32-bytes data for a given location
@@ -18,7 +18,7 @@ public interface IBaseTraceData extends IBaseData{
 	 * @return
 	 * @throws IOException
 	 */
-	int getInt(long position) throws IOException;
+	//int getInt(long position) throws IOException;
 	
 	/********
 	 * Get the size of the record
@@ -31,12 +31,26 @@ public interface IBaseTraceData extends IBaseData{
 	 * @param rank
 	 * @return
 	 */
-	long getMinLoc(int rank);
+	//long getMinLoc(int rank);
 
 	/*******
 	 * get the end offset (location) of a given rank
 	 * @param rank
 	 * @return
 	 */
-	long getMaxLoc(int rank);
+	//long getMaxLoc(int rank);
+	
+	public long getNumSamples(int rank);
+	
+	public long getTimestamp(int rank, long sample) throws IOException;
+	
+	public int getCpid(int rank, long sample) throws IOException;
+	
+	public boolean isLCARecorded();
+	
+	public int getdLCA(int rank, long sample) throws IOException;
+	
+	public boolean isDataCentric();
+	
+	public int getMetricID(int rank, long sample) throws IOException;
 }

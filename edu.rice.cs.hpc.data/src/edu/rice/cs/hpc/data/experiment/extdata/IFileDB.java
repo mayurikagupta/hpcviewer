@@ -10,7 +10,7 @@ import java.io.IOException;
  *************************************************/
 public interface IFileDB 
 {
-	public void		open(String filename, int headerSize, int recordSize) throws IOException;
+	public void		open(String filename, int headerSize) throws IOException;
 	
 	public int 		getNumberOfRanks();
 	public String[]	getRankLabels();
@@ -26,4 +26,10 @@ public interface IFileDB
 	public long 	getMaxLoc(int rank);
 	
 	public void		dispose();
+	
+	public boolean 	isLCARecorded();
+	public boolean	isDataCentric();
+	public int		getRecordSize();
+	public long 	getNumSamples(int rank);
+	
 }
