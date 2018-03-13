@@ -93,7 +93,6 @@ public class FileDB2 implements IFileDB
 			in.skip(offset - 4 * Constants.SIZEOF_INT - Constants.SIZEOF_LONG + 24);
 			
 			long mask = in.readLong();
-	System.out.println("Mask = " + Long.toHexString(mask));
 			if ((mask & 1) != 0) {
 				this.recordSz += Constants.SIZEOF_INT;
 				this.isDataCentric = true;
@@ -101,7 +100,6 @@ public class FileDB2 implements IFileDB
 			if ((mask & 2) != 0) {
 				this.recordSz += Constants.SIZEOF_INT;
 				this.isLCARecorded = true;
-	System.out.println("LCA recorded! RecordSz = " + this.recordSz);
 			}
 			in.close();
 		}

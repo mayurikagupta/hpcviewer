@@ -65,7 +65,7 @@ public class SpaceTimeDataControllerLocal extends TraceDataController
 			((FileDB3)fileDB).open(databaseDirectory);
 		}
 		this.fileDB = fileDB;
-		if (reader.isValid())
+		if (reader.isCluster())
 			dataTrace 	= new ClusteredBaseData(fileDB, reader);
 		else
 			dataTrace 	= new BaseData(fileDB);

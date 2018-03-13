@@ -110,30 +110,24 @@ public class FilteredBaseData extends AbstractBaseData implements IFilteredData 
 		return indexes.length;
 	}
 	
-
-	/*
-	 * (non-Javadoc)
-	 * @see edu.rice.cs.hpc.data.experiment.extdata.IBaseData#getMinLoc(int)
-	 */
-	public long getMinLoc(int rank) {
-		int filteredRank = indexes[rank];
-		return baseDataFile.getMinLoc(filteredRank);
-/*		final long offsets[] = baseDataFile.getOffsets();
-		return offsets[filteredRank] + headerSize;*/
+	public long getNumSamples(int rank) {
+		return super.getNumSamples(indexes[rank]);
 	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see edu.rice.cs.hpc.data.experiment.extdata.IBaseData#getMaxLoc(int)
-	 */
-	public long getMaxLoc(int rank) {
-		int filteredRank = indexes[rank];
-		return baseDataFile.getMaxLoc(filteredRank);
-/*		final long offsets[] = baseDataFile.getOffsets();
-		long maxloc = ( (filteredRank+1<baseDataFile.getNumberOfRanks())? 
-				offsets[filteredRank+1] : baseDataFile.getMasterBuffer().size()-SIZE_OF_END_OF_FILE_MARKER )
-				- getRecordSize();
-		return maxloc;*/
+	
+	public long getTimestamp(int rank, long sample) throws IOException {
+		return super.getTimestamp(indexes[rank], sample);
+	}
+	
+	public int getCpid(int rank, long sample) throws IOException {
+		return super.getCpid(indexes[rank], sample);
+	}
+	
+	public int getdLCA(int rank, long sample) throws IOException {
+		return super.getdLCA(indexes[rank], sample);
+	}
+	
+	public int getMetricID(int rank, long sample) throws IOException {
+		return super.getMetricID(indexes[rank], sample);
 	}
 
 	@Override

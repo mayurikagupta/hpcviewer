@@ -12,6 +12,7 @@ import edu.rice.cs.hpc.traceviewer.data.graph.CallPathColorTable;
 
 public class TraceReportReader {
 	private boolean isValid;
+	private boolean isCluster;
 	
 	int[] callpathID;
 	String[] callpathType;
@@ -40,18 +41,21 @@ public class TraceReportReader {
 			callpathType[i] = scanner.next();
 		}
 		
-		int numCluster = scanner.nextInt();
-		scanner.nextLine();
-		
-		clusters = new String[numCluster][];
-		for (int k = 0; k < numCluster; k++) {
-			String str = scanner.nextLine();
-			clusters[k] = str.split(", ");
-			/*for (int i = 0; i < clusters[k].length; i++) {
-				System.out.print(clusters[k][i] + ".");
+		if (scanner.hasNextInt()) {
+			isCluster = true;
+			int numCluster = scanner.nextInt();
+			scanner.nextLine();
+			
+			clusters = new String[numCluster][];
+			for (int k = 0; k < numCluster; k++) {
+				String str = scanner.nextLine();
+				clusters[k] = str.split(", ");
+				/*for (int i = 0; i < clusters[k].length; i++) {
+					System.out.print(clusters[k][i] + ".");
+				}
+				System.out.println();*/
 			}
-			System.out.println();*/
-		}
+		} else isCluster = false;
 		
 		scanner.close();
 	}
@@ -59,6 +63,11 @@ public class TraceReportReader {
 	public boolean isValid() {
 		return this.isValid;
 	}
+	
+	public boolean isCluster() {
+		return this.isCluster;
+	}
+	
 	
 	public void colorCallpaths(CallPathColorTable colorTable) {
 		Random r = new Random((long)189691069);
