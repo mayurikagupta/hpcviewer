@@ -73,21 +73,33 @@ public class TraceReportReader {
 		Random r = new Random((long)189691069);
 		int v1,v2,v3;
 		
-		int min = 64;
+		int min = 128;
 		for (int i = 0; i < callpathID.length; i++) {
-			do {
-				v1 = r.nextInt(256-min) + min;
-				v2 = r.nextInt(256);
-				v3 = r.nextInt(256);
-			} while ((v1 < v2 * 2) || (v1 < v3 * 2));
-			
 			RGB color = null;
-			if (callpathType[i].contains("C")) // red for computation
+			if (callpathType[i].contains("C")) { // red for computation
+				do {
+					v1 = r.nextInt(256-min) + min;
+					v2 = r.nextInt(256-min/2) + min/2;
+					v3 = r.nextInt(256-min/2) + min/2;
+				} while ((v1 < v2) || (v1 < v3 * 1.5));
 				color = new RGB(v1, v2, v3);
-			else if (callpathType[i].contains("W")) // blue for wait
-				color = new RGB(v2, v3, v1);
-			else								// green for sync
+			}
+			else if (callpathType[i].contains("W")) { // green or light blue for wait
+				do {
+					v1 = r.nextInt(256-min) + min;
+					v2 = r.nextInt(256-min/2) + min/2;
+					v3 = r.nextInt(256-min/2) + min/2;
+				} while ((v1 < v2) || (v1 < v3 * 1.5));
 				color = new RGB(v3, v1, v2);
+			}
+			else {								// purple for sync
+				do {
+					v1 = r.nextInt(256-min) + min;
+					v2 = r.nextInt(256-min) + min;
+					v3 = r.nextInt(256-min/2) + min/2;
+				} while ((v1 > v2 + min/2) || (v2 > v1 + min/2) || (v1 < v3 * 1.5) || (v2 < v3 * 1.5));
+				color = new RGB(v2, v3, v1);
+			}
 			
 			colorTable.setColor(callpathID[i], color);
 		}
