@@ -15,6 +15,7 @@ import edu.rice.cs.hpc.data.experiment.scope.RootScope;
 import edu.rice.cs.hpc.data.experiment.scope.Scope;
 import edu.rice.cs.hpc.data.experiment.scope.ScopeVisitType;
 import edu.rice.cs.hpc.data.experiment.scope.StatementRangeScope;
+import edu.rice.cs.hpc.data.experiment.scope.ProcedureScope.ProcedureType;
 import edu.rice.cs.hpc.data.experiment.scope.filters.ExclusiveOnlyMetricPropagationFilter;
 import edu.rice.cs.hpc.data.experiment.scope.filters.InclusiveOnlyMetricPropagationFilter;
 import edu.rice.cs.hpc.data.experiment.source.SourceFile;
@@ -28,7 +29,10 @@ import edu.rice.cs.hpc.data.experiment.source.SourceFile;
  *
  *************************************************************************************************/
 
-public class FlatViewScopeVisitor implements IScopeVisitor {
+public class FlatViewScopeVisitor implements IScopeVisitor 
+{
+	final static private char SEPARATOR_ID = ':';
+	
 	private Hashtable<Integer, LoadModuleScope> htFlatLoadModuleScope;
 	private Hashtable<String, FileScope> htFlatFileScope;
 	private HashMap<String, FlatScopeInfo> htFlatScope;
@@ -77,8 +81,9 @@ public class FlatViewScopeVisitor implements IScopeVisitor {
 		add(scope,vt, true, false); 
 	}
 	public void visit(ProcedureScope scope, ScopeVisitType vt) 		{
-		if (!scope.isFalseProcedure())
-			add(scope,vt, true, false); 
+		if (isPseudoProcedure(scope))
+			return;
+		add(scope,vt, true, false); 
 	}
 
 	
@@ -146,12 +151,11 @@ public class FlatViewScopeVisitor implements IScopeVisitor {
 	 * @param scopeCCT
 	 * @return
 	 ****************************************************************************/
-	private FlatScopeInfo getFlatScope( Scope cct_s ) {
+	private FlatScopeInfo getFlatScope( Scope cct_s, String cct_id ) {
 		//-----------------------------------------------------------------------------
 		// get the flat scope
 		//-----------------------------------------------------------------------------
-		String id = this.getID(cct_s);
-		
+		String id = getID(cct_s);
 		FlatScopeInfo flat_info_s = this.htFlatScope.get( id );
 		
 		if (flat_info_s == null) {
@@ -173,7 +177,11 @@ public class FlatViewScopeVisitor implements IScopeVisitor {
 				proc_cct_s = findEnclosingProcedure(cct_s);
 			}
 
-			if (proc_cct_s == null || proc_cct_s.isFalseProcedure()) {
+			// if the procedure is a fake procedure, do not convert it to flat tree node
+			// Careful: Some inline functions are fake procedures (like macros).
+			//  we want this inline procedures to be converted to flat tree regardless 
+			//  they are fake procedure.
+			if (proc_cct_s == null || isPseudoProcedure(proc_cct_s)) {
 				//throw new RuntimeException("Cannot find the enclosing procedure for " + cct_s);
 				return null;
 			}
@@ -183,6 +191,19 @@ public class FlatViewScopeVisitor implements IScopeVisitor {
 			//-----------------------------------------------------------------------------
 			flat_info_s.flat_s = cct_s.duplicate();
 			flat_info_s.flat_s.setRootScope(root_ft);
+			
+			//-----------------------------------------------------------------------------
+			// save the info into hashtable
+			//-----------------------------------------------------------------------------
+			this.htFlatScope.put( id, flat_info_s);
+
+			//-----------------------------------------------------------------------------
+			// for inline macro, we don't need to attach the file and load module
+			// an inline macro node will be attached directly to its parent
+			//-----------------------------------------------------------------------------
+			if (isInlineMacro(flat_info_s.flat_s)) {
+				return flat_info_s;
+			}
 			
 			//-----------------------------------------------------------------------------
 			// Initialize the load module scope
@@ -200,17 +221,10 @@ public class FlatViewScopeVisitor implements IScopeVisitor {
 			if (flat_info_s.flat_s instanceof ProcedureScope) {
 				this.addToTree(flat_info_s.flat_file, flat_info_s.flat_s);
 			}
-
-			//-----------------------------------------------------------------------------
-			// save the info into hashtable
-			//-----------------------------------------------------------------------------
-			this.htFlatScope.put( id, flat_info_s);
 		}
 		
 		return flat_info_s;
 	}
-
-	
 	
 	/*****************************************************************
 	 * Create the flat view of a load module
@@ -248,7 +262,8 @@ public class FlatViewScopeVisitor implements IScopeVisitor {
 	 *****************************************************************/
 	private String getUniqueFileID(SourceFile file, LoadModuleScope lm)
 	{
-		return lm.getFlatIndex() + ":" + file.getFileID();
+		String separator = String.valueOf(SEPARATOR_ID);
+		return lm.getFlatIndex() + separator + file.getFileID();
 	}
 	
 	
@@ -281,7 +296,6 @@ public class FlatViewScopeVisitor implements IScopeVisitor {
 					flat_file = createFileScope(src_file, flat_lm, unique_file_id);
 				}
 			}
-
 		}
 		return flat_file;
 	}
@@ -311,9 +325,11 @@ public class FlatViewScopeVisitor implements IScopeVisitor {
 	
 	/*****************************************************************
 	 * construct the flat view of a cct scope
-	 * @param cct_s
-	 * @param proc_cct_s
-	 * @return
+	 * @param cct_s the original cct scope
+	 * @param cct_s_metrics cct that metrics will be applied to the flat scope
+	 * @param id original id
+	 * 
+	 * @return FlatScopeInfo if the flat scope can be created
 	 *****************************************************************/
 	private FlatScopeInfo getFlatCounterPart( Scope cct_s, Scope cct_s_metrics, String id) {
 		// -----------------------------------------------------------------------------
@@ -335,13 +351,16 @@ public class FlatViewScopeVisitor implements IScopeVisitor {
 					// parent is a call site
 					// ----------------------------------------------
 					ProcedureScope proc_cct_s = ((CallSiteScope)cct_parent_s).getProcedureScope(); 
-					flat_enc_info = this.getFlatScope(proc_cct_s);
+					String parent_id = getID(proc_cct_s);
+					
+					flat_enc_info = this.getFlatScope(proc_cct_s, parent_id);
 
 				} else {					
 					// ----------------------------------------------
 					// parent is a line scope or loop scope or procedure scope
 					// ----------------------------------------------
-					flat_enc_info = this.getFlatScope(cct_parent_s);
+					String parent_id = getID(cct_parent_s);
+					flat_enc_info = this.getFlatScope(cct_parent_s, parent_id);
 				}
 				if (flat_enc_info != null)
 					flat_enc_s = flat_enc_info.flat_s;
@@ -349,13 +368,9 @@ public class FlatViewScopeVisitor implements IScopeVisitor {
 			}
 		}
 
-		FlatScopeInfo objFlat = this.getFlatScope(cct_s);
+		FlatScopeInfo objFlat = this.getFlatScope(cct_s, id);
 
-		// it is possible that hpcrun database is corrupt.
-		// for instance, a line statement can be a child of a program root like: <program root> --> main.c:0
-		//  in this case, objFlat (the flat place holder) is becoming null since <program root> is a fake procedure
-		
-		if (flat_enc_s != null && objFlat != null) {
+		if (flat_enc_s != null) {
 			if (!isCyclicDependency(flat_enc_s, objFlat.flat_s)) {
 				// normal case: no cyclic dependency between the child and the ancestors
 				this.addToTree(flat_enc_s, objFlat.flat_s);
@@ -399,8 +414,21 @@ public class FlatViewScopeVisitor implements IScopeVisitor {
 		{
 			// forcing to include procedure ID to ensure uniqueness of call site
 			final int proc_id = ((CallSiteScope)scope).getProcedureScope().getFlatIndex();
-			hash_id.append(':');
+			hash_id.append(SEPARATOR_ID);
 			hash_id.append(proc_id);
+		} else if (scope instanceof ProcedureScope) 
+		{
+			ProcedureScope proc_scope = (ProcedureScope) scope;
+			if (proc_scope.isFalseProcedure()) {
+				int linenum = proc_scope.getFirstLineNumber();
+				String file_id = getUniqueFileID(proc_scope.getSourceFile(), proc_scope.getLoadModule());
+
+				hash_id.append(SEPARATOR_ID);
+				hash_id.append(file_id);
+				
+				hash_id.append(SEPARATOR_ID);
+				hash_id.append(linenum);
+			}
 		}
 		return hash_id.toString();
 	}
@@ -426,6 +454,12 @@ public class FlatViewScopeVisitor implements IScopeVisitor {
 		this.addChild(parent, child);
 	}
 	
+	/*****************************************************************
+	 * check if the child is also the ancestor of the parent (cyclic dependency)
+	 * @param parent
+	 * @param child
+	 * @return boolean true if the child is the ancestor of the parent 
+	 ****************************************************************/
 	private boolean isCyclicDependency(Scope parent, Scope child)
 	{
 		Scope ancestor = parent;
@@ -439,28 +473,54 @@ public class FlatViewScopeVisitor implements IScopeVisitor {
 		}
 		return false;
 	}
-
-	/***********************************************************
-	 * check if two scopes have the same "content"
+	
+	/*****************************************************************
+	 * check if two scopes are equal (same cct index)
 	 * @param s1
 	 * @param s2
-	 * @return
-	 ***********************************************************/
+	 * @return true if they are the same
+	 ****************************************************************/
 	private boolean isTheSameScope(Scope s1, Scope s2) {
-		
+				
 		// are s1 and s2 the same class ?
 		if ( s1.getClass() != s2.getClass() )
 			return false;
-		
 		return (s1.getCCTIndex() == s2.getCCTIndex());
 	}
 	
+
+	/*****************************************************************
+	 * Check if the scope is a pseudo procedure like <root> or <thread root>
+	 *  or <partial callpath>
+	 * A scope is a pseudo procedure iff it's a fake procedure and it isn't an alien procedure
+	 * 
+	 * @param scope
+	 * @return true if it's a pseudo procedure
+	 ****************************************************************/
+	private boolean isPseudoProcedure(ProcedureScope scope) {
+		boolean result = scope.isFalseProcedure() && !scope.isAlien();
+		return result;
+	}
+
+	/******************************************************************
+	 * check if the scope is an inlined macro
+	 * @param scope
+	 * @return true if it is an inlined macro
+	 *****************************************************************/
+	private boolean isInlineMacro(Scope scope) {
+		if (!(scope instanceof ProcedureScope))
+			return false;
+		
+		ProcedureScope ps = (ProcedureScope) scope;
+		return ps.getProcedureType() == ProcedureType.ProcedureInlineMacro;
+	}
 	
-	/***********************************************************
-	 * add a child to the parent
+	/******************************************************************
+	 * add child to the parent
+	 * 
 	 * @param parent
 	 * @param child
-	 ***********************************************************/
+	 ****************************************************************/
 	private void addChild(Scope parent, Scope child) {
 		parent.addSubscope(child);
 		child.setParentScope(parent);
@@ -484,7 +544,7 @@ public class FlatViewScopeVisitor implements IScopeVisitor {
 			}
 			if (parent instanceof ProcedureScope) {
 				ProcedureScope proc = (ProcedureScope) parent;
-				if (!proc.isAlien()) 
+				if (!proc.isAlien())
 					return proc;
 			}
 			if (parent instanceof RootScope) return null;
@@ -520,9 +580,14 @@ public class FlatViewScopeVisitor implements IScopeVisitor {
 			if (add_inclusive)
 				flat_s.combine(cct_s, inclusive_filter);
 		}
-		if (add_exclusive)
-			flat_s.combine(cct_s, exclusive_filter);
-
+		if (add_exclusive) {
+			if (flat_s instanceof CallSiteScope && cct_s instanceof CallSiteScope) {
+				CallSiteScope cs_scope = (CallSiteScope) cct_s;
+				flat_s.combine(cs_scope.getLineScope(), exclusive_filter);
+			} else {
+				flat_s.combine(cct_s, exclusive_filter);
+			}
+		}
 		//-----------------------------------------------------------------------
 		// store the flat scopes that have been updated  
 		//-----------------------------------------------------------------------

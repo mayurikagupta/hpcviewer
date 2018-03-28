@@ -35,22 +35,30 @@ import edu.rice.cs.hpc.data.util.IUserData;
 
 public class ProcedureScope extends Scope  implements IMergedScope 
 {
-private static final String TheProcedureWhoShouldNotBeNamed = "-";
-private static final String TheInlineProcedureLabel 	 	= "<inline>";
+	final static public String INLINE_NOTATION = "[I] ";
 
-final private boolean isFalseProcedure;
-/** The name of the procedure. */
-protected String procedureName;
-protected boolean isalien;
-// we assume that all procedure scope has the information on load module it resides
-protected LoadModuleScope objLoadModule;
+	private static final String TheProcedureWhoShouldNotBeNamed = "-";
+	private static final String TheInlineProcedureLabel 	 	= "<inline>";
 
-final static public String INLINE_NOTATION = "[I] ";
+	public static enum ProcedureType {
+		ProcedureNormal, ProcedureInlineFunction, ProcedureInlineMacro
+	}
 
-/**
- * scope ID of the procedure frame. The ID is given by hpcstruct and hpcprof
- */
-//protected int iScopeID;
+	final private boolean isFalseProcedure;
+	
+	private ProcedureType type;
+
+	/** The name of the procedure. */
+	protected String procedureName;
+	protected boolean isalien;
+	// we assume that all procedure scope has the information on load module it resides
+	protected LoadModuleScope objLoadModule;
+
+
+	/**
+	 * scope ID of the procedure frame. The ID is given by hpcstruct and hpcprof
+	 */
+	//protected int iScopeID;
 
 //////////////////////////////////////////////////////////////////////////
 //	INITIALIZATION	
@@ -150,7 +158,7 @@ public String getName()
  ************************************************************************/
 
 public Scope duplicate() {
-	return new ProcedureScope(this.root,
+	ProcedureScope ps = new ProcedureScope(this.root,
 			this.objLoadModule,
 			this.sourceFile, 
 			this.firstLineNumber, 
@@ -162,6 +170,9 @@ public Scope duplicate() {
 			null,
 			this.isFalseProcedure);
 
+	ps.setProcedureType(type);
+	
+	return ps;
 }
 
 public boolean isAlien() {
@@ -198,6 +209,14 @@ public Object[] getAllChildren(/*AbstractFinalizeMetricVisitor finalizeVisitor, 
 public boolean isFalseProcedure()
 {
 	return isFalseProcedure;
+}
+
+public void setProcedureType(ProcedureType type) {
+	this.type = type;
+}
+
+public ProcedureType getProcedureType() {
+	return this.type;
 }
 
 }
