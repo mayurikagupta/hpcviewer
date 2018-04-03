@@ -46,6 +46,10 @@ public abstract class MergeDatabase extends AbstractHandler
 			throws ExecutionException {
 
 		final IWorkbenchWindow window = HandlerUtil.getActiveWorkbenchWindow(event);
+		
+		if (window == null)  // corner case: immediate exit
+			return null;
+		
 		final ViewerWindow vWin = ViewerWindowManager.getViewerWindow(window);
 		final Experiment[] dbArray = vWin.getExperiments();
 		
@@ -73,8 +77,11 @@ public abstract class MergeDatabase extends AbstractHandler
 				dlg.setTitle("Merging database");
 				dlg.open();
 				Object[] selectedDatabases = dlg.getResult();
+				
+				if (selectedDatabases == null)
+					return null;
 
-				if ((selectedDatabases != null) && (selectedDatabases.length == 2)) {
+				if (selectedDatabases.length == 2) {
 
 					db1 = (Experiment) selectedDatabases[0];
 					db2 = (Experiment) selectedDatabases[1];
