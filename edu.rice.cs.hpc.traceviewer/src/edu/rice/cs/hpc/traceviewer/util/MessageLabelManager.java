@@ -11,7 +11,7 @@ import org.eclipse.swt.widgets.Shell;
  * class to manage a message label to show a message
  * for a couple of seconds, and then remove it back,
  * returns to the original empty label.
- *
+ * 
  */
 public class MessageLabelManager 
 {
@@ -21,16 +21,16 @@ public class MessageLabelManager
 	Color colorBackground;
 	Shell shell;
 
-	public MessageLabelManager(final Display display, Label messageLabel) {
+	public MessageLabelManager(final Display display, final Label messageLabel) {
 
 		this.messageLabel   = messageLabel;
 		this.display 		= display;
 		
-		display.asyncExec(new Runnable() {
+		display.syncExec(new Runnable() {
 
 			@Override
 			public void run() {
-				colorBackground     = display.getActiveShell().getBackground();	
+				colorBackground = messageLabel.getBackground();	
 			}
 			
 		});
