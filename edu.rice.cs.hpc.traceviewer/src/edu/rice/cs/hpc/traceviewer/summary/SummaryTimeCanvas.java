@@ -294,6 +294,10 @@ implements IOperationHistoryListener
 				if (imgData == null) 
 					return null;
 				
+				if (event.x >= imgData.width || event.y >= imgData.height || event.x < 0 || event.y < 0)
+					// corner case: when resizing is faster than rendering
+					return null;
+				
 				int pixel = imgData.getPixel(event.x, event.y);
 				
 				// ------------------------------------------------

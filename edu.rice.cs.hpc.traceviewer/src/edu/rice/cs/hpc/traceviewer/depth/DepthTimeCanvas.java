@@ -367,4 +367,10 @@ public class DepthTimeCanvas extends AbstractTimeCanvas
 		public void aboutToRun(IJobChangeEvent event) {}
 
 	}
+
+	@Override
+	public void setMessage(String message) {
+		// TODO Auto-generated method stub
+		
+	}
 }

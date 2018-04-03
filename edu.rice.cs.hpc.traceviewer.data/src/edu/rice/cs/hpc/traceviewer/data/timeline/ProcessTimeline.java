@@ -67,7 +67,6 @@ public class ProcessTimeline {
 			int _numPixelH, long _timeRange, long _startingTime) {
 		lineNum = _processNumber;
 		scopeMap = _scopeMap;
-
 		timeRange = _timeRange;
 		startingTime = _startingTime;
 
@@ -76,6 +75,13 @@ public class ProcessTimeline {
 			data = new TraceDataByRank(new DataRecord[0]);
 		else
 			data = _data;
+		
+		// laks 2016.06.23: hack for remote data: we don't have process number 
+		// information from the server, so we just assign the same as the line number
+		// for local data, the line number is different than the process number
+		//  if the screen resolution is smaller than the number of ranks
+		// at the moment, this fix works. not sure why.
+		this.processNumber = _processNumber;
 	}
 
 	/**
@@ -127,6 +133,16 @@ public class ProcessTimeline {
 	/** Returns this ProcessTimeline's line number. */
 	public int line() {
 		return lineNum;
+	}
+	
+	/***
+	 * return the current depth process number, which is the current
+	 * selected process
+	 * 
+	 * @return current selected process
+	 */
+	public int getProcessNum() {
+		return processNumber;
 	}
 
 	/**

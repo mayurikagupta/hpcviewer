@@ -181,7 +181,7 @@ implements ITraceViewAction
 		detailCanvas = new SpaceTimeDetailCanvas(getSite().getWorkbenchWindow(), parent); 
 		
 		detailCanvas.setLabels(labelGroup);
-		GridLayoutFactory.fillDefaults().numColumns(3).generateLayout(labelGroup);
+		GridLayoutFactory.fillDefaults().numColumns(4).generateLayout(labelGroup);
 		GridDataFactory.fillDefaults().grab(true, false).align(SWT.BEGINNING, SWT.CENTER).applyTo(labelGroup);
 		
 		detailCanvas.setButtons(new Action[]{traceCoolBar.home, traceCoolBar.open, traceCoolBar.save, null,

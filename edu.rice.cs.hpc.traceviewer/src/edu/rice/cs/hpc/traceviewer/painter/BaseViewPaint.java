@@ -14,9 +14,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.ISchedulingRule;
 import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.graphics.Device;
-import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchWindow;
 import edu.rice.cs.hpc.common.ui.Util;
 import edu.rice.cs.hpc.data.util.OSValidator;
@@ -283,12 +281,9 @@ public abstract class BaseViewPaint extends Job
 			}
 		}
 		if (num_invalid_samples > 0) {
-			final Shell shell = window.getShell();
-			final String message = "There are " + num_invalid_samples + 
-					" samples with invalid call-path ID.\n"
-					+ "The displayed traces may be incorrect.";
-			DisplayMessage dlg = new DisplayMessage(shell, message);
-			shell.getDisplay().asyncExec(dlg);
+			final String message = "Warning: " + num_invalid_samples + 
+					" sample(s) have invalid call-path ID.";
+			canvas.setMessage(message);
 		}
 		return true;
 	}
@@ -327,26 +322,7 @@ public abstract class BaseViewPaint extends Job
 		
 		return true;
 	}
-	
-	/**
-	 * helper class to show a dialog box message
-	 *
-	 */
-	static private class DisplayMessage implements Runnable
-	{
-		private final Shell shell;
-		private final String message;
 		
-		public DisplayMessage(Shell shell, String message) {
-			this.shell = shell;
-			this.message = message;
-		}
-		@Override
-		public void run() {
-			MessageDialog.openWarning(shell, "Warning", message);
-		}
-	}
-
 	/*********************************
 	 * 
 	 * Rule for avoiding two jobs execute simultaneously

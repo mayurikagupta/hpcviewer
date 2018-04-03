@@ -8,4 +8,7 @@ public interface ISpaceTimeCanvas {
     /**Conversion factor from actual processes to pixels on the y axis.  To be implemented in subclasses.*/
     public double getScalePixelsPerRank();
 
+    /** dislay a temporary message on the canvas **/
+	public void setMessage(String message);
+
 }

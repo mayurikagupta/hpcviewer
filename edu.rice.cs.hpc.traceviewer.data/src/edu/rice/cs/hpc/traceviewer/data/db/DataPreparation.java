@@ -50,8 +50,8 @@ public abstract class DataPreparation
 	}
 	
 	/**Painting action
-	 * @return zero if everything works just fine,<br/> 
-	 * 		  number of invalid cpid in case of corrupt data
+	 * @return zero if everything works just fine,<br/>
+	 * otherwise number of invalid cpid in case of corrupt data
 	 * */
 	public int collect()
 	{
@@ -67,9 +67,8 @@ public abstract class DataPreparation
 		String succFunction = cp.getScopeAt(depth).getName(); 
 		Color succColor = colorTable.getColor(succFunction);
 		int last_ptl_index = ptl.size() - 1;
-
 		int num_invalid_cp = 0;
-		
+
 		for (int index = 0; index < ptl.size(); index++)
 		{
 			// in case of bad cpid, we just quit painting the view
