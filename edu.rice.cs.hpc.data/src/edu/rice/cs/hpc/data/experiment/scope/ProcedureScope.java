@@ -41,7 +41,7 @@ public class ProcedureScope extends Scope  implements IMergedScope
 	private static final String TheInlineProcedureLabel 	 	= "<inline>";
 
 	public static enum ProcedureType {
-		ProcedureNormal, ProcedureInlineFunction, ProcedureInlineMacro
+		ProcedureNormal, ProcedureInlineFunction, ProcedureInlineMacro, ProcedureRoot
 	}
 
 	final private boolean isFalseProcedure;

@@ -685,7 +685,16 @@ public class BaseExperimentBuilder extends Builder {
 					procScope.setProcedureType(ProcedureType.ProcedureNormal);
 			} else {
 				this.beginScope(procScope);
-				procScope.setProcedureType(ProcedureType.ProcedureInlineMacro);
+
+				// fix bug #36 (omp idle is omitted in flat view)
+				// the root cause of the bug is that we do not differentiate between procedure inline macro
+				//   and procedure root (such as thread root, program root and omp idle).
+				// need to check if a procedure is an alien or not. Procedure root has no alien information
+				
+				if (isalien)
+					procScope.setProcedureType(ProcedureType.ProcedureInlineMacro);
+				else
+					procScope.setProcedureType(ProcedureType.ProcedureRoot);
 			}
 	}
 
