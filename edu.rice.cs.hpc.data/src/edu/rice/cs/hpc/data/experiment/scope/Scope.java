@@ -157,6 +157,14 @@ public int getCCTIndex() {
 	return (Integer) getValue();
 }
 
+/***
+ * retrieve the unique scope ID of this scope.
+ * @return
+ */
+public ScopeID getScopeID() {
+	return new ScopeID(getCCTIndex());
+}
+
 //////////////////////////////////////////////////////////////////////////
 // DUPLICATION														//
 //////////////////////////////////////////////////////////////////////////

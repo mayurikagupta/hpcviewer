@@ -12,7 +12,7 @@ Require-Bundle: edu.rice.cs.hpc.data,
  org.eclipse.ui.workbench
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy
-Import-Package: com.jcraft.jsch;version="0.1.44",
+Import-Package: com.jcraft.jsch;version="0.1.41",
  org.eclipse.core.commands,
  org.eclipse.core.commands.operations,
  org.eclipse.core.runtime,

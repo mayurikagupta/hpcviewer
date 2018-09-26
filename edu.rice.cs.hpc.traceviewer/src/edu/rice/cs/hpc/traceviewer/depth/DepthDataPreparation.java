@@ -32,10 +32,10 @@ public class DepthDataPreparation extends DataPreparation {
 	 */
 	public DepthDataPreparation(ColorTable _colorTable, ProcessTimeline _ptl,
 			long _begTime, int _depth, int _height, double _pixelLength,
-			boolean _usingMidpoint) {
+			boolean _usingMidpoint, boolean _isColorByID) {
 		
 		super(_colorTable, _ptl, _begTime, _depth, _height, _pixelLength,
-				_usingMidpoint);
+				_usingMidpoint, _isColorByID);
 		dataset = new TimelineDataSet(_ptl.line(), ptl.size(), height);
 	}
 

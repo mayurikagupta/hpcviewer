@@ -38,9 +38,9 @@ public class TimelineDepthThread
 			ImageTraceAttributes attributes,
 			double scaleY, Queue<TimelineDataSet> queue, 
 			AtomicInteger timelineDone, 
-			boolean usingMidpoint, IProgressMonitor monitor)
+			boolean usingMidpoint, boolean isColorByID, IProgressMonitor monitor)
 	{
-		super(data, attributes, scaleY, queue, timelineDone,  usingMidpoint, monitor);
+		super(data, attributes, scaleY, queue, timelineDone,  usingMidpoint, isColorByID, monitor);
 	}
 
 
@@ -62,10 +62,10 @@ public class TimelineDepthThread
 	@Override
 	protected DataPreparation getData(ColorTable colorTable,
 			ProcessTimeline timeline, long timeBegin, int linenum, int height,
-			double pixelLength, boolean midPoint) {
+			double pixelLength, boolean midPoint, boolean isColorByID) {
 
 		return new DepthDataPreparation(stData.getColorTable(), 
 				timeline, timeBegin,
-				linenum, height, pixelLength, midPoint);
+				linenum, height, pixelLength, midPoint, isColorByID);
 	}	
 }

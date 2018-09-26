@@ -77,6 +77,30 @@ public class CallPath
 		return functionNames;
 	}
 	
+	/*************************************
+	 * retrieve the list of scopes of this call path
+	 * 
+	 * @return vector of procedure scopes
+	 ************************************/
+	public Vector<Scope> getScopes() {
+		final Vector<Scope> scopes = new Vector<Scope>();
+		if (scopes.isEmpty())
+		{
+			Scope currentScope = leafScope;
+			int depth = maxDepth;
+			while(depth > 0)
+			{
+				if ((currentScope instanceof CallSiteScope) || (currentScope instanceof ProcedureScope))
+				{
+					scopes.add(0, currentScope);
+					depth--;
+				}
+				currentScope = currentScope.getParentScope();
+			}
+		}
+		return scopes;
+	}
+	
 	
 	/*******************************
 	 * Retrieve the maximum depth of this call path

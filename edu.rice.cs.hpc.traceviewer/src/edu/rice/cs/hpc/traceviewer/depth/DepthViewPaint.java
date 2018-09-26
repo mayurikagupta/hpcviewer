@@ -4,11 +4,17 @@ import java.util.Queue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.eclipse.core.commands.Command;
+import org.eclipse.core.commands.State;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.swt.graphics.Device;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.commands.ICommandService;
+import org.eclipse.ui.handlers.RegistryToggleState;
+import org.eclipse.ui.services.ISourceProviderService;
 
+import edu.rice.cs.hpc.traceviewer.actions.OptionColorByID;
 import edu.rice.cs.hpc.traceviewer.data.controller.SpaceTimeDataController;
 import edu.rice.cs.hpc.traceviewer.data.db.ImageTraceAttributes;
 import edu.rice.cs.hpc.traceviewer.data.db.TimelineDataSet;
@@ -29,6 +35,8 @@ public class DepthViewPaint extends BaseViewPaint {
 	private final GC masterGC;
 	private final AtomicInteger timelineDone, numDataCollected;
 	private float numPixels;
+	
+	final private boolean colorByID;
 
 	public DepthViewPaint(IWorkbenchWindow window, final GC masterGC, SpaceTimeDataController data,
 			ImageTraceAttributes attributes, boolean changeBound, ISpaceTimeCanvas canvas, 
@@ -38,6 +46,16 @@ public class DepthViewPaint extends BaseViewPaint {
 		this.masterGC = masterGC;
 		timelineDone  = new AtomicInteger(0);
 		numDataCollected  = new AtomicInteger(0);
+		
+		ICommandService commandService = (ICommandService) window.getService(ICommandService.class);
+		final Command colorById = commandService.getCommand( OptionColorByID.commandId );
+		final State colorState = colorById.getState(RegistryToggleState.STATE_ID);
+		if (colorState != null) {
+			Boolean isDebug = (Boolean) colorState.getValue();
+			colorByID = isDebug.booleanValue();
+		} else {
+			colorByID = false;
+		}
 	}
 
 	@Override
@@ -70,7 +88,7 @@ public class DepthViewPaint extends BaseViewPaint {
 	protected BaseTimelineThread getTimelineThread(ISpaceTimeCanvas canvas, double xscale, double yscale,
 			Queue<TimelineDataSet> queue, IProgressMonitor monitor) {
 		return new TimelineDepthThread( controller, attributes, yscale, queue, numDataCollected,
-				controller.isEnableMidpoint(), monitor);
+				controller.isEnableMidpoint(), colorByID, monitor);
 	}
 
 	@Override

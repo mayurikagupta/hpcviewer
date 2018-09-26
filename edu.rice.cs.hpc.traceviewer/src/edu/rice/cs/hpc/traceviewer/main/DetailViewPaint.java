@@ -16,6 +16,7 @@ import org.eclipse.ui.commands.ICommandService;
 import org.eclipse.ui.handlers.RegistryToggleState;
 import org.eclipse.ui.services.ISourceProviderService;
 
+import edu.rice.cs.hpc.traceviewer.actions.OptionColorByID;
 import edu.rice.cs.hpc.traceviewer.actions.OptionRecordsDisplay;
 import edu.rice.cs.hpc.traceviewer.data.controller.SpaceTimeDataController;
 import edu.rice.cs.hpc.traceviewer.data.db.ImageTraceAttributes;
@@ -46,6 +47,7 @@ public class DetailViewPaint extends BaseViewPaint {
 	
 	final private ProcessTimelineService ptlService;
 	final private boolean debug;
+	final private boolean colorByID;
 	final private AtomicInteger currentLine, numDataCollected;
 	final private int numLines;
 	
@@ -67,13 +69,23 @@ public class DetailViewPaint extends BaseViewPaint {
 		
 		ICommandService commandService = (ICommandService) window.getService(ICommandService.class);
 		final Command showCount = commandService.getCommand( OptionRecordsDisplay.commandId );
-		final State state = showCount.getState(RegistryToggleState.STATE_ID);
-		if (state != null) {
-			Boolean isDebug = (Boolean) state.getValue();
+		final State debugState = showCount.getState(RegistryToggleState.STATE_ID);
+		if (debugState != null) {
+			Boolean isDebug = (Boolean) debugState.getValue();
 			debug = isDebug.booleanValue();
 		} else {
 			debug = false;
 		}
+		
+		final Command colorById = commandService.getCommand( OptionColorByID.commandId );
+		final State colorState = colorById.getState(RegistryToggleState.STATE_ID);
+		if (colorState != null) {
+			Boolean isDebug = (Boolean) colorState.getValue();
+			colorByID = isDebug.booleanValue();
+		} else {
+			colorByID = false;
+		}
+		
 		// initialize the size of maximum text
 		//	the longest text should be: ">99(>99)"
 		maxTextSize = masterGC.textExtent(TOO_MANY_RECORDS + "(" + TOO_MANY_RECORDS + ")");
@@ -97,7 +109,7 @@ public class DetailViewPaint extends BaseViewPaint {
 			double yscale, Queue<TimelineDataSet> queue, IProgressMonitor monitor) {
 
 		return new TimelineThread(controller, attributes, ptlService, changedBounds,   
-				yscale, queue, numDataCollected, numLines, monitor);
+				yscale, queue, numDataCollected, numLines, colorByID, monitor);
 	}
 
 	@Override

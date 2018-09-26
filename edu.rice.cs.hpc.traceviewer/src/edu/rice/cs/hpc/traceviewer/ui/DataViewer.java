@@ -86,7 +86,7 @@ public class DataViewer extends TableViewer
         		if (element instanceof String) {
         			Image img = null;
         			if (stData != null)
-        				img = stData.getColorTable().getImage((String)element);
+        				img = stData.getColorTable().getImageByName((String)element);
         			return img;
         		}
         		

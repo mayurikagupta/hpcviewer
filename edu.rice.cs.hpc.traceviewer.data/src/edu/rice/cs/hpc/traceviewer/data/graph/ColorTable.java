@@ -1,7 +1,7 @@
 package edu.rice.cs.hpc.traceviewer.data.graph;
 
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Random;
 
 import org.eclipse.swt.SWT;
@@ -14,6 +14,8 @@ import org.eclipse.swt.widgets.Display;
 
 import edu.rice.cs.hpc.common.ui.Util;
 import edu.rice.cs.hpc.common.util.ProcedureClassData;
+import edu.rice.cs.hpc.data.experiment.scope.Scope;
+import edu.rice.cs.hpc.data.experiment.scope.ScopeID;
 import edu.rice.cs.hpc.data.util.IProcedureTable;
 import edu.rice.cs.hpc.traceviewer.data.util.ProcedureClassMap;
 
@@ -26,10 +28,15 @@ public class ColorTable implements IProcedureTable
 	static final public int COLOR_ICON_SIZE = 8;
 	static private ColorImagePair IMAGE_WHITE;
 	// data members
-	HashMap<String, ColorImagePair> colorMatcher;
+	HashMap<String, ColorImagePair> nameColorMatcher;
+	
+	HashMap<ScopeID, ColorImagePair> idColorMatcher;
 	
 	/**All of the function names stored in this colorTable.*/
-	ArrayList<String> procNames;
+	HashSet<String> procNames;
+	
+	/**All of the scope IDs stored in this colorTable.*/
+	HashSet<ScopeID> scopeIDs;
 	
 	/**The display this ColorTable uses to generate the random colors.*/
 	Display display;
@@ -39,10 +46,12 @@ public class ColorTable implements IProcedureTable
 	/**Creates a new ColorTable with Display _display.*/
 	public ColorTable()
 	{
-		procNames = new ArrayList<String>();
+		procNames = new HashSet<String>();
 		// Initializes the CSS that represents time values outside of the
 		// time-line.
 		procNames.add(CallPath.NULL_FUNCTION);
+		
+		scopeIDs = new HashSet<ScopeID>();
 		
 		display = Util.getActiveShell().getDisplay();
 		
@@ -56,9 +65,18 @@ public class ColorTable implements IProcedureTable
 	 * Dispose the allocated resources
 	 */
 	public void dispose() {
-		for (ColorImagePair pair: colorMatcher.values()) {
-			pair.dispose();
-		}
+		if (nameColorMatcher != null)
+			for (ColorImagePair pair: nameColorMatcher.values()) {
+				pair.dispose();
+			}
+		nameColorMatcher = null;
+		
+		if (idColorMatcher != null)
+			for (ColorImagePair pair: idColorMatcher.values()) {
+				pair.dispose();
+			}	
+		idColorMatcher = null;
+		
 		IMAGE_WHITE.dispose();
 	}
 	
@@ -67,9 +85,17 @@ public class ColorTable implements IProcedureTable
 	 * @param name
 	 * @return
 	 */
-	public Color getColor(String name)
+	public Color getColorByName(String name)
 	{
-		return colorMatcher.get(name).getColor();
+		return nameColorMatcher.get(name).getColor();
+	}
+
+	/**
+	 * Returns the color in the colorMatcher that corresponds to the scope id
+	 * @return
+	 */
+	public Color getColorByID(ScopeID id) {
+		return idColorMatcher.get(id).getColor();
 	}
 	
 	/**
@@ -77,9 +103,22 @@ public class ColorTable implements IProcedureTable
 	 * @param name
 	 * @return
 	 */
-	public Image getImage(String name) 
+	public Image getImageByName(String name) 
 	{
-		final ColorImagePair cipair = colorMatcher.get(name);
+		final ColorImagePair cipair = nameColorMatcher.get(name);
+		if (cipair != null) {
+			return cipair.getImage();
+		} else {
+			return null;
+		}
+	}
+	
+	/**
+	 * returns the image that corresponds to the scope id
+	 * @return
+	 */
+	public Image getImageByID(ScopeID id) {
+		final ColorImagePair cipair = idColorMatcher.get(id);
 		if (cipair != null) {
 			return cipair.getImage();
 		} else {
@@ -93,15 +132,15 @@ public class ColorTable implements IProcedureTable
 	 * @param name
 	 * @param color
 	 */
-	public void setColor(String name, RGB rgb) {
+	public void setColorByName(String name, RGB rgb) {
 		// dispose old value
-		final ColorImagePair oldValue = colorMatcher.get(name);
+		final ColorImagePair oldValue = nameColorMatcher.get(name);
 		if (oldValue != null) {
 			oldValue.dispose();
 		}
 		// create new value
 		final ColorImagePair newValue = new ColorImagePair(new Color(display,rgb));
-		colorMatcher.put(name, newValue);
+		nameColorMatcher.put(name, newValue);
 	}
 	
 	/*********************************************************************
@@ -113,33 +152,43 @@ public class ColorTable implements IProcedureTable
 		// initialize the procedure-color map
 		classMap = new ProcedureClassMap(display);
 
-		if (colorMatcher != null)
+		if (nameColorMatcher != null || idColorMatcher != null)
 			dispose();
 		
 		//This is where the data file is converted to the colorTable using colorMatcher.
 		//creates name-function-color colorMatcher for each function.
-		colorMatcher = new HashMap<String,ColorImagePair>();
+		nameColorMatcher = new HashMap<String,ColorImagePair>();
 		{
 			// rework the color assignment to use a single random number stream
 			Random r = new Random((long)612543231);
 			int cmin = 16;
 			int cmax = 200 - cmin;
-			for (int l=0; l<procNames.size(); l++) {
-				
-				String procName = procNames.get(l);
-				
+			for (String procName : procNames) {
 				if (procName != CallPath.NULL_FUNCTION) {
-					
-					if (!colorMatcher.containsKey(procName)) {
+					if (!nameColorMatcher.containsKey(procName)) {
 						
 						RGB rgb = getProcedureColor( procName, cmin, cmax, r );
 						Color c = new Color(display, rgb);
-						colorMatcher.put(procName, new ColorImagePair(c));
+						nameColorMatcher.put(procName, new ColorImagePair(c));
 					}
 				} else {
-					colorMatcher.put(procName, IMAGE_WHITE);
+					nameColorMatcher.put(procName, IMAGE_WHITE);
 				}
 			}
+		}
+		
+		idColorMatcher = new HashMap<ScopeID, ColorImagePair>();
+		{
+			// rework the color assignment to use a single random number stream
+			Random r = new Random((long)612543231);
+			int cmin = 16;
+			int cmax = 200 - cmin;
+			for (ScopeID scopeID : scopeIDs)
+				if (!idColorMatcher.containsKey(scopeID)) {
+					RGB rgb = getScopeIDColor( scopeID, cmin, cmax, r );
+					Color c = new Color(display, rgb);
+					idColorMatcher.put(scopeID, new ColorImagePair(c));
+				}
 		}
 	}
 	
@@ -149,10 +198,10 @@ public class ColorTable implements IProcedureTable
 	 * is done in setColorTable.
 	 * @param name The function name to be added.
 	 ************************************************************************/
-	public void addProcedure(String name)
+	public void addProcedure(Scope scope)
 	{
-		if(!procNames.contains(name))
-			procNames.add(name);
+		procNames.add(scope.getName());
+		scopeIDs.add(scope.getScopeID());
 	}
 	
 	
@@ -194,6 +243,13 @@ public class ColorTable implements IProcedureTable
 		return rgb;
 	}
 	
+	private RGB getScopeIDColor( ScopeID scopeID, int colorMin, int colorMax, Random r) {
+		final RGB rgb;
+		rgb = new RGB(	colorMin + r.nextInt(colorMax), 
+				colorMin + r.nextInt(colorMax), 
+				colorMin + r.nextInt(colorMax));
+		return rgb;
+	}
 	
 	/************************************************************************
 	 * class to pair color and image

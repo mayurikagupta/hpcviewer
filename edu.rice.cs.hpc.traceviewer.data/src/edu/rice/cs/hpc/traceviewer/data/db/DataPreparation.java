@@ -2,6 +2,7 @@ package edu.rice.cs.hpc.traceviewer.data.db;
 
 import org.eclipse.swt.graphics.Color;
 
+import edu.rice.cs.hpc.data.experiment.scope.Scope;
 import edu.rice.cs.hpc.traceviewer.data.graph.CallPath;
 import edu.rice.cs.hpc.traceviewer.data.graph.ColorTable;
 import edu.rice.cs.hpc.traceviewer.data.timeline.ProcessTimeline;
@@ -24,6 +25,7 @@ public abstract class DataPreparation
 	final protected ColorTable colorTable;
 	final private long begTime;
 	final private boolean usingMidpoint;
+	final private boolean isColorByID;
 		
 	/****
 	 * Abstract class constructor to paint a line (whether it's detail view or depth view) 
@@ -36,9 +38,10 @@ public abstract class DataPreparation
 	 * @param _height : the height (in pixel) of the line to paint
 	 * @param _pixelLength : the length (in pixel)
 	 * @param usingMidpoint : flag whether we should use midpoint or not
+	 * @param _isColorByID : flag whether we should color by scope id
 	 */
 	public DataPreparation(ColorTable _colorTable, ProcessTimeline _ptl, 
-			long _begTime, int _depth, int _height, double _pixelLength, boolean _usingMidpoint)
+			long _begTime, int _depth, int _height, double _pixelLength, boolean _usingMidpoint, boolean _isColorByID)
 	{
 		this.ptl = _ptl;
 		this.depth = _depth;
@@ -47,6 +50,7 @@ public abstract class DataPreparation
 		this.colorTable = _colorTable;
 		this.begTime = _begTime;
 		this.usingMidpoint = _usingMidpoint;
+		this.isColorByID = _isColorByID;
 	}
 	
 	/**Painting action
@@ -64,8 +68,13 @@ public abstract class DataPreparation
 		if (cp==null)
 			return 0;
 		
-		String succFunction = cp.getScopeAt(depth).getName(); 
-		Color succColor = colorTable.getColor(succFunction);
+		Scope succScope = cp.getScopeAt(depth); 
+		Color succColor = null;
+		if (isColorByID)
+			succColor = colorTable.getColorByID(succScope.getScopeID());
+		else
+			succColor = colorTable.getColorByName(succScope.getName());
+		
 		int last_ptl_index = ptl.size() - 1;
 		int num_invalid_cp = 0;
 
@@ -93,8 +102,11 @@ public abstract class DataPreparation
 				cp = ptl.getCallPath(indexSucc, depth);
 				if(cp != null)
 				{
-					succFunction = cp.getScopeAt(depth).getName(); 
-					succColor = colorTable.getColor(succFunction);
+					succScope = cp.getScopeAt(depth); 
+					if (isColorByID)
+						succColor = colorTable.getColorByID(succScope.getScopeID());
+					else
+						succColor = colorTable.getColorByName(succScope.getName());
 					
 					// the color will be the same if and only if the two regions have the save function name
 					// regardless they are from different max depth and different call path.

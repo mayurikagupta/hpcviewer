@@ -31,6 +31,7 @@ import org.eclipse.ui.part.ViewPart;
 import org.eclipse.ui.services.ISourceProviderService;
 
 import edu.rice.cs.hpc.common.util.SleakManager;
+import edu.rice.cs.hpc.traceviewer.actions.OptionColorByID;
 import edu.rice.cs.hpc.traceviewer.actions.OptionMidpoint;
 import edu.rice.cs.hpc.traceviewer.actions.OptionRecordsDisplay;
 import edu.rice.cs.hpc.traceviewer.data.controller.SpaceTimeDataController;
@@ -158,6 +159,9 @@ implements ITraceViewAction
 					} catch (ExecutionException e) {
 						e.printStackTrace();
 					}*/
+				}
+				else if (commandId.equals(OptionColorByID.commandId)) {
+					detailCanvas.refresh(true);
 				}
 			}
 		});

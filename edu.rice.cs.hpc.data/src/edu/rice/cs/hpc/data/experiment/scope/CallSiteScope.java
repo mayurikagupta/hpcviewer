@@ -60,6 +60,9 @@ public Scope duplicate() {
 //SCOPE DISPLAY	
 //////////////////////////////////////////////////////////////////////////
 
+public ScopeID getScopeID() {
+	return new ScopeID(getCCTIndex(), lineScope.getCCTIndex());
+}
 
 /*************************************************************************
  *	Returns the user visible name for this scope.

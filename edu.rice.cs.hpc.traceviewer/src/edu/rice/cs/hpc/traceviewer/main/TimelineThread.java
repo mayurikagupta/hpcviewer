@@ -33,9 +33,9 @@ public class TimelineThread
 	public TimelineThread(SpaceTimeDataController stData, ImageTraceAttributes attributes,
 			ProcessTimelineService traceService,
 			boolean _changedBounds, double _scaleY, Queue<TimelineDataSet> queue, 
-			AtomicInteger currentLine, int totalLines, IProgressMonitor monitor)
+			AtomicInteger currentLine, int totalLines, boolean isColorByID, IProgressMonitor monitor)
 	{
-		super(stData, attributes, _scaleY, queue, currentLine, stData.isEnableMidpoint(), monitor);
+		super(stData, attributes, _scaleY, queue, currentLine, stData.isEnableMidpoint(), isColorByID, monitor);
 		changedBounds = _changedBounds;		
 		this.traceService = traceService;
 		this.totalLines	  = totalLines;
@@ -76,10 +76,10 @@ public class TimelineThread
 	@Override
 	protected DataPreparation getData(ColorTable colorTable,
 			ProcessTimeline timeline, long timeBegin, int linenum, int height,
-			double pixelLength, boolean midPoint) {
+			double pixelLength, boolean midPoint, boolean isColorByID) {
 
 		return new DetailDataPreparation(colorTable, timeline, 
-				timeBegin, stData.getAttributes().getDepth(), height, pixelLength, midPoint);
+				timeBegin, stData.getAttributes().getDepth(), height, pixelLength, midPoint, isColorByID);
 	}
 
 }

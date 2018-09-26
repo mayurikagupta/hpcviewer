@@ -36,6 +36,7 @@ public abstract class BaseTimelineThread implements Callable<Integer> {
 	/**The scale in the y-direction of pixels to processors (for the drawing of the images).*/
 	final private double scaleY;	
 	final protected boolean usingMidpoint;
+	final protected boolean isColorByID;
 	final private Queue<TimelineDataSet> queue;
 	final private AtomicInteger currentLine;
 	final protected IProgressMonitor monitor;
@@ -46,11 +47,12 @@ public abstract class BaseTimelineThread implements Callable<Integer> {
 			ImageTraceAttributes attributes,
 			double scaleY, Queue<TimelineDataSet> queue, 
 			AtomicInteger currentLine, 
-			boolean usingMidpoint, IProgressMonitor monitor)
+			boolean usingMidpoint, boolean isColorByID, IProgressMonitor monitor)
 	{
 		this.stData 	   = stData;
 		this.scaleY 	   = scaleY;
 		this.usingMidpoint = usingMidpoint;
+		this.isColorByID   = isColorByID;
 		this.queue 		   = queue;
 		this.currentLine   = currentLine;
 		this.monitor 	   = monitor;
@@ -91,7 +93,7 @@ public abstract class BaseTimelineThread implements Callable<Integer> {
 
 				final DataPreparation data = getData(stData.getColorTable(),
 						trace, timeBegin, trace.line(),
-						imageHeight, pixelLength, usingMidpoint);
+						imageHeight, pixelLength, usingMidpoint, isColorByID);
 				
 				num_invalid_samples += data.collect();
 				
@@ -135,5 +137,5 @@ public abstract class BaseTimelineThread implements Callable<Integer> {
 	
 	abstract protected DataPreparation getData(ColorTable colorTable, ProcessTimeline timeline,
 			long timeBegin, int linenum,
-			int height, double pixelLength, boolean midPoint);
+			int height, double pixelLength, boolean midPoint, boolean isColorByID);
 }

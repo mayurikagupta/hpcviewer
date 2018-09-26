@@ -112,6 +112,6 @@ public class TraceDataVisitor implements IScopeVisitor
 	
 	private void addProcedure(Scope scope)
 	{
-		colorTable.addProcedure(scope.getName());
+		colorTable.addProcedure(scope);
 	}
 }

@@ -24,10 +24,10 @@ public class DetailDataPreparation extends DataPreparation {
 	 */
 	public DetailDataPreparation(ColorTable _colorTable, ProcessTimeline _ptl,
 			long _begTime, int _depth, int _height, double _pixelLength,
-			boolean _usingMidpoint) 
+			boolean _usingMidpoint, boolean _isColorByID) 
 	{
 		super(_colorTable, _ptl, _begTime, _depth, _height, _pixelLength,
-				_usingMidpoint);
+				_usingMidpoint, _isColorByID);
 		dataset = new TimelineDataSet( ptl.line(),_ptl.size(), height);
 	}
 

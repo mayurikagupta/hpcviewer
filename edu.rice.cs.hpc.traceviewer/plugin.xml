@@ -107,6 +107,15 @@
          </state>
       </command>
       <command
+            defaultHandler="edu.rice.cs.hpc.traceviewer.actions.OptionColorByID"
+            id="edu.rice.cs.hpc.traceviewer.colorByID"
+            name="Color by ID">
+         <state
+               class="org.eclipse.ui.handlers.RegistryToggleState:false"
+               id="org.eclipse.ui.commands.toggleState">
+         </state>
+      </command>
+      <command
             defaultHandler="edu.rice.cs.hpc.traceviewer.actions.ProcedureClassMapAction"
             description="Show procedure-class mapping "
             id="edu.rice.cs.hpc.traceviewer.actions.ProcedureClassMapAction"
@@ -179,6 +188,14 @@
                   mnemonic="S"
                   style="toggle"
                   tooltip="Show the number of trace records displayed in the trace view (useful for identifying blocking operations and debugging)">
+            </command>
+            <command
+                  commandId="edu.rice.cs.hpc.traceviewer.colorByID"
+                  id="edu.rice.cs.hpc.traceviewer.colorByID"
+                  label="Color by ID"
+                  mnemonic="C"
+                  style="toggle"
+                  tooltip="Color call path frames by IDs, not by function names">
             </command>
             <command
                   commandId="edu.rice.cs.hpc.traceviewer.actions.OptionMidpoint"

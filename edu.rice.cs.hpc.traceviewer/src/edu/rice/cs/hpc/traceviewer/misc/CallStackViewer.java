@@ -3,7 +3,9 @@ package edu.rice.cs.hpc.traceviewer.misc;
 import java.util.ArrayList;
 import java.util.Vector;
 
+import org.eclipse.core.commands.Command;
 import org.eclipse.core.commands.ExecutionException;
+import org.eclipse.core.commands.State;
 import org.eclipse.core.commands.operations.IOperationHistoryListener;
 import org.eclipse.core.commands.operations.IUndoableOperation;
 import org.eclipse.core.commands.operations.OperationHistoryEvent;
@@ -24,8 +26,12 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.commands.ICommandService;
+import org.eclipse.ui.handlers.RegistryToggleState;
 import org.eclipse.ui.services.ISourceProviderService;
 
+import edu.rice.cs.hpc.data.experiment.scope.LineScope;
+import edu.rice.cs.hpc.data.experiment.scope.Scope;
 import edu.rice.cs.hpc.data.util.string.StringUtil;
 import edu.rice.cs.hpc.traceviewer.operation.BufferRefreshOperation;
 import edu.rice.cs.hpc.traceviewer.operation.DepthOperation;
@@ -33,6 +39,7 @@ import edu.rice.cs.hpc.traceviewer.operation.PositionOperation;
 import edu.rice.cs.hpc.traceviewer.operation.TraceOperation;
 import edu.rice.cs.hpc.traceviewer.services.DataService;
 
+import edu.rice.cs.hpc.traceviewer.actions.OptionColorByID;
 import edu.rice.cs.hpc.traceviewer.data.controller.SpaceTimeDataController;
 import edu.rice.cs.hpc.traceviewer.data.db.ImageTraceAttributes;
 import edu.rice.cs.hpc.traceviewer.data.db.Position;
@@ -51,10 +58,14 @@ public class CallStackViewer extends TableViewer
 	private final TableViewerColumn viewerColumn;
 	
 	private final static String EMPTY_FUNCTION = "--------------";
+	private final static Scope EMPTY_SCOPE = new LineScope(null, null, -1, -1, -1);
 	
 	private final ProcessTimelineService ptlService;
 	
 	private final DataService dataService;
+	
+	private final ICommandService commandService;
+	private boolean isColorByID;
 	
     /**Creates a CallStackViewer with Composite parent, SpaceTimeDataController _stData, and HPCTraceView _view.*/
 	public CallStackViewer(Composite parent, final HPCCallStackView csview)
@@ -68,6 +79,16 @@ public class CallStackViewer extends TableViewer
 		dataService = (DataService) service.getSourceProvider(DataService.DATA_PROVIDER);
 				
 		ptlService = (ProcessTimelineService) service.getSourceProvider(ProcessTimelineService.PROCESS_TIMELINE_PROVIDER);
+		
+		commandService = (ICommandService) window.getService(ICommandService.class);
+		final Command colorById = commandService.getCommand( OptionColorByID.commandId );
+		final State state = colorById.getState(RegistryToggleState.STATE_ID);
+		if (state != null) {
+			Boolean isDebug = (Boolean) state.getValue();
+			isColorByID = isDebug.booleanValue();
+		} else {
+			isColorByID = false;
+		}
 		
         final Table stack = this.getTable();
         
@@ -113,11 +134,17 @@ public class CallStackViewer extends TableViewer
 
 		final ColumnLabelProvider myLableProvider = new ColumnLabelProvider() {
         	public Image getImage(Object element) {
-        		if (element instanceof String) {
+        		if (element instanceof Scope) {
         			Image img = null;
     				SpaceTimeDataController stData = dataService.getData();
-        			if (stData != null)
-        				img = stData.getColorTable().getImage((String)element);
+        			if (stData != null) {
+        				if (element == EMPTY_SCOPE)
+        					img = stData.getColorTable().getImageByName(EMPTY_FUNCTION);
+        				else if (!isColorByID)
+        					img = stData.getColorTable().getImageByName(((Scope)element).getName());
+        				else
+        					img = stData.getColorTable().getImageByID(((Scope)element).getScopeID());
+        			}
         			return img;
         		}
         		
@@ -126,8 +153,14 @@ public class CallStackViewer extends TableViewer
         	
         	public String getText(Object element)
         	{
-        		if (element instanceof String)
-        			return (String) element;
+        		if (element == EMPTY_SCOPE)
+        			return EMPTY_FUNCTION;
+        		else if (element instanceof Scope) {
+        			if (isColorByID)
+        				return ((Scope)element).getScopeID().toString() + ((Scope)element).getName();
+        			else
+        				return ((Scope)element).getName();
+        		}
         		return null;
         	}
         	
@@ -157,6 +190,15 @@ public class CallStackViewer extends TableViewer
 	 */
 	public void updateView()
 	{
+		final Command colorById = commandService.getCommand( OptionColorByID.commandId );
+		final State state = colorById.getState(RegistryToggleState.STATE_ID);
+		if (state != null) {
+			Boolean isDebug = (Boolean) state.getValue();
+			isColorByID = isDebug.booleanValue();
+		} else {
+			isColorByID = false;
+		}
+		
 		final SpaceTimeDataController data = dataService.getData();
 		this.setSample(data.getAttributes().getPosition(), data.getAttributes().getDepth());
 	}
@@ -196,14 +238,14 @@ public class CallStackViewer extends TableViewer
 		ProcessTimeline ptl = ptlService.getProcessTimeline(estimatedProcess);
 		if (ptl != null) {
 			int sample = ptl.findMidpointBefore(position.time, stData.isEnableMidpoint());
-			final Vector<String> sampleVector;
+			final Vector<Scope> sampleVector;
 			if (sample>=0) {
 				final CallPath cp = ptl.getCallPath(sample, depth);
 				if (cp != null)
-					sampleVector = ptl.getCallPath(sample, depth).getFunctionNames();
+					sampleVector = ptl.getCallPath(sample, depth).getScopes();
 				else
 					// empty array of string
-					sampleVector = new Vector<String>();
+					sampleVector = new Vector<Scope>();
 
 				if (sampleVector != null && sampleVector.size()<=depth)
 				{
@@ -212,14 +254,14 @@ public class CallStackViewer extends TableViewer
 					//-----------------------------------
 					final int numOverDepth = depth-sampleVector.size()+1;
 					for(int l = 0; l<numOverDepth; l++)
-						sampleVector.add(EMPTY_FUNCTION);
+						sampleVector.add(EMPTY_SCOPE);
 				}
 			} else {
 				// empty array of string
-				sampleVector = new Vector<String>();
+				sampleVector = new Vector<Scope>();
 				
 				for(int l = 0; l<=depth; l++)
-					sampleVector.add(EMPTY_FUNCTION);
+					sampleVector.add(EMPTY_SCOPE);
 			}
 			// fill the call stack and select the current depth
 			final Display display = Display.getDefault();
@@ -227,7 +269,7 @@ public class CallStackViewer extends TableViewer
 				
 				@Override
 				public void run() {
-					setInput(new ArrayList<String>(sampleVector));
+					setInput(new ArrayList<Scope>(sampleVector));
 					selectDepth(depth);
 					viewerColumn.getColumn().pack();
 				}
@@ -251,7 +293,7 @@ public class CallStackViewer extends TableViewer
 			final int overDepth = _depth - itemCount + 1;
 			for (int i=0; i<overDepth; i++) 
 			{
-				this.add(EMPTY_FUNCTION);
+				this.add(EMPTY_SCOPE);
 			}
 		}
 		selectDepth(_depth);
