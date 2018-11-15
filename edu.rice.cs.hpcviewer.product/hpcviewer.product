@@ -3,6 +3,7 @@
 
 <product name="hpcviewer" id="edu.rice.cs.hpcviewer.hpcviewer" application="org.eclipse.e4.ui.workbench.swt.E4Application" useFeatures="true" includeLaunchers="true">
 
+
    <configIni use="default">
    </configIni>
 
@@ -13,15 +14,20 @@
       </vmArgsMac>
    </launcherArgs>
 
-   <launcher>
-      <solaris/>
+   <windowImages/>
+
+
+   <launcher name="hpcviewer">
+      <macosx icon="/edu.rice.cs.hpc.viewer/icons/hpcviewer.icns"/>
       <win useIco="false">
          <bmp/>
       </win>
    </launcher>
 
+
    <vm>
    </vm>
+
 
    <plugins>
    </plugins>
@@ -40,5 +46,12 @@
       <plugin id="org.eclipse.equinox.event" autoStart="true" startLevel="2" />
       <plugin id="org.eclipse.equinox.simpleconfigurator" autoStart="true" startLevel="1" />
    </configurations>
+
+   <preferencesInfo>
+      <targetfile overwrite="false"/>
+   </preferencesInfo>
+
+   <cssInfo>
+   </cssInfo>
 
 </product>

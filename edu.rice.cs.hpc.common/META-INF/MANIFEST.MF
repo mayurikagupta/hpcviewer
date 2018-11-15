@@ -12,3 +12,5 @@ Bundle-Vendor: Rice University
 Export-Package:  edu.rice.cs.hpc.common.ui,
  edu.rice.cs.hpc.common.util
 Import-Package: edu.rice.cs.hpc.data.util
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Automatic-Module-Name: edu.rice.cs.hpc.common
