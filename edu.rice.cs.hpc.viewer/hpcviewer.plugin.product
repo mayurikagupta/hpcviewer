@@ -35,7 +35,6 @@ Release 2018.11  (C) Copyright 2018, Rice University.
    <launcher name="hpcviewer">
       <linux icon="/edu.rice.cs.hpc.viewer/icons/hpcviewer-icon-32x32-32bit.xpm"/>
       <macosx icon="/edu.rice.cs.hpc.viewer/icons/hpcviewer.icns"/>
-      <solaris/>
       <win useIco="false">
          <bmp
             winSmallHigh="/edu.rice.cs.hpc.viewer/icons/hpcviewer-icon-16x16-32bit.bmp"
@@ -43,7 +42,6 @@ Release 2018.11  (C) Copyright 2018, Rice University.
             winLargeHigh="/edu.rice.cs.hpc.viewer/icons/hpcviewer-icon-48x48-32bit.bmp"/>
       </win>
    </launcher>
-
 
    <vm>
    </vm>
@@ -92,14 +90,23 @@ if advised of the possibility of such damage.
       <plugin id="edu.rice.cs.hpc.viewer"/>
       <plugin id="javax.annotation"/>
       <plugin id="javax.inject"/>
+      <plugin id="javax.servlet"/>
       <plugin id="javax.xml"/>
+      <plugin id="org.apache.batik.constants"/>
       <plugin id="org.apache.batik.css"/>
+      <plugin id="org.apache.batik.i18n"/>
       <plugin id="org.apache.batik.util"/>
-      <plugin id="org.apache.batik.util.gui"/>
+      <plugin id="org.apache.commons.io"/>
       <plugin id="org.apache.commons.jxpath"/>
+      <plugin id="org.apache.commons.logging"/>
+      <plugin id="org.apache.felix.gogo.runtime"/>
+      <plugin id="org.apache.felix.scr"/>
+      <plugin id="org.apache.log4j"/>
       <plugin id="org.apache.xerces"/>
       <plugin id="org.apache.xml.resolver"/>
       <plugin id="org.apache.xml.serializer"/>
+      <plugin id="org.apache.xmlgraphics"/>
+      <plugin id="org.eclipse.ant.core"/>
       <plugin id="org.eclipse.compare.core"/>
       <plugin id="org.eclipse.core.commands"/>
       <plugin id="org.eclipse.core.contenttype"/>
@@ -109,17 +116,17 @@ if advised of the possibility of such damage.
       <plugin id="org.eclipse.core.expressions"/>
       <plugin id="org.eclipse.core.filebuffers"/>
       <plugin id="org.eclipse.core.filesystem"/>
-      <plugin id="org.eclipse.core.filesystem.java7" fragment="true"/>
       <plugin id="org.eclipse.core.filesystem.macosx" fragment="true"/>
       <plugin id="org.eclipse.core.jobs"/>
       <plugin id="org.eclipse.core.resources"/>
       <plugin id="org.eclipse.core.runtime"/>
-      <plugin id="org.eclipse.core.runtime.compatibility.registry" fragment="true"/>
+      <plugin id="org.eclipse.core.variables"/>
       <plugin id="org.eclipse.e4.core.commands"/>
       <plugin id="org.eclipse.e4.core.contexts"/>
       <plugin id="org.eclipse.e4.core.di"/>
       <plugin id="org.eclipse.e4.core.di.annotations"/>
       <plugin id="org.eclipse.e4.core.di.extensions"/>
+      <plugin id="org.eclipse.e4.core.di.extensions.supplier"/>
       <plugin id="org.eclipse.e4.core.services"/>
       <plugin id="org.eclipse.e4.emf.xpath"/>
       <plugin id="org.eclipse.e4.ui.bindings"/>
@@ -144,7 +151,6 @@ if advised of the possibility of such damage.
       <plugin id="org.eclipse.equinox.app"/>
       <plugin id="org.eclipse.equinox.bidi"/>
       <plugin id="org.eclipse.equinox.common"/>
-      <plugin id="org.eclipse.equinox.ds"/>
       <plugin id="org.eclipse.equinox.event"/>
       <plugin id="org.eclipse.equinox.p2.core"/>
       <plugin id="org.eclipse.equinox.p2.engine"/>
@@ -155,11 +161,12 @@ if advised of the possibility of such damage.
       <plugin id="org.eclipse.equinox.region" fragment="true"/>
       <plugin id="org.eclipse.equinox.registry"/>
       <plugin id="org.eclipse.equinox.security"/>
+      <plugin id="org.eclipse.equinox.security.linux.x86_64" fragment="true"/>
       <plugin id="org.eclipse.equinox.security.macosx" fragment="true"/>
       <plugin id="org.eclipse.equinox.security.win32.x86" fragment="true"/>
       <plugin id="org.eclipse.equinox.security.win32.x86_64" fragment="true"/>
+      <plugin id="org.eclipse.equinox.supplement"/>
       <plugin id="org.eclipse.equinox.transforms.hook" fragment="true"/>
-      <plugin id="org.eclipse.equinox.util"/>
       <plugin id="org.eclipse.equinox.weaving.hook" fragment="true"/>
       <plugin id="org.eclipse.help"/>
       <plugin id="org.eclipse.jface"/>
@@ -168,27 +175,24 @@ if advised of the possibility of such damage.
       <plugin id="org.eclipse.osgi"/>
       <plugin id="org.eclipse.osgi.compatibility.state" fragment="true"/>
       <plugin id="org.eclipse.osgi.services"/>
+      <plugin id="org.eclipse.osgi.util"/>
+      <plugin id="org.eclipse.pde.ds.lib"/>
       <plugin id="org.eclipse.swt"/>
       <plugin id="org.eclipse.swt.cocoa.macosx.x86_64" fragment="true"/>
-      <plugin id="org.eclipse.swt.gtk.aix.ppc" fragment="true"/>
-      <plugin id="org.eclipse.swt.gtk.aix.ppc64" fragment="true"/>
-      <plugin id="org.eclipse.swt.gtk.hpux.ia64" fragment="true"/>
-      <plugin id="org.eclipse.swt.gtk.linux.ppc" fragment="true"/>
-      <plugin id="org.eclipse.swt.gtk.linux.ppc64" fragment="true"/>
       <plugin id="org.eclipse.swt.gtk.linux.ppc64le" fragment="true"/>
-      <plugin id="org.eclipse.swt.gtk.linux.s390" fragment="true"/>
-      <plugin id="org.eclipse.swt.gtk.linux.s390x" fragment="true"/>
       <plugin id="org.eclipse.swt.gtk.linux.x86" fragment="true"/>
       <plugin id="org.eclipse.swt.gtk.linux.x86_64" fragment="true"/>
-      <plugin id="org.eclipse.swt.gtk.solaris.sparc" fragment="true"/>
-      <plugin id="org.eclipse.swt.gtk.solaris.x86" fragment="true"/>
       <plugin id="org.eclipse.swt.win32.win32.x86" fragment="true"/>
       <plugin id="org.eclipse.swt.win32.win32.x86_64" fragment="true"/>
+      <plugin id="org.eclipse.team.core"/>
       <plugin id="org.eclipse.text"/>
       <plugin id="org.eclipse.ui"/>
       <plugin id="org.eclipse.ui.cocoa" fragment="true"/>
       <plugin id="org.eclipse.ui.editors"/>
+      <plugin id="org.eclipse.ui.forms"/>
       <plugin id="org.eclipse.ui.ide"/>
+      <plugin id="org.eclipse.ui.trace"/>
+      <plugin id="org.eclipse.ui.views"/>
       <plugin id="org.eclipse.ui.workbench"/>
       <plugin id="org.eclipse.ui.workbench.texteditor"/>
       <plugin id="org.swtchart"/>
