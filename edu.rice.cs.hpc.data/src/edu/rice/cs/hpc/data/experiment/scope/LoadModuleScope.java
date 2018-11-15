@@ -83,7 +83,7 @@ public int hashCode() {
 	
 public String getName()
 {
-    return "Load module " +  this.loadModuleName;
+    return loadModuleName;
 }
 
 //////////////////////////////////////////////////////////////////////////

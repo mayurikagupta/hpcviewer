@@ -88,9 +88,9 @@ abstract public class BaseScopeView  extends AbstractBaseScopeView {
             this.objViewActions.updateContent(getExperiment(), myRootScope);
 
             // Try select the first scope
-            TreeItem objItem = treeViewer.getTree().getItem(1);            
+            /*TreeItem objItem = treeViewer.getTree().getItem(1);            
             treeViewer.getTree().showItem(objItem);
-            this.treeViewer.getTree().setSelection(objItem);
+            this.treeViewer.getTree().setSelection(objItem);*/
             
             // reset the button
             this.objViewActions.checkNodeButtons();

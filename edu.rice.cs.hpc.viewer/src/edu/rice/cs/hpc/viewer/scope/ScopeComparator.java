@@ -68,14 +68,24 @@ public class ScopeComparator implements Comparator<Object>
 	private int doCompare(Scope node1, Scope node2) {
 		if (node1 instanceof CallSiteScope && 
 			node2 instanceof CallSiteScope) {
+			
 			CallSiteScope cs1 = (CallSiteScope) node1;
 			CallSiteScope cs2 = (CallSiteScope) node2;
+			
 			LineScope ls1 = cs1.getLineScope();
 			LineScope ls2 = cs2.getLineScope();
-			if (ls1 != null && ls2 != null)
-				return ls1.getLineNumber() - ls2.getLineNumber();
+			
+			int linediff = ls1.getLineNumber() - ls2.getLineNumber();
+			
+			// if the two nodes have the same line number, we need to compare the name of the nodes
+			// sometimes we don't have information of the line number (like non-debug code), and
+			// all the line numbers are all zeros
+			
+			if (ls1 != null && ls2 != null && linediff != 0)
+				return linediff;
 		} 
 		String text1 = node1.getName();
 		String text2 = node2.getName();
 		return text1.compareTo(text2);
-	}}
+	}
+}

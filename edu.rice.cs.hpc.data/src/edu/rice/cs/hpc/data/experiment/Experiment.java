@@ -39,6 +39,10 @@ public class Experiment extends BaseExperimentWithMetrics
 {
 	static public enum ExperimentOpenFlag {TREE_CCT_ONLY, TREE_ALL};
 	
+	static final public String TITLE_TOP_DOWN_VIEW  = "Top-down view";
+	static final public String TITLE_BOTTOM_UP_VIEW = "Bottom-up view";
+	static final public String TITLE_FLAT_VIEW 		= "Flat view";
+	
 	// thread level database
 	private MetricRaw[] metrics_raw;
 	private boolean mergedDatabase = false;
@@ -121,7 +125,7 @@ public class Experiment extends BaseExperimentWithMetrics
 	 */
 	protected RootScope prepareCallersView(Scope callingContextViewRootScope)
 	{
-		RootScope callersViewRootScope = new RootScope(this, "Callers View", RootScopeType.CallerTree);
+		RootScope callersViewRootScope = new RootScope(this, Experiment.TITLE_BOTTOM_UP_VIEW, RootScopeType.CallerTree);
 		beginScope(callersViewRootScope);
 		return callersViewRootScope;
 	}
@@ -156,7 +160,7 @@ public class Experiment extends BaseExperimentWithMetrics
 	 */
 	private RootScope prepareFlatView(Scope cctRootScope) 
 	{
-		RootScope flatRootScope = new RootScope(this, "Flat View", RootScopeType.Flat);
+		RootScope flatRootScope = new RootScope(this, Experiment.TITLE_FLAT_VIEW, RootScopeType.Flat);
 		beginScope(flatRootScope);
 		return flatRootScope;
 	}

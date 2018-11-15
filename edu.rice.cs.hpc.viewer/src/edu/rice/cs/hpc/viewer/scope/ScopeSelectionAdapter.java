@@ -9,7 +9,6 @@ import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.swt.widgets.TreeItem;
 
-import edu.rice.cs.hpc.data.util.OSValidator;
 import edu.rice.cs.hpc.viewer.util.Utilities;
 
 /*********************************************************
@@ -22,10 +21,8 @@ public class ScopeSelectionAdapter extends SelectionAdapter
 	final private ScopeTreeViewer viewer;
 	final private TreeViewerColumn column;
 	
-	final static public int SORT_ASC  = 1;
-	final static public int SORT_DESC = -1;
-	
-	private int current_sort_direction = SORT_DESC;
+	final static public int SORT_DESCENDING = 1;  // from high value to lower value
+	final static public int SORT_ASCENDING  = -1; // from low value to higher value
 
     ScopeSelectionAdapter(ScopeTreeViewer viewer, TreeViewerColumn column) {
 		this.viewer 	= viewer;
@@ -36,21 +33,10 @@ public class ScopeSelectionAdapter extends SelectionAdapter
 	public void widgetSelected(SelectionEvent e) {
 		
 		// ----------------
-		// pre-sorting 
+		// pre-sorting : 
+		// we don't want to sort all expanded items, including unwanted items
 		// ----------------
-		Object []elements = null;
-		if (OSValidator.isMac()) {
-			// --------------------------------------------------------------------
-			//Eclipse Indigo bug on Mac OS: expanding a long call path will cause
-			// SWT to slowly sort tree items. Somehow Eclipse also expands other
-			// collapsed tree items as well.
-			// --------------------------------------------------------------------
-			// save the current expaded elements to be restored after the sort
-			elements = viewer.getExpandedElements();
-			
-			// collapse all the items
-			viewer.collapseAll();
-		}
+		
 		// before sorting, we need to check if the first row is an element header 
 		// something like "aggregate metrics" or zoom-in item
 		Tree tree = viewer.getTree();
@@ -64,7 +50,17 @@ public class ScopeSelectionAdapter extends SelectionAdapter
 		// ----------------
 		// sorting 
 		// ----------------
-		setSorter(current_sort_direction);
+		int sort_direction  = SORT_DESCENDING;
+		TreeColumn oldColumnSort = column.getColumn().getParent().getSortColumn();
+
+		if (oldColumnSort == column.getColumn()) {
+			// we click the same column: want to change the sort direction
+			int swt_direction = column.getColumn().getParent().getSortDirection();
+
+			if (swt_direction == SWT.DOWN)
+				sort_direction = SORT_ASCENDING;
+		}
+		setSorter(sort_direction);
 		
 		// ----------------
 		// post-sorting 
@@ -72,15 +68,11 @@ public class ScopeSelectionAdapter extends SelectionAdapter
 		if(sText != null) {
 			Utilities.insertTopRow(viewer, imgItem, sText);
 		}
-		if (elements != null) {
-			viewer.setExpandedElements(elements);
-		}
 	}
 	
 	/**
 	 * Sort the column according to the direction
-	 * @param sorter
-	 * @param direction
+	 * @param direction The value has to be either {@code SORT_DESCENDING} or {@code SORT_ASCENDING}
 	 */
 	public void setSorter(int direction) {
 		// bug Eclipse no 199811 https://bugs.eclipse.org/bugs/show_bug.cgi?id=199811
@@ -89,32 +81,27 @@ public class ScopeSelectionAdapter extends SelectionAdapter
 				
 		viewer.getTree().setRedraw(false);
 		
-		TreeColumn col    = column.getColumn();
 		int swt_direction = SWT.NONE;
-		col.getParent().setSortColumn(col);
 		
-		if( direction == SORT_ASC ) {
-			swt_direction = SWT.UP;
-			current_sort_direction = SORT_DESC;
-		} else {
+		if( direction == SORT_DESCENDING ) {
 			swt_direction = SWT.DOWN;
-			current_sort_direction = SORT_ASC;
+		} else if( direction == SORT_ASCENDING ) {
+			swt_direction = SWT.UP;
+		} else {
+			// incorrect value. Let's try to be permissive instead of throwing exception
+			direction = 0;
 		}
 		
 		// prepare the sorting for this column with a specific direction
+		ISortContentProvider sortProvider = (ISortContentProvider) viewer.getContentProvider();
 		
-		col.getParent().setSortDirection(swt_direction);
-		viewer.setSortDirection(current_sort_direction);		
-		viewer.setSortColumn(column);
+		TreeColumn col = column.getColumn();
+		col.getParent().setSortDirection(swt_direction);		
+		col.getParent().setSortColumn(col);
 		
-		 // have to call this before actually sorting the elements
-		viewer.sort_start();
-		
-		// do the sort
-		viewer.refresh();
+		 // start sorting
+		sortProvider.sort_column(column, direction);
 
-		viewer.sort_end();
-		
 		viewer.getTree().setRedraw(true);
-	}
+	}	
 }

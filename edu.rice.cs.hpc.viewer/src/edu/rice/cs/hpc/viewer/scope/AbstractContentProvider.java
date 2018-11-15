@@ -1,10 +1,14 @@
 package edu.rice.cs.hpc.viewer.scope;
 
+import java.util.Arrays;
+import java.util.HashMap;
+
 import org.eclipse.jface.viewers.ILazyTreeContentProvider;
 import org.eclipse.jface.viewers.ITreeContentProvider;
+import org.eclipse.jface.viewers.TreeViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
 
-import edu.rice.cs.hpc.data.experiment.scope.RootScope;
+import edu.rice.cs.hpc.data.experiment.metric.BaseMetric;
 import edu.rice.cs.hpc.data.experiment.scope.Scope;
 
 /********************************
@@ -14,10 +18,14 @@ import edu.rice.cs.hpc.data.experiment.scope.Scope;
  *
  ********************************/
 public abstract class AbstractContentProvider
-	implements ITreeContentProvider, ILazyTreeContentProvider 
+	implements ITreeContentProvider, ILazyTreeContentProvider, ISortContentProvider 
 {
     private ScopeTreeViewer viewer;
-    
+	private HashMap<Integer, Object[]> sort_scopes;
+	private ScopeComparator comparator;
+	private TreeViewerColumn sort_column = null;
+	private int sort_direction 			 = 0;
+
     public AbstractContentProvider(ScopeTreeViewer viewer) {
     	this.viewer = viewer;
     	new ScopeComparator();
@@ -84,13 +92,13 @@ public abstract class AbstractContentProvider
 
 		int child_position = index;
 		
-		if (parent instanceof RootScope) {
+		if (parent == viewer.getInput()) {
 			// if the parent is a root, the first row is a header
 			// this header row is not counted as a child 
 			child_position = index - 1;
 		}
 		
-		Object element = viewer.getSortScope( (Scope)parent, child_position);
+		Object element = getSortedChild( (Scope)parent, child_position);
 		if (element != null) {
 			viewer.replace(parent, index, element);
 			updateChildCount(element, -1);
@@ -103,5 +111,80 @@ public abstract class AbstractContentProvider
 		int length = (children == null ? 0 : children.length);
 		
 		viewer.setChildCount(element, length);
-	}	
+	}
+
+    
+    @Override
+    public void sort_column(TreeViewerColumn sort_column, int direction) {
+    	
+    	sort_begin(sort_column, direction);
+    	
+    	// perform the sort by refreshing the viewer
+    	// this refresh method will force the table to recompute the children
+    	
+    	viewer.refresh();
+    	
+    	sort_end();
+    }
+    
+    
+	private Object[] getSortedChildren(Scope parent) {
+		
+		int hash = System.identityHashCode(parent);
+    	Object [] children = sort_scopes.get(hash);
+    	
+    	if (children == null) {
+    		children = getChildren(parent);
+    		if (children == null)
+    			return null;
+    		
+    		BaseMetric metric = (BaseMetric) sort_column.getColumn().getData();
+    		comparator.setMetric(metric);    		
+    		comparator.setDirection(sort_direction);
+    		
+    		Arrays.sort(children, comparator);
+    		
+    		sort_scopes.put(hash, children);
+    	}
+    	return children;
+	}
+	
+    /***
+     * Retrieve a child of a parent for a specific sorted index.
+     * 
+     * @param parent
+     * @param index
+     * @return
+     */
+	private Object getSortedChild(Scope parent, int index) {
+    	if (index < 0)
+    		return null;
+    	
+    	Object []children = getSortedChildren(parent);
+    	if (children != null && index < children.length)
+    		return children[index];
+    	
+    	return null;
+    }
+    
+    private void sort_begin(TreeViewerColumn sort_column, int direction) {
+    	
+    	this.sort_column    = sort_column;
+    	this.sort_direction = direction;
+    	
+    	if (sort_scopes != null) {
+    		sort_scopes.clear();
+    	} else {
+    		sort_scopes = new HashMap<Integer, Object[]>();
+    		comparator  = new ScopeComparator();
+    	}
+    }
+    
+    private void sort_end() {
+    	if (sort_scopes != null) {
+    		sort_scopes.clear();
+    	}    
+    }
+    
+
 }

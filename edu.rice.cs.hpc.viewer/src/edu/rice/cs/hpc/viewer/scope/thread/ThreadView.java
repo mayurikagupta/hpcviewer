@@ -11,8 +11,6 @@ import org.eclipse.jface.viewers.CellLabelProvider;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.CoolBar;
 import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Tree;
-import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.IWorkbenchWindow;
 import edu.rice.cs.hpc.data.experiment.Experiment;
 import edu.rice.cs.hpc.data.experiment.extdata.IThreadDataCollection;
@@ -99,14 +97,8 @@ public class ThreadView extends AbstractBaseScopeView
 
 		if (myRootScope.getChildCount()>0) {
         	treeViewer.setInput(myRootScope);
-        	objViewActions.updateContent(experiment, myRootScope);
         	
-        	Tree tree = treeViewer.getTree();
-        	if (tree.getSelectionCount() == 0) {
-            	TreeItem item = tree.getItem(1);
-            	tree.select(item);
-        	}
-        	
+        	objViewActions.updateContent(experiment, myRootScope);        	
         	objViewActions.checkNodeButtons();
         }
 	}
@@ -322,6 +314,11 @@ public class ThreadView extends AbstractBaseScopeView
 		return new MetricRawManager(treeViewer);
 	}
 	
+	/************************************
+	 * 
+	 * Specific content provider for thread view
+	 *
+	 ************************************/
 	static class ThreadContentProvider extends AbstractContentProvider
 	{
 	    public ThreadContentProvider(ScopeTreeViewer viewer) {
@@ -338,8 +335,5 @@ public class ThreadView extends AbstractBaseScopeView
 	    	else
 	    		return false;
 	    }
-
-
-		
 	}
 }

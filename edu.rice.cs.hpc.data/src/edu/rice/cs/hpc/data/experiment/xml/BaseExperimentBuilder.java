@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Stack;
 
 import edu.rice.cs.hpc.data.experiment.BaseExperiment;
+import edu.rice.cs.hpc.data.experiment.Experiment;
 import edu.rice.cs.hpc.data.experiment.ExperimentConfiguration;
 import edu.rice.cs.hpc.data.experiment.ExperimentWithoutMetrics;
 import edu.rice.cs.hpc.data.experiment.extdata.TraceAttribute;
@@ -1114,10 +1115,10 @@ public class BaseExperimentBuilder extends Builder {
 		final RootScopeType rootType;
 		
 		if (this.csviewer) {
-			title = "Calling Context View";
+			title = Experiment.TITLE_TOP_DOWN_VIEW;
 			rootType = RootScopeType.CallingContextTree;
 		} else {
-			title = "Flat View";
+			title = Experiment.TITLE_FLAT_VIEW;
 			rootType = RootScopeType.Flat;
 		}
 		this.viewRootScope  = new RootScope(this.experiment, title, rootType);

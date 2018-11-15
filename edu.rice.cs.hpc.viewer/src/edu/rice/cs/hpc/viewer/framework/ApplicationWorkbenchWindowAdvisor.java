@@ -214,7 +214,14 @@ public class ApplicationWorkbenchWindowAdvisor extends WorkbenchWindowAdvisor
 		org.eclipse.ui.IViewReference views[] = page.getViewReferences();
 		int nbViews = views.length;
 		
-		for(int i=0;i<nbViews;i++)
+		// needs to hide the flat view and the callers view first. 
+		// these views are created dynamically, and when a user exits the application
+		//  the view may not be created.
+		//
+		// If we close the top-down view first, Eclipse will activate the callers view,
+		//  and then close it. When it's activated, it creates the tree and that takes time
+		
+		for(int i=nbViews-1;i>=0; i--)
 			page.hideView(views[i]);
 	}
 	
