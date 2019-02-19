@@ -9,6 +9,7 @@ import edu.rice.cs.hpc.data.experiment.*;
 import edu.rice.cs.hpc.viewer.framework.Activator;
 import edu.rice.cs.hpc.viewer.scope.AbstractBaseScopeView;
 import edu.rice.cs.hpc.viewer.scope.bottomup.CallerScopeView;
+import edu.rice.cs.hpc.viewer.scope.datacentric.DataView;
 import edu.rice.cs.hpc.viewer.scope.flat.FlatScopeView;
 import edu.rice.cs.hpc.viewer.scope.topdown.ScopeView;
 import edu.rice.cs.hpc.viewer.util.PreferenceConstants;
@@ -210,6 +211,20 @@ public class ExperimentView {
 		int nbChildren = Math.min(rootChildren.length, MAX_VIEWS);
 		arrScopeViews = new AbstractBaseScopeView[nbChildren];
 		
+		// display datacentric view if exist
+		RootScope datacentricRoot = experiment.getDatacentricRootScope();
+		if (datacentricRoot != null) {
+			try {
+				DataView dataView = (DataView) objPage.showView(DataView.ID);
+				dataView.setInput(db, datacentricRoot, false);
+				
+			} catch (PartInitException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		// display all the 3 classic views
 		for(int k=0;nbChildren>k;k++)
 		{
 			RootScope child = (RootScope) rootChildren[k];

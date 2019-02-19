@@ -39,9 +39,10 @@ public class Experiment extends BaseExperimentWithMetrics
 {
 	static public enum ExperimentOpenFlag {TREE_CCT_ONLY, TREE_ALL};
 	
-	static final public String TITLE_TOP_DOWN_VIEW  = "Top-down view";
-	static final public String TITLE_BOTTOM_UP_VIEW = "Bottom-up view";
-	static final public String TITLE_FLAT_VIEW 		= "Flat view";
+	static final public String TITLE_TOP_DOWN_VIEW    = "Top-down view";
+	static final public String TITLE_BOTTOM_UP_VIEW   = "Bottom-up view";
+	static final public String TITLE_FLAT_VIEW 		  = "Flat view";
+	static final public String TITLE_DATACENTRIC_VIEW = "Datacentric view";
 	
 	// thread level database
 	private MetricRaw[] metrics_raw;
@@ -260,9 +261,11 @@ public class Experiment extends BaseExperimentWithMetrics
 	 */
 	private void postprocess(boolean callerView) {
 		if (this.rootScope.getSubscopeCount() <= 0) return;
+		
 		// Get first scope subtree: CCT or Flat
 		Scope firstSubTree = this.rootScope.getSubscope(0);
 		if (!(firstSubTree instanceof RootScope)) return;
+		
 		RootScopeType firstRootType = ((RootScope)firstSubTree).getType();
 
 		if (firstRootType.equals(RootScopeType.CallingContextTree)) {

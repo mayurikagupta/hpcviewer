@@ -60,6 +60,13 @@
             name="Thread view"
             restorable="true">
       </view>
+      <view
+            allowMultiple="true"
+            class="edu.rice.cs.hpc.viewer.scope.datacentric.DataView"
+            id="edu.rice.cs.hpc.viewer.scope.datacentric.DataView"
+            name="Datacentric"
+            restorable="true">
+      </view>
    </extension>
    <extension
          id="product"

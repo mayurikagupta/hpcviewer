@@ -10,16 +10,6 @@ public class FlatViewContentProvider extends AbstractContentProvider {
 		super(viewer);
 	}
 
-    /*
-     * (non-Javadoc)
-     * @see org.eclipse.jface.viewers.ITreeContentProvider#hasChildren(java.lang.Object)
-     */
-    public boolean hasChildren(Object element) {
-    	if(element instanceof Scope)
-            return ((Scope) element).hasChildren(); // !((Scope.Node) element).isLeaf();
-    	else
-    		return false;
-    }
 
     
 	@Override

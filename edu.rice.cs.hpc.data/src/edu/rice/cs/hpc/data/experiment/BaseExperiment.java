@@ -33,6 +33,8 @@ public abstract class BaseExperiment implements IExperiment
 
 	protected RootScope rootScope;
 	
+	protected RootScope datacentricRootScope;
+	
 	/** version of the database **/
 	protected String version;
 
@@ -63,6 +65,18 @@ public abstract class BaseExperiment implements IExperiment
 		return rootScope;
 	}
 
+	
+	public void setDatacentricRootScope(RootScope rootScope) {
+		this.datacentricRootScope = rootScope;
+	}
+	
+	
+	public RootScope getDatacentricRootScope() {
+		return datacentricRootScope;
+	}
+	
+	
+	
 	/******
 	 * set a database filename
 	 * 
@@ -327,3 +341,4 @@ public abstract class BaseExperiment implements IExperiment
 	abstract protected void open_finalize();
 
 }
+ 

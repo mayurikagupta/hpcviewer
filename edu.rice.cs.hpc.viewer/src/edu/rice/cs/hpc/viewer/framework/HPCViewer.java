@@ -29,10 +29,12 @@ public class HPCViewer implements IApplication {
 			if (returnCode == PlatformUI.RETURN_RESTART) {
 				return IApplication.EXIT_RESTART;
 			}
-			return IApplication.EXIT_OK;
+		} catch (Exception e) {
+			
 		} finally {
 			display.dispose();
 		}
+		return IApplication.EXIT_OK;
 	}
 
 	/* (non-Javadoc)

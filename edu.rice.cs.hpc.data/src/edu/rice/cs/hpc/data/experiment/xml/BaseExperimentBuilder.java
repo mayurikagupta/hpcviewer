@@ -7,7 +7,6 @@ import java.util.EmptyStackException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Stack;
-import java.util.stream.Collectors;
 
 import edu.rice.cs.hpc.data.experiment.BaseExperiment;
 import edu.rice.cs.hpc.data.experiment.Experiment;
@@ -85,7 +84,8 @@ public class BaseExperimentBuilder extends Builder {
 	private HashMap<Integer, LoadModuleScope> 	hashLoadModuleTable;
 	private HashMap<Integer, SourceFile> 		hashSourceFileTable;
 	private HashMap<Integer, Scope> 			hashCallSiteTable;
-	private HashMap<Integer, String>			hashFalseProcedure;
+	
+	private HashMap<Integer /*id*/, Integer /*status*/>			statusProcedureMap;
 
 	private int min_cctid = Integer.MAX_VALUE;
 	private int max_cctid = Integer.MIN_VALUE;
@@ -120,7 +120,7 @@ public class BaseExperimentBuilder extends Builder {
 		hashLoadModuleTable = new HashMap<Integer, LoadModuleScope>();
 		hashSourceFileTable = new HashMap<Integer, SourceFile>();
 		hashCallSiteTable   = new HashMap<Integer, Scope>();
-		hashFalseProcedure  = new HashMap<Integer, String>();
+		statusProcedureMap  = new HashMap<Integer, Integer>();
 
 		// parse action data structures
 		this.scopeStack   = new Stack<Scope>();
@@ -652,7 +652,26 @@ public class BaseExperimentBuilder extends Builder {
 			 
 			srcFile.setIsText(istext);
 			this.srcFileStack.add(srcFile);
-			boolean falseProcedure = hashFalseProcedure.containsKey(flat_id);
+
+			boolean falseProcedure = false;
+			
+			Integer statusProc = statusProcedureMap.get(flat_id);
+			if (statusProc != null) {
+				if (statusProc.intValue() == 1) {
+					falseProcedure = true;
+					
+				} else if (statusProc.intValue() == 2) {
+					RootScope datacentricRoot = new RootScope(experiment, procAttribute, RootScopeType.DatacentricTree);
+					// push the new scope to the stack
+					scopeStack.push(datacentricRoot);
+					
+					experiment.setDatacentricRootScope(datacentricRoot);
+					return;
+					
+				} else {
+					throw new RuntimeException(cct_id + ": Procedure status invalid:" + statusProc);
+				}
+			}
 							
 			
 			ProcedureScope procScope  = new ProcedureScope(this.viewRootScope, objLoadModule, srcFile, 
@@ -814,9 +833,10 @@ public class BaseExperimentBuilder extends Builder {
 		if(values.length < 2)
 			return;
 		
-		String sID = null;
+		String sID   = null;
 		String sData = null;
-		boolean isFalseProc = false;
+		
+		Integer statusProc = null;
 
 		for (int i=0; i<attributes.length; i++)
 		{
@@ -825,8 +845,7 @@ public class BaseExperimentBuilder extends Builder {
 			} else if (attributes[i].equals("n")) {
 				sData = values[i];
 			} else if (attributes[i].equals("f")) {
-				int val     = Integer.parseInt(values[i]);
-				isFalseProc = (val == 1);
+				statusProc  = Integer.parseInt(values[i]);
 			}
 			
 		}
@@ -834,8 +853,8 @@ public class BaseExperimentBuilder extends Builder {
 			Integer objID = Integer.parseInt(sID);
 			this.hashProcedureTable.put(objID, sData);
 			
-			if (isFalseProc)
-				this.hashFalseProcedure.put(objID, sData);
+			if (statusProc != null)
+				this.statusProcedureMap.put(objID, statusProc);
 			
 		} catch (java.lang.NumberFormatException e) {
 			e.printStackTrace();
