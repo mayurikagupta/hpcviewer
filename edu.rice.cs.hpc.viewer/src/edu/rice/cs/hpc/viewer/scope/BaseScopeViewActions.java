@@ -3,6 +3,8 @@
  */
 package edu.rice.cs.hpc.viewer.scope;
 
+import org.eclipse.jface.layout.TreeColumnLayout;
+import org.eclipse.jface.viewers.ColumnPixelData;
 import org.eclipse.jface.viewers.TreeViewerColumn;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.CoolBar;
@@ -20,7 +22,8 @@ import edu.rice.cs.hpc.viewer.window.ViewerWindow;
 import edu.rice.cs.hpc.viewer.window.ViewerWindowManager;
 
 /**
- * @author laksonoadhianto
+ * 
+ * Basic class to implement ScopeViewActions
  *
  */
 public class BaseScopeViewActions extends ScopeViewActions {
@@ -58,50 +61,19 @@ public class BaseScopeViewActions extends ScopeViewActions {
 		return (Experiment) myRootScope.getExperiment();
 	}
 
-	@Override
-	protected void addMetricColumn(DerivedMetric objMetric) {
-		BaseExperiment exp = myRootScope.getExperiment();
-		// get our database file and the experiment index assigned for it
-		String dbPath = exp.getDefaultDirectory().getAbsolutePath();
-		ViewerWindow vWin = ViewerWindowManager.getViewerWindow(this.objWindow);
-		if (vWin == null) {
-			System.out.printf("ScopeViewActions.addExtNewMetric: ViewerWindow class not found\n");
-			return;
-		}
-		int dbNum = vWin.getDbNum((Experiment) exp);
-		if (dbNum < 0) {
-			System.out.printf("ScopeViewActions.addExtNewMetric: Database for path " + dbPath + " not found\n");
-			return;
-		}
-
-		// get the views created for our database
-		Database db = vWin.getDb(dbPath);
-		if (db == null) {
-			System.out.printf("ScopeViewActions.addExtNewMetric: Database class not found\n");
-			return;
-		}
-		
-		// add the new metric column to all registered views (cct, callers and flat)
-		ExperimentView ev = db.getExperimentView();
-		for(int i=0; i<ev.getViewCount(); i++) {
-			AbstractBaseScopeView view = ev.getView(i);
-			addMetricColumn(view, objMetric);
-		}
-		
-	}
 	
 	/***
 	 * Add a new metric column into a view's table
 	 * @param view : the view that contains metric table
 	 * @param objMetric : the new metric 
 	 */
-	protected void addMetricColumn(AbstractBaseScopeView view, DerivedMetric objMetric) {
-		ScopeTreeViewer objTreeViewer = view.getTreeViewer();
-		if (objTreeViewer.getTree().isDisposed())
+	public void addMetricColumn(AbstractBaseScopeView view, DerivedMetric objMetric) {
+		
+		if (treeViewer.getTree().isDisposed())
 			return;
 		
-		objTreeViewer.getTree().setRedraw(false);
-		TreeViewerColumn colDerived = objTreeViewer.addTreeColumn(objMetric,  false);
+		treeViewer.getTree().setRedraw(false);
+		TreeViewerColumn colDerived = treeViewer.addTreeColumn(objMetric,  false);
 		
 		// update the viewer, to refresh its content and invoke the provider
 		// bug SWT https://bugs.eclipse.org/bugs/show_bug.cgi?id=199811
@@ -110,10 +82,16 @@ public class BaseScopeViewActions extends ScopeViewActions {
 		//objTreeViewer.refresh();	// we refresh to update the data model of the table
 		
 		// notify the GUI that we have added a new column
-		ScopeViewActions objAction = view.getViewActions();
-		objAction.addTreeColumn(colDerived.getColumn());
+    	int width 			    = colDerived.getColumn().getWidth();
+    	ColumnPixelData colData = new ColumnPixelData(width, true);
+    	TreeColumnLayout layout = (TreeColumnLayout) treeViewer.getTree().getParent().getLayout();
+    	
+    	layout.setColumnData(colDerived.getColumn(), colData);
+		
+    	objActionsGUI.restoreParentNode();
+    	
 		//this.objActionsGUI.addMetricColumns(colDerived); 
-		objTreeViewer.getTree().setRedraw(true);
+    	treeViewer.getTree().setRedraw(true);
 		// adjust the column width 
 		//colDerived.getColumn().pack();
 		

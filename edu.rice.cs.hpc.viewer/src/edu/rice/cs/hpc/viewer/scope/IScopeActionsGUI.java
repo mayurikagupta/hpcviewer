@@ -95,12 +95,9 @@ public interface IScopeActionsGUI {
      * @param nodeParent
      */
     public void insertParentNode(Scope nodeParent);
-    
-    /**
-     * Add a new metric column
-     * @param colMetric
-     */
-    public void addMetricColumns(TreeColumn colMetric);
+
+	public void restoreParentNode();
+
     
 	/**
 	 * Resize the columns automatically
@@ -109,4 +106,5 @@ public interface IScopeActionsGUI {
 	public void resizeTableColumns();
 	
 	public void setColumnsStatus(boolean []status);	
+	
 }

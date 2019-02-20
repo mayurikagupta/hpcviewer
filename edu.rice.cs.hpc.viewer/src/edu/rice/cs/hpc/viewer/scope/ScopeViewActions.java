@@ -8,6 +8,7 @@ import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.preferences.ScopedPreferenceStore;
+import org.eclipse.ui.services.ISourceProviderService;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.swt.widgets.Composite;
@@ -21,6 +22,7 @@ import edu.rice.cs.hpc.data.experiment.scope.Scope;
 import edu.rice.cs.hpc.data.experiment.metric.*;
 import edu.rice.cs.hpc.viewer.framework.Activator;
 import edu.rice.cs.hpc.viewer.metric.*;
+import edu.rice.cs.hpc.viewer.provider.TableMetricState;
 import edu.rice.cs.hpc.viewer.util.PreferenceConstants;
 import edu.rice.cs.hpc.viewer.util.Utilities;
 
@@ -61,7 +63,7 @@ public abstract class ScopeViewActions /*extends ScopeActions /* implements IToo
      * @param parent composite
      */
     public ScopeViewActions(Shell shell, IWorkbenchWindow window, Composite parent, CoolBar coolbar) {
-    	//super(shell, parent, coolbar);
+
     	objShell = shell;
     	this.objWindow  = window;
     	createGUI(parent, coolbar);
@@ -362,13 +364,6 @@ public abstract class ScopeViewActions /*extends ScopeActions /* implements IToo
 		return this.objZoom;
 	}
 	
-	/**
-	 * add a new column for metric
-	 * @param colMetric
-	 */
-	protected void addTreeColumn(TreeColumn colMetric) {
-		this.objActionsGUI.addMetricColumns(colMetric);
-	}
 	
 	/**
 	 * create a new metric based on a free expression
@@ -388,7 +383,11 @@ public abstract class ScopeViewActions /*extends ScopeActions /* implements IToo
 			final DerivedMetric objMetric = dlg.getMetric();
 			
 			getMetricManager().addDerivedMetric(objMetric);
-			addMetricColumn(objMetric);
+			
+			final ISourceProviderService service = (ISourceProviderService) objWindow.getService(ISourceProviderService.class);
+			TableMetricState metricStateProvider = (TableMetricState) service.getSourceProvider(TableMetricState.METRIC_COLUMNS_VISIBLE);
+
+			metricStateProvider.notifyMetricAdd(myRootScope.getExperiment(), objMetric);
 		}
 	}
 
@@ -514,12 +513,11 @@ public abstract class ScopeViewActions /*extends ScopeActions /* implements IToo
      */
     public abstract void checkStates ( Scope nodeSelected );
     
+    abstract public void addMetricColumn(AbstractBaseScopeView view, DerivedMetric objMetric);
+    
     protected abstract void registerAction( IActionType type );
         
     protected abstract IMetricManager getMetricManager();
-    
-    protected abstract void addMetricColumn(DerivedMetric metric);
-    
     
     static class HotCallPath 
     {

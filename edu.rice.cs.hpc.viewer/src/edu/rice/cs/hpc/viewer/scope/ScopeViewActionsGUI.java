@@ -33,10 +33,12 @@ import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Layout;
 import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.services.ISourceProviderService;
+
 import edu.rice.cs.hpc.data.experiment.Experiment;
 import edu.rice.cs.hpc.data.experiment.scope.Scope;
-import edu.rice.cs.hpc.viewer.experiment.ExperimentView;
 import edu.rice.cs.hpc.viewer.metric.MetricColumnDialog;
+import edu.rice.cs.hpc.viewer.provider.TableMetricState;
 import edu.rice.cs.hpc.viewer.resources.Icons;
 import edu.rice.cs.hpc.data.experiment.scope.RootScope;
 import edu.rice.cs.hpc.viewer.util.Utilities;
@@ -195,17 +197,12 @@ public class ScopeViewActionsGUI implements IScopeActionsGUI {
     /**
      * Restoring the "node header" in case of refresh method in the viewer
      */
-    private void restoreParentNode() {
+    @Override
+    public void restoreParentNode() {
     	if(this.nodeTopParent != null) {
     		this.insertParentNode(this.nodeTopParent);
     	}
     }
-	/**
-	 * Add the aggregate metrics item on the top of the tree
-	 */
-    /*protected void displayRootExperiment() {
-    	insertParentNode(myRootScope);
-    }*/
 	
 	/**
 	 * Resize the columns automatically
@@ -305,26 +302,20 @@ public class ScopeViewActionsGUI implements IScopeActionsGUI {
     		boolean isAppliedToAllViews = dialog.isAppliedToAllViews();
     		checked = dialog.getResult();
     		if (isAppliedToAllViews) {
-    			showHideColumnsAllViews(checked);
+    			
+    			// send message to all registered views, that there is a change of column properties
+    			// we don't verify if there's a change or not. Let the view decides what they want to do 
+    			
+    			final ISourceProviderService service = (ISourceProviderService) objWindow.getService(ISourceProviderService.class);
+    			TableMetricState metricStateProvider = (TableMetricState) service.getSourceProvider(TableMetricState.METRIC_COLUMNS_VISIBLE);
+    			metricStateProvider.notifyColumnChange(database.getExperiment(), checked);
+    			
     		} else {
     			setColumnsStatus(checked);
     		}
     	}
     }
     
-    /**
-     * Apply the show/hidden columns on all views
-     * @param status
-     */
-    private void showHideColumnsAllViews(boolean []status) {
-		// get our database file and the and the class that contains its information
-		// get the views created for our database
-    	ExperimentView ev = database.getExperimentView();
-		for(int i=0; i<ev.getViewCount(); i++) {
-			AbstractBaseScopeView view = ev.getView(i);
-			view.getViewActions().setColumnStatus(status);
-		}
-    }
     
     
     /**
@@ -379,21 +370,6 @@ public class ScopeViewActionsGUI implements IScopeActionsGUI {
 		treeViewer.getTree().setRedraw(true);
     }
     
-    
-    /**
-     * Add a new metric column
-     * @param colMetric
-     */
-    public void addMetricColumns(TreeColumn colMetric) {
-    	int width = colMetric.getWidth();
-    	ColumnPixelData colData = new ColumnPixelData(width, true);
-    	TreeColumnLayout layout = (TreeColumnLayout) treeViewer.getTree().getParent().getLayout();
-    	layout.setColumnData(colMetric, colData);
-    	
-    	// when adding a new column, we have to refresh the viewer
-    	// and this means we have to recompute again the top row of the table
-    	this.restoreParentNode();
-    }
     
 
     //======================================================
@@ -470,6 +446,8 @@ public class ScopeViewActionsGUI implements IScopeActionsGUI {
     	GridLayoutFactory.fillDefaults().numColumns(2).generateLayout(parent);
 
     }
+    
+    
 	/**
      * Create a toolbar region on the top of the view. This toolbar will be used to host some buttons
      * to make actions on the treeview.

@@ -10,12 +10,13 @@ import org.eclipse.ui.IWorkbenchWindow;
 import edu.rice.cs.hpc.data.experiment.Experiment;
 import edu.rice.cs.hpc.data.experiment.scope.RootScope;
 import edu.rice.cs.hpc.data.experiment.scope.Scope;
+import edu.rice.cs.hpc.viewer.graph.GraphMenu;
 import edu.rice.cs.hpc.viewer.scope.AbstractContentProvider;
 import edu.rice.cs.hpc.viewer.scope.BaseScopeView;
-import edu.rice.cs.hpc.viewer.scope.BaseScopeViewActions;
 import edu.rice.cs.hpc.viewer.scope.ScopeTreeViewer;
 import edu.rice.cs.hpc.viewer.scope.ScopeViewActions;
 import edu.rice.cs.hpc.viewer.scope.StyledScopeLabelProvider;
+import edu.rice.cs.hpc.viewer.scope.topdown.CallingContextViewActions;
 
 public class DataView extends BaseScopeView 
 {
@@ -36,7 +37,10 @@ public class DataView extends BaseScopeView
 	@Override
 	protected ScopeViewActions createActions(Composite parent, CoolBar coolbar) {
 		IWorkbenchWindow window = this.getSite().getWorkbenchWindow();
-		return new BaseScopeViewActions(this.getViewSite().getShell(), window, parent, coolbar); 
+    	ScopeViewActions action = new CallingContextViewActions(
+    			getViewSite().getShell(), window, parent, coolbar);
+    	
+    	return action;
 	}
 
 	@Override
@@ -47,8 +51,8 @@ public class DataView extends BaseScopeView
 
 	@Override
 	protected void createAdditionalContextMenu(IMenuManager mgr, Scope scope) {
-		// TODO Auto-generated method stub
-
+		IWorkbenchWindow window = getViewSite().getWorkbenchWindow();
+		GraphMenu.createAdditionalContextMenu(window, mgr, database, scope);
 	}
 
 	@Override

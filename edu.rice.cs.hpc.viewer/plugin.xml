@@ -63,6 +63,7 @@
       <view
             allowMultiple="true"
             class="edu.rice.cs.hpc.viewer.scope.datacentric.DataView"
+            icon="icons/datacentric.png"
             id="edu.rice.cs.hpc.viewer.scope.datacentric.DataView"
             name="Datacentric"
             restorable="true">
@@ -469,6 +470,17 @@
          <variable
                name="edu.rice.cs.hpc.viewer.provider.data.refresh"
                priorityLevel="workbench">
+         </variable>
+      </sourceProvider>
+      <sourceProvider
+            provider="edu.rice.cs.hpc.viewer.provider.TableMetricState">
+         <variable
+               name="edu.rice.cs.hpc.viewer.provider.metric.visible"
+               priorityLevel="activeWorkbenchWindow">
+         </variable>
+         <variable
+               name="edu.rice.cs.hpc.viewer.provider.metric.add"
+               priorityLevel="activeWorkbenchWindow">
          </variable>
       </sourceProvider>
    </extension>
