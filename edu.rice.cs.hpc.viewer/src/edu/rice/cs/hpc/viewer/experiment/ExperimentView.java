@@ -211,19 +211,6 @@ public class ExperimentView {
 		int nbChildren = Math.min(rootChildren.length, MAX_VIEWS);
 		arrScopeViews = new AbstractBaseScopeView[nbChildren];
 		
-		// display datacentric view if exist
-		RootScope datacentricRoot = experiment.getDatacentricRootScope();
-		if (datacentricRoot != null) {
-			try {
-				DataView dataView = (DataView) objPage.showView(DataView.ID);
-				dataView.setInput(db, datacentricRoot, false);
-				
-			} catch (PartInitException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		
 		// display all the 3 classic views
 		for(int k=0;nbChildren>k;k++)
 		{
@@ -300,6 +287,10 @@ public class ExperimentView {
 			if (viewState == VIEW_STATE_INIT) {
 				objView.setInput(db, root, false);
 			}
+
+		} else if (root.getType() == RootScopeType.DatacentricTree) {
+			objView = (DataView) page.showView(DataView.ID, secondaryID, IWorkbenchPage.VIEW_ACTIVATE);
+			objView.setInput(db, root, false);
 		}
 		return objView;
 	}

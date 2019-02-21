@@ -183,7 +183,28 @@ public class Experiment extends BaseExperimentWithMetrics
 		return flatViewRootScope;
 	}
 
+	/****
+	 * Prepare and create datacentric root (if exists)
+	 * <p>This method has to be called after computing the CCT's inclusive metrics  
+	 ****/
+	private void prepareDatacentricView()
+	{
+		if (datacentricRootScope != null) {
 
+			// include the datacentric root into a child of "invisible root"
+			beginScope(datacentricRootScope);
+
+			if (inclusiveNeeded()) {
+				// TODO: if the metric is a derived metric then DO NOT do this process !
+				InclusiveOnlyMetricPropagationFilter rootInclProp = new InclusiveOnlyMetricPropagationFilter(this);
+				addInclusiveMetrics(datacentricRootScope, rootInclProp);
+				computeExclusiveMetrics(datacentricRootScope);
+			}
+			// copy the aggregate of inclusive metric to the exclusive ones 
+			EmptyMetricValuePropagationFilter emptyFilter = new EmptyMetricValuePropagationFilter();
+			copyMetricsToPartner(datacentricRootScope, MetricType.INCLUSIVE, emptyFilter);
+		}
+	}
 
 	private void addInclusiveMetrics(Scope scope, MetricValuePropagationFilter filter)
 	{
@@ -297,6 +318,11 @@ public class Experiment extends BaseExperimentWithMetrics
 			// While creating the root of flat tree, we attribute the cost for procedure scopes
 			// One the tree has been created, we compute the inclusive cost for other scopes
 			prepareFlatView(callingContextViewRootScope);
+			
+			//----------------------------------------------------------------------------------------------
+			// Datacentric View
+			//----------------------------------------------------------------------------------------------
+			prepareDatacentricView();
 
 		} else if (firstRootType.equals(RootScopeType.Flat)) {
 			addPercents(firstSubTree, (RootScope) firstSubTree);
@@ -376,6 +402,11 @@ public class Experiment extends BaseExperimentWithMetrics
 		// While creating the flat tree, we attribute the cost for procedure scopes
 		// One the tree has been created, we compute the inclusive cost for other scopes
 		prepareFlatView(rootCCT);
+		
+		//----------------------------------------------------------------------------------------------
+		// Datacentric View
+		//----------------------------------------------------------------------------------------------
+		prepareDatacentricView();
 	}
 
 	@Override
