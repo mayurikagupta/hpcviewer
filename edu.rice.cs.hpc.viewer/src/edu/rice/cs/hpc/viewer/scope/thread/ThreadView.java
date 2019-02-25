@@ -53,9 +53,9 @@ public class ThreadView extends AbstractBaseScopeView
 	 * @param threads : a list of thread indexes to be viewed
 	 ************/
 	static public void showView(IWorkbenchWindow window, 
-			Experiment experiment, List<Integer> threads)
+			RootScope rootScope, List<Integer> threads)
 	{
-		ThreadViewFactory.build(window, experiment, threads);
+		ThreadViewFactory.build(window, rootScope, threads);
 	}
 
 	@Override
@@ -90,10 +90,13 @@ public class ThreadView extends AbstractBaseScopeView
         if (database == null || treeViewer == null || treeViewer.getTree().isDisposed())
         	return;
 
-		// reassign root scope
         final Experiment experiment = getExperiment();
-		RootScope rootCCT = experiment.getRootScope(RootScopeType.CallingContextTree);
-		myRootScope = createRoot(rootCCT);
+        
+		// reassign root scope
+        if (myRootScope == null) {
+    		RootScope rootCCT = experiment.getRootScope(RootScopeType.CallingContextTree);
+    		myRootScope = createRoot(rootCCT);
+        }
 
 		if (myRootScope.getChildCount()>0) {
         	treeViewer.setInput(myRootScope);

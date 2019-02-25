@@ -35,6 +35,8 @@ import edu.rice.cs.hpc.data.experiment.Experiment;
 import edu.rice.cs.hpc.data.experiment.extdata.IThreadDataCollection;
 import edu.rice.cs.hpc.data.experiment.metric.BaseMetric;
 import edu.rice.cs.hpc.data.experiment.metric.MetricRaw;
+import edu.rice.cs.hpc.data.experiment.scope.RootScope;
+import edu.rice.cs.hpc.data.experiment.scope.RootScopeType;
 import edu.rice.cs.hpc.viewer.editor.IViewerEditor;
 import edu.rice.cs.hpc.viewer.graph.GraphChart;
 import edu.rice.cs.hpc.viewer.graph.IChartSelectionListener;
@@ -139,7 +141,9 @@ public class ThreadEditor extends EditorPart implements IViewerEditor
 				menuManager.add(new Action("Show thread " + thread_label) {
 					public void run() {
 						// display the view
-						ThreadView.showView(window, getExperiment(), threads);
+						final Experiment experiment = getExperiment();
+						final RootScope rootScope   = experiment.getRootScope(RootScopeType.CallingContextTree);
+						ThreadView.showView(window, rootScope, threads);
 					}
 				});
 				final Menu menu = menuManager.getMenu();

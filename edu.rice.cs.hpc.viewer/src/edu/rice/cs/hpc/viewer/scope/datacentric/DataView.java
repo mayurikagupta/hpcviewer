@@ -24,19 +24,17 @@ public class DataView extends BaseScopeView
 
 	@Override
 	protected void updateDatabase(Experiment new_database) {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	protected void refreshTree(RootScope root) {
-		// TODO Auto-generated method stub
-
+		updateDisplay();
 	}
 
 	@Override
 	protected ScopeViewActions createActions(Composite parent, CoolBar coolbar) {
-		IWorkbenchWindow window = this.getSite().getWorkbenchWindow();
+		IWorkbenchWindow window = this.getSite().getWorkbenchWindow();		
+		
     	ScopeViewActions action = new CallingContextViewActions(
     			getViewSite().getShell(), window, parent, coolbar);
     	

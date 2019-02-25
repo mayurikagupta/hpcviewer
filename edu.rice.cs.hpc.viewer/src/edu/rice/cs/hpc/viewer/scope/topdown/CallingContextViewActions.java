@@ -9,7 +9,8 @@ import edu.rice.cs.hpc.data.experiment.scope.Scope;
 import edu.rice.cs.hpc.viewer.scope.BaseScopeViewActions;
 
 
-public class CallingContextViewActions extends BaseScopeViewActions {
+public class CallingContextViewActions extends BaseScopeViewActions 
+{
 
 	public CallingContextViewActions(Shell shell, IWorkbenchWindow window,
 			Composite parent, CoolBar coolbar) 

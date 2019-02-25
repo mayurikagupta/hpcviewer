@@ -71,6 +71,8 @@ public class BaseExperimentBuilder extends Builder {
 
 	/** The current source file while parsing. */
 	protected Stack<SourceFile> srcFileStack;
+	
+	private Stack<RootScope> rootStack;
 
 	private boolean csviewer;
 	
@@ -124,7 +126,9 @@ public class BaseExperimentBuilder extends Builder {
 
 		// parse action data structures
 		this.scopeStack   = new Stack<Scope>();
+		this.rootStack    = new Stack<RootScope>();
 		this.srcFileStack = new Stack<SourceFile>();
+		
 		this.srcFileStack.push(null); // mimic old behavior
 
 		// creation arguments
@@ -489,7 +493,7 @@ public class BaseExperimentBuilder extends Builder {
 		try {
 			Integer objIndex = Integer.parseInt(sIndex);
 			SourceFile sourceFile = this.getOrCreateSourceFile(name, objIndex.intValue());
-			Scope lmScope = new LoadModuleScope(this.viewRootScope, name, sourceFile, objIndex.intValue());
+			Scope lmScope = new LoadModuleScope(rootStack.peek(), name, sourceFile, objIndex.intValue());
 			// make a new load module scope object
 			this.beginScope(lmScope);
 		} catch (Exception e) {
@@ -515,7 +519,7 @@ public class BaseExperimentBuilder extends Builder {
 					objFileKey.intValue());
 
 			this.srcFileStack.push(sourceFile);
-			Scope fileScope = new FileScope(this.viewRootScope, sourceFile, objFileKey.intValue());
+			Scope fileScope = new FileScope(rootStack.peek(), sourceFile, objFileKey.intValue());
 
 			this.beginScope(fileScope);
 
@@ -589,13 +593,13 @@ public class BaseExperimentBuilder extends Builder {
 						objLoadModule = this.hashLoadModuleTable.get(indexFile);
 						if (objLoadModule == null) {
 							// old database
-							objLoadModule = new LoadModuleScope(this.viewRootScope, values[i], null, indexFile.intValue());
+							objLoadModule = new LoadModuleScope(rootStack.peek(), values[i], null, indexFile.intValue());
 							this.hashLoadModuleTable.put(indexFile, objLoadModule);
 						}
 					} catch (java.lang.NumberFormatException e) {
 						// old database:
 						// this error means that the lm is not based on dictionary
-						objLoadModule = new LoadModuleScope(this.viewRootScope, values[i], null, values[i].hashCode());
+						objLoadModule = new LoadModuleScope(rootStack.peek(), values[i], null, values[i].hashCode());
 					}
 				} else if (attributes[i].equals("p") ) {
 					// obsolete format: p is the name of the procedure
@@ -630,9 +634,9 @@ public class BaseExperimentBuilder extends Builder {
 					// this is a line scope
 					Scope scope;
 					if (firstLn == lastLn)
-						scope = new LineScope(this.viewRootScope, srcFile, firstLn-1, cct_id, flat_id);
+						scope = new LineScope(rootStack.peek(), srcFile, firstLn-1, cct_id, flat_id);
 					else
-						scope = new StatementRangeScope(this.viewRootScope, srcFile, 
+						scope = new StatementRangeScope(rootStack.peek(), srcFile, 
 								firstLn-1, lastLn-1, cct_id, flat_id);
 					scope.setCpid(0);
 					scopeStack.push(scope);
@@ -664,7 +668,8 @@ public class BaseExperimentBuilder extends Builder {
 					RootScope datacentricRoot = new RootScope(experiment, procAttribute, RootScopeType.DatacentricTree);
 					// push the new scope to the stack
 					scopeStack.push(datacentricRoot);
-					
+					rootStack.push(datacentricRoot);
+
 					experiment.setDatacentricRootScope(datacentricRoot);
 					return;
 					
@@ -674,7 +679,7 @@ public class BaseExperimentBuilder extends Builder {
 			}
 							
 			
-			ProcedureScope procScope  = new ProcedureScope(this.viewRootScope, objLoadModule, srcFile, 
+			ProcedureScope procScope  = new ProcedureScope(rootStack.peek(), objLoadModule, srcFile, 
 					firstLn-1, lastLn-1, 
 					procAttribute, isalien, cct_id, flat_id, userData, falseProcedure);
 
@@ -810,7 +815,7 @@ public class BaseExperimentBuilder extends Builder {
 			SourceFile sourceFile = this.getOrCreateSourceFile(filenm, objIndex.intValue());
 			this.srcFileStack.push(sourceFile);
 
-			Scope alienScope = new AlienScope(this.viewRootScope, sourceFile, filenm, procnm, firstLn-1, lastLn-1, objIndex.intValue());
+			Scope alienScope = new AlienScope(rootStack.peek(), sourceFile, filenm, procnm, firstLn-1, lastLn-1, objIndex.intValue());
 
 			this.beginScope(alienScope);
 
@@ -915,7 +920,7 @@ public class BaseExperimentBuilder extends Builder {
 				sourceFile = frameScope.getSourceFile();
 			}
 		}
-		Scope loopScope = new LoopScope(this.viewRootScope, sourceFile, firstLn-1, lastLn-1, cct_id, flat_id);
+		Scope loopScope = new LoopScope(rootStack.peek(), sourceFile, firstLn-1, lastLn-1, cct_id, flat_id);
 
 		this.beginScope(loopScope);
 	}
@@ -974,9 +979,9 @@ public class BaseExperimentBuilder extends Builder {
 
 		Scope scope;
 		if( firstLn == lastLn )
-			scope = new LineScope(this.viewRootScope, srcFile, firstLn-1, cct_id, flat_id);
+			scope = new LineScope(rootStack.peek(), srcFile, firstLn-1, cct_id, flat_id);
 		else
-			scope = new StatementRangeScope(this.viewRootScope, srcFile, 
+			scope = new StatementRangeScope(rootStack.peek(), srcFile, 
 					firstLn-1, lastLn-1, cct_id, flat_id);
 
 		scope.setCpid(cpid);
@@ -1187,6 +1192,10 @@ public class BaseExperimentBuilder extends Builder {
 		
 		min_cctid = Math.min(min_cctid, scope.getCCTIndex());
 		max_cctid = Math.max(max_cctid, scope.getCCTIndex());
+		
+		if (scope instanceof RootScope) {
+			rootStack.push((RootScope)scope);
+		}
 	}
 
 	
@@ -1196,7 +1205,11 @@ public class BaseExperimentBuilder extends Builder {
 	protected void endScope()
 	{
 		try {
-			this.scopeStack.pop();
+			Scope scope = this.scopeStack.pop();
+			if (scope instanceof RootScope) {
+				rootStack.pop();
+			}
+
 		} catch (java.util.EmptyStackException e) {
 			System.out.println("End of stack:"+this.parser.getLineNumber());
 		}

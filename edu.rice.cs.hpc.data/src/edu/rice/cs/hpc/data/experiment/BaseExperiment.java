@@ -61,6 +61,7 @@ public abstract class BaseExperiment implements IExperiment
 	 * 
 	 * @return the root scope
 	 */
+	@Override
 	public Scope getRootScope() {
 		return rootScope;
 	}
@@ -124,14 +125,7 @@ public abstract class BaseExperiment implements IExperiment
 	{
 		return getDefaultDatabaseName(Db_File_Type.DB_TRACE);
 	}
-	/****
-	 * retrieve the root scope of caller tree (bottom-up view)
-	 * 
-	 * @return root scope
-	 */
-	public RootScope getCallerTreeRoot() {
-		return getRootScope(RootScopeType.CallerTree);
-	}
+
 
 	public Object[] getRootScopeChildren() {
 		RootScope root = (RootScope) getRootScope();

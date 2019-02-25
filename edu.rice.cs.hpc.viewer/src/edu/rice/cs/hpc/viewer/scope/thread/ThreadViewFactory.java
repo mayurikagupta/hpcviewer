@@ -46,9 +46,9 @@ class ThreadViewFactory
 	 * 
 	 * @return the thread view if successful, null otherwise
 	 */
-	static public IViewPart build(IWorkbenchWindow window, Experiment experiment) 
+	static public IViewPart build(IWorkbenchWindow window, RootScope rootScope) 
 	{
-		return build(window, experiment, null);
+		return build(window, rootScope, null);
 	}
 	
 	/*****
@@ -62,11 +62,13 @@ class ThreadViewFactory
 	 * 
 	 * @return the thread view if successful, null otherwise
 	 */
-	static public IViewPart build(IWorkbenchWindow window, Experiment experiment, List<Integer> threads) 
+	static public IViewPart build(IWorkbenchWindow window, RootScope rootScope, List<Integer> threads) 
 	{
 		final IWorkbenchPage page = window.getActivePage();
 		if (page != null) {
-			final ViewerWindow vWin = ViewerWindowManager.getViewerWindow(window);
+			final ViewerWindow vWin     = ViewerWindowManager.getViewerWindow(window);
+			final Experiment experiment = (Experiment)rootScope.getExperiment();
+			
 			final Database db = vWin.getDb(experiment.getDefaultDirectory().getAbsolutePath());
 			try {
 				if (threads == null) {
@@ -97,8 +99,7 @@ class ThreadViewFactory
 				}
 				if (view != null) {
 					if (threads != null) {
-						RootScope scope   = experiment.getRootScope(RootScopeType.CallingContextTree);
-						((ThreadView)view).setInput(db, scope);
+						((ThreadView)view).setInput(db, rootScope);
 						((ThreadView)view).addTableColumns(threads);
 						page.activate(view);
 						return view;

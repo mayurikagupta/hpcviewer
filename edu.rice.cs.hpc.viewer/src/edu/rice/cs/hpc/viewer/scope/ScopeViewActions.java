@@ -133,7 +133,13 @@ public abstract class ScopeViewActions /*extends ScopeActions /* implements IToo
 				Scope scopeChild = (Scope) o;
 				
 				// let's move deeper down the tree
-				treeViewer.expandToLevel(path, 1);
+				// this cause java null pointer
+				try {
+					treeViewer.expandToLevel(path, 1);					
+				} catch (Exception e) {
+					System.out.println("Cannot expand path: " + path);
+					return false;
+				}
 
 				// compare the value of the parent and the child
 				// if the ratio is significant, we stop 

@@ -65,8 +65,7 @@
             class="edu.rice.cs.hpc.viewer.scope.datacentric.DataView"
             icon="icons/datacentric.png"
             id="edu.rice.cs.hpc.viewer.scope.datacentric.DataView"
-            name="Datacentric"
-            restorable="true">
+            name="Datacentric">
       </view>
    </extension>
    <extension

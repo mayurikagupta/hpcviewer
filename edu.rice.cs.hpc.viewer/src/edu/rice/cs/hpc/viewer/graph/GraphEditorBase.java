@@ -25,6 +25,7 @@ import edu.rice.cs.hpc.data.experiment.Experiment;
 import edu.rice.cs.hpc.data.experiment.extdata.IThreadDataCollection;
 import edu.rice.cs.hpc.data.experiment.metric.BaseMetric;
 import edu.rice.cs.hpc.data.experiment.metric.MetricRaw;
+import edu.rice.cs.hpc.data.experiment.scope.RootScope;
 import edu.rice.cs.hpc.data.experiment.scope.Scope;
 import edu.rice.cs.hpc.viewer.editor.IViewerEditor;
 import edu.rice.cs.hpc.viewer.scope.thread.ThreadView;
@@ -149,7 +150,16 @@ public abstract class GraphEditorBase extends EditorPart implements IViewerEdito
 					menuManager.add(new Action("Show thread " + thread_label) {
 						public void run() {
 							// display the view
-							ThreadView.showView(window, getExperiment(), list);
+							final GraphEditorInput editorInput = (GraphEditorInput) getEditorInput();
+							final Scope scope = editorInput.getScope();
+							
+							RootScope root = null;
+							if (scope instanceof RootScope) {
+								root = (RootScope) scope;
+							} else {
+								root = scope.getRootScope();
+							}
+							ThreadView.showView(window, root, list);
 						}
 					});
 	            	final Menu menu = menuManager.getMenu();

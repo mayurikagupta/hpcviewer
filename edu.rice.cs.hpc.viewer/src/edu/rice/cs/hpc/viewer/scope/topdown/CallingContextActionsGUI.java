@@ -18,6 +18,7 @@ import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.services.ISourceProviderService;
 
+import edu.rice.cs.hpc.data.experiment.scope.RootScope;
 import edu.rice.cs.hpc.data.experiment.scope.Scope;
 import edu.rice.cs.hpc.viewer.graph.GraphMenu;
 import edu.rice.cs.hpc.viewer.metric.ThreadDataCollectionFactory;
@@ -35,11 +36,12 @@ import edu.rice.cs.hpc.viewer.scope.thread.ThreadView;
  * This class will add a graph icon to show metrics graph of a scope
  *
  *****************************************************/
-public class CallingContextActionsGUI extends ScopeViewActionsGUI {
+public class CallingContextActionsGUI extends ScopeViewActionsGUI 
+{
+	static final private String PROPERTY_EXP = "Experimental";
 	
 	private ToolItem tiGraph, tiThreadView, tiThreadMap;
 	final private boolean experimental;
-	static final private String PROPERTY_EXP = "Experimental";
 
 	public CallingContextActionsGUI(Shell objShell, IWorkbenchWindow window,
 			Composite parent, ScopeViewActions objActions, boolean affectOtherViews) 
@@ -113,7 +115,14 @@ public class CallingContextActionsGUI extends ScopeViewActionsGUI {
 			
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				ThreadView.showView(objWindow, database.getExperiment(), null);
+				final Scope scope = getSelectedScope();
+				RootScope rootScope;
+				if (scope instanceof RootScope) {
+					rootScope = (RootScope) scope;
+				} else {
+					rootScope = scope.getRootScope();
+				}
+				ThreadView.showView(objWindow, rootScope, null);
 			}
 			
 			@Override
