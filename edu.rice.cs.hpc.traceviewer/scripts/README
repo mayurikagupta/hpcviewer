@@ -3,9 +3,17 @@ HPCTraceviewer Install Notes
 ========================
 
 Requirements:
-- Java 1.5 (at least)
+- Java 1.8
 - GTk 
 
+Note:
+To run with Java 9 or newer, it is required to modify hpctraceviewer.ini 
+and add the following flag at the end of the file::
+
+--add-modules=ALL-SYSTEM
+
+
+Supported Platforms
 
 1. Linux/Unix
 

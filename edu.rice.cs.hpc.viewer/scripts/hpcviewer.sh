@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (c) 2002-2013, Rice University.
+# Copyright (c) 2002-2019, Rice University.
 # See the file README.License for details.
 #
 # Launch the viewer binary and set the workspace directory.
@@ -10,7 +10,8 @@
 #
 
 name=hpcviewer
-workspace="${HOME}/.hpctoolkit/${name}"
+arch=`uname -p`
+workspace="${HOME}/.hpctoolkit/${name}/${arch}"
 
 # Substitute the Java bindir from the install script, if needed.
 # JAVA_BINDIR=/path/to/java/bindir
