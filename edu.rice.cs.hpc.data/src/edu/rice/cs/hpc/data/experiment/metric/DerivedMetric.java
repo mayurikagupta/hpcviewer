@@ -29,6 +29,8 @@ public class DerivedMetric extends BaseMetric {
 
 	private IMetricManager experiment;
 	
+	private MetricValue rootValue;
+	
 	final private RootScope root;
 	
 	//===================================================================================

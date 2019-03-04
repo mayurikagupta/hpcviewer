@@ -157,8 +157,7 @@ public class AggregateMetric extends BaseMetric {
 				if (Double.compare(dValue, 0.0d) != 0) {
 					value = new MetricValue(dValue);
 					if (getAnnotationType() == AnnotationType.PERCENT) {
-						if (rootValue == null)
-							rootValue = scope.getRootMetricValue(this);
+						MetricValue	rootValue = scope.getRootMetricValue(this);
 						if (rootValue != MetricValue.NONE) {
 							float percent = (float) (dValue / rootValue.getValue());
 							MetricValue.setAnnotationValue(value, percent);

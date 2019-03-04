@@ -31,6 +31,8 @@ public class MetricRaw  extends BaseMetric
 	/*** similar to partner index, but this partner refers directly to the metric partner.**/
 	private MetricRaw partner;
 	
+	private MetricValue rootValue;
+	
 
 	/******
 	 * creation of a new raw metric

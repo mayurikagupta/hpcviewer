@@ -63,8 +63,6 @@ public abstract class BaseMetric {
 
 	protected double  sampleperiod;
 
-	protected MetricValue rootValue;
-
 	private char unit;
 	
 	//-------------------------------------------------------------------------------
