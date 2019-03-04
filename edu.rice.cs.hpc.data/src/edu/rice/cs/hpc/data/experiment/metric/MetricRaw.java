@@ -31,8 +31,6 @@ public class MetricRaw  extends BaseMetric
 	/*** similar to partner index, but this partner refers directly to the metric partner.**/
 	private MetricRaw partner;
 	
-	private MetricValue rootValue;
-	
 
 	/******
 	 * creation of a new raw metric
@@ -139,19 +137,20 @@ public class MetricRaw  extends BaseMetric
 					// to compute the percentage, we need to have the value of the root
 					// If the root has no value, we have to recompute it only for one time
 					// Once we have the root's value, we don't have to recompute it
-					if (rootValue == null) {
-						if (s instanceof RootScope) {
-							if (value != MetricValue.NONE)
-								rootValue = value;
-							else if (metricType != MetricType.EXCLUSIVE)
-								rootValue = getValue((RootScope)s, threads);
-							else if (partner != null)
-								rootValue = partner.getValue((RootScope)s, threads);
-						} else {
-							RootScope root = ((Scope)s).getRootScope();
-							rootValue = getValue(root);//s.getRootMetricValue(this);
-						}
+					MetricValue rootValue = MetricValue.NONE;
+					
+					if (s instanceof RootScope) {
+						if (value != MetricValue.NONE)
+							rootValue = value;
+						else if (metricType != MetricType.EXCLUSIVE)
+							rootValue = getValue((RootScope)s, threads);
+						else if (partner != null)
+							rootValue = partner.getValue((RootScope)s, threads);
+					} else {
+						RootScope root = ((Scope)s).getRootScope();
+						rootValue = getValue(root);//s.getRootMetricValue(this);
 					}
+
 					if (rootValue != null && rootValue != MetricValue.NONE) {
 						// if the value exist, we compute the percentage
 						//setAnnotationType(AnnotationType.PERCENT);

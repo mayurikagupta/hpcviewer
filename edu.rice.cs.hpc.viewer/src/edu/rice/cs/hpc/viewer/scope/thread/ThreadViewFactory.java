@@ -10,10 +10,11 @@ import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IViewReference;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
+
+import edu.rice.cs.hpc.data.experiment.BaseExperiment;
 import edu.rice.cs.hpc.data.experiment.Experiment;
 import edu.rice.cs.hpc.data.experiment.extdata.IThreadDataCollection;
 import edu.rice.cs.hpc.data.experiment.scope.RootScope;
-import edu.rice.cs.hpc.data.experiment.scope.RootScopeType;
 import edu.rice.cs.hpc.viewer.experiment.ExperimentView;
 import edu.rice.cs.hpc.viewer.scope.AbstractBaseScopeView;
 import edu.rice.cs.hpc.viewer.window.Database;
@@ -51,6 +52,12 @@ class ThreadViewFactory
 		return build(window, rootScope, null);
 	}
 	
+	static public String getThreadViewKey(RootScope root) 
+	{
+		BaseExperiment experiment = root.getExperiment();
+		return experiment.getDefaultDirectory().getAbsolutePath() + "." + root.getType();
+	}
+	
 	/*****
 	 * Build or activate a thread view. <br>
 	 * This method will prompt a dialog box to ask users which threads to be displayed.
@@ -78,18 +85,19 @@ class ThreadViewFactory
 					if (threads == null)
 						return null;
 				}
-				final String path = experiment.getDefaultDirectory().getAbsolutePath();
 				
 				// check if the view already exists
 				IViewPart view = null;
-				final IViewReference vref = page.findViewReference(ThreadView.ID, path);
+				final String key = getThreadViewKey(rootScope);
+				
+				final IViewReference vref = page.findViewReference(ThreadView.ID, key);
 				if (vref != null) {
 					// it's there. we need to activate it and set the new threads
 					view = vref.getView(true);
 					
 				} else {
 					// it doesn't exist. need to create it.
-					view = page.showView(ThreadView.ID, path, 
+					view = page.showView(ThreadView.ID, key, 
 							IWorkbenchPage.VIEW_ACTIVATE);
 					if (view != null && (view  instanceof ThreadView)) 
 					{
