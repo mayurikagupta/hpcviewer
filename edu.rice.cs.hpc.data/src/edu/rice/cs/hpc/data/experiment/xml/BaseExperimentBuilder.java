@@ -44,11 +44,13 @@ public class BaseExperimentBuilder extends Builder {
 
 	private final static boolean KEEP_OLD_DATABASE_COMPATIBILITY = false;
 	
-	protected final static String LINE_ATTRIBUTE		= "l";
-	protected final static String NAME_ATTRIBUTE 		= "n";
-	protected final static String FILENAME_ATTRIBUTE 	= "f";
-	protected final static String VALUE_ATTRIBUTE 		= "v";
-	protected final static String ID_ATTRIBUTE 			= "i";
+	protected final static String ATTRIBUTE_LINE		= "l";
+	protected final static String ATTRIBUTE_NAME 		= "n";
+	protected final static String ATTRIBUTE_FILENAME 	= "f";
+	protected final static String ATTRIBUTE_VALUE 		= "v";
+	protected final static String ATTRIBUTE_ID 			= "i";
+	protected final static String ATTRIBUTE_TYPE 		= "t";
+	protected final static String ATTRIBUTE_ALIEN 		= "a";
 	
 	private final static String PROCEDURE_UNKNOWN = "unknown procedure";
 
@@ -487,8 +489,8 @@ public class BaseExperimentBuilder extends Builder {
 	private void begin_LM(String[] attributes, String[] values)
 	{
 		// LM n="load module name"
-		String name = getAttributeByName(NAME_ATTRIBUTE, attributes, values);
-		String sIndex = getAttributeByName(ID_ATTRIBUTE, attributes, values);
+		String name = getAttributeByName(ATTRIBUTE_NAME, attributes, values);
+		String sIndex = getAttributeByName(ATTRIBUTE_ID, attributes, values);
 		
 		try {
 			Integer objIndex = Integer.parseInt(sIndex);
@@ -511,11 +513,11 @@ public class BaseExperimentBuilder extends Builder {
 
 	{
 		// F n="filename"
-		String inode = getAttributeByName(ID_ATTRIBUTE, attributes, values);
+		String inode = getAttributeByName(ATTRIBUTE_ID, attributes, values);
 		try {
 			Integer objFileKey = Integer.parseInt(inode);
 			// make a new file scope object
-			SourceFile sourceFile  = this.getOrCreateSourceFile(getAttributeByName(NAME_ATTRIBUTE, attributes, values), 
+			SourceFile sourceFile  = this.getOrCreateSourceFile(getAttributeByName(ATTRIBUTE_NAME, attributes, values), 
 					objFileKey.intValue());
 
 			this.srcFileStack.push(sourceFile);
@@ -544,15 +546,16 @@ public class BaseExperimentBuilder extends Builder {
 	 ************************************************************************/
 	private void begin_PF(String[] attributes, String[] values)
 	{
-			boolean istext = true; 
+			boolean istext  = true; 
 			boolean isalien = false; 
 			boolean new_cct_format = false;
-			int cct_id = 0, flat_id = 0;
-			int firstLn = 0, lastLn = 0;
-			SourceFile srcFile = null; // file location of this procedure
 			
-			LoadModuleScope objLoadModule    = null;
-			String procAttribute = null;
+			int cct_id  = 0, flat_id = 0;
+			int firstLn = 0, lastLn  = 0;
+			
+			SourceFile srcFile 			  = null; // file location of this procedure
+			LoadModuleScope objLoadModule = null;
+			String procAttribute 		  = null;
 
 			for(int i=0; i<attributes.length; i++) {
 				if (attributes[i].equals("s")) { 
@@ -563,12 +566,12 @@ public class BaseExperimentBuilder extends Builder {
 						// old format: cct ID = flat ID
 						cct_id = flat_id;
 					
-				} else if (attributes[i].equals(ID_ATTRIBUTE)) {
+				} else if (attributes[i].equals(ATTRIBUTE_ID)) {
 					// id of the proc frame. needs to cross ref
 					cct_id = Integer.parseInt(values[i]); 
 					new_cct_format = true;
 					
-				} else if(attributes[i].equals(FILENAME_ATTRIBUTE)) {
+				} else if(attributes[i].equals(ATTRIBUTE_FILENAME)) {
 					// file
 					istext = true;
 					try {
@@ -605,21 +608,25 @@ public class BaseExperimentBuilder extends Builder {
 					// obsolete format: p is the name of the procedure
 					procAttribute = values[i];
 					
-				} else if(attributes[i].equals(NAME_ATTRIBUTE)) {
+				} else if(attributes[i].equals(ATTRIBUTE_NAME)) {
 					// new database format: n is the flat ID of the procedure
 					procAttribute = this.getProcedureName(values[i]);
 					
-				} else if(attributes[i].equals(LINE_ATTRIBUTE)) {
+				} else if(attributes[i].equals(ATTRIBUTE_LINE)) {
 					// line number (or range)
 					StatementRange objRange = new StatementRange(values[i]);
 					firstLn = objRange.getFirstLine();
 					lastLn = objRange.getLastLine();
+				} else if(attributes[i].equals(ATTRIBUTE_TYPE)) {
+					// type of the procedure frame
+					// mainly used by datacentric
 					
-				} else if(attributes[i].equals("a")) { 
+					
+				} else if(attributes[i].equals(ATTRIBUTE_ALIEN)) { 
 					// alien
 					isalien = values[i].equals("1");
 					
-				} else if(attributes[i].equals(VALUE_ATTRIBUTE)) {
+				} else if(attributes[i].equals(ATTRIBUTE_VALUE)) {
 				}
 			}
 			
@@ -793,13 +800,13 @@ public class BaseExperimentBuilder extends Builder {
 		
 		// make a new alien scope object
 		for (int i=0; i<attributes.length; i++) {
-			if (attributes[i].equals(ID_ATTRIBUTE)) {
+			if (attributes[i].equals(ATTRIBUTE_ID)) {
 				sIndex = values[i];
-			} else if (attributes[i].equals(FILENAME_ATTRIBUTE)) {
+			} else if (attributes[i].equals(ATTRIBUTE_FILENAME)) {
 				filenm = values[i];
-			} else if (attributes[i].equals(NAME_ATTRIBUTE)) {
+			} else if (attributes[i].equals(ATTRIBUTE_NAME)) {
 				procnm = values[i];
-			} else if (attributes[i].equals(LINE_ATTRIBUTE)) {
+			} else if (attributes[i].equals(ATTRIBUTE_LINE)) {
 				sLine = values[i];
 			}
 		}
@@ -892,15 +899,15 @@ public class BaseExperimentBuilder extends Builder {
 				if (cct_id == 0)
 					cct_id = flat_id;
 				
-			} else if(attributes[i].equals(LINE_ATTRIBUTE)) {
+			} else if(attributes[i].equals(ATTRIBUTE_LINE)) {
 				String sLine = values[i];
 				StatementRange objRange = new StatementRange( sLine );
 				firstLn = objRange.getFirstLine();
 				lastLn = objRange.getLastLine();
-			} else if (attributes[i].equals(FILENAME_ATTRIBUTE)) {
+			} else if (attributes[i].equals(ATTRIBUTE_FILENAME)) {
 				String fileIdString = values[i];
 				sourceFile = getSourceFile(fileIdString);
-			} else if(attributes[i].equals(ID_ATTRIBUTE)) {
+			} else if(attributes[i].equals(ATTRIBUTE_ID)) {
 				cct_id = Integer.parseInt(values[i]);
 			} 
 		}
@@ -956,7 +963,7 @@ public class BaseExperimentBuilder extends Builder {
 		int cpid = 0;
 
 		for(int i=0; i<attributes.length; i++) {
-			if(attributes[i].equals(LINE_ATTRIBUTE)) {
+			if(attributes[i].equals(ATTRIBUTE_LINE)) {
 				firstLn = Integer.parseInt(values[i]);
 				lastLn = firstLn;
 				
@@ -965,7 +972,7 @@ public class BaseExperimentBuilder extends Builder {
 				if (cct_id == 0)
 					cct_id = flat_id;
 				
-			} else if(attributes[i].equals(ID_ATTRIBUTE))  {
+			} else if(attributes[i].equals(ATTRIBUTE_ID))  {
 				cct_id = Integer.parseInt(values[i]);
 
 			} else if(attributes[i].equals("it")) { //the cpid

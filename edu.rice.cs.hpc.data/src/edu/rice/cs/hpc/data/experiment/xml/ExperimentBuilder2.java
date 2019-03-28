@@ -426,8 +426,8 @@ public class ExperimentBuilder2 extends BaseExperimentBuilder
 		final BaseExperimentWithMetrics exp = (BaseExperimentWithMetrics) experiment;
 		
 		// add a metric value to the current scope
-		String internalName = getAttributeByName(NAME_ATTRIBUTE, attributes, values);
-		String value = getAttributeByName(VALUE_ATTRIBUTE, attributes, values);
+		String internalName = getAttributeByName(ATTRIBUTE_NAME, attributes, values);
+		String value = getAttributeByName(ATTRIBUTE_VALUE, attributes, values);
 		
 		Double dblValue = null;
 		try {

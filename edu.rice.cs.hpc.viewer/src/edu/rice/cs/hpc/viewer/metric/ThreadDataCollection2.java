@@ -263,11 +263,10 @@ public class ThreadDataCollection2 extends AbstractThreadDataCollection
 		}
 
 		public void end() {
-			if (statusLine != null) 
+			if (statusLine != null) {
 				statusLine.getProgressMonitor().done();
+				statusLine.setMessage("");
+			}
 		}
-		
 	}
-
-
 }
