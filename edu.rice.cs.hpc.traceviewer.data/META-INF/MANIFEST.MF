@@ -4,7 +4,7 @@ Bundle-Name: hpctraceviewer_data
 Bundle-SymbolicName: edu.rice.cs.hpc.traceviewer.data;singleton:=true
 Bundle-Version: 5.5.1.qualifier
 Bundle-Vendor: Rice University
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Import-Package: edu.rice.cs.hpc.common.ui,
  edu.rice.cs.hpc.data.experiment.extdata,
  edu.rice.cs.hpc.data.util,
@@ -25,3 +25,4 @@ Export-Package: edu.rice.cs.hpc.traceviewer.data.controller,
  edu.rice.cs.hpc.traceviewer.data.util,
  edu.rice.cs.hpc.traceviewer.data.version2,
  edu.rice.cs.hpc.traceviewer.data.version3
+Automatic-Module-Name: edu.rice.cs.hpc.traceviewer.data

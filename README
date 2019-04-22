@@ -63,18 +63,11 @@ More information can be found at
 
 Download required software:
 
-    * Eclipse 3.7 (Indigo) version
+    * Eclipse 4.6.x (Neon) version
           o RCP package is necessary  
 	  o Eclipse Git (egit) plugin
-    * Java JDK (ver 1.6 or above). SUN or IBM (IceTea) JDK is recommended
+    * Java JDK (ver 1.8 or above). OpenJDK, Oracle or IBM (IceTea) JDK is recommended
 
-
-Install Eclipse subversion plugin (or subversive):
-    o (If you use subclipse, see the subclipse installation website for more details)
-    o Go to *Help* - *Install New Software ...* menu
-    o On Work with combobox, choose *Indigo - http://download.eclipse.org/releases/indigo*
-    o Check the node Collaboration - Subversive SVN Team Developer
-    o Go *Next*, then confirm the license aggreement and click *Finish*. 
 
 Check out the source code
 

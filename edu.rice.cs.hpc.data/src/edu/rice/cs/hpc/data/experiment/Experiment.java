@@ -249,6 +249,34 @@ public class Experiment extends BaseExperimentWithMetrics
 	}
 
 
+	/*****
+	 * return a tree root
+	 * @return
+	 */
+	public RootScope getCallerTreeRoot() {
+
+		for (Object node: getRootScope().getChildren()) {
+			Scope scope = (Scope) node;
+			if ( (scope instanceof RootScope) && 
+					((RootScope)scope).getType()==RootScopeType.CallerTree )
+				return (RootScope) scope;
+		}
+
+		return null;
+	}
+	
+	private void hideEmptyColumn(RootScope root) {
+		if (root == null) return;
+			
+		for (BaseMetric metric: metrics) {
+			MetricValue value = root.getMetricValue(metric);
+			if (value == MetricValue.NONE) {
+				metric.setDisplayed(false);
+			}
+		}
+	}
+	
+
 	/**
 	 * Post-processing for CCT:
 	 * <p>
@@ -289,6 +317,11 @@ public class Experiment extends BaseExperimentWithMetrics
 			EmptyMetricValuePropagationFilter emptyFilter = new EmptyMetricValuePropagationFilter();
 			copyMetricsToPartner(callingContextViewRootScope, MetricType.INCLUSIVE, emptyFilter);
 
+			//----------------------------------------------------------------------------------------------
+			// hide the metric if it's empty
+			//----------------------------------------------------------------------------------------------
+			hideEmptyColumn((RootScope)callingContextViewRootScope);
+			
 			//----------------------------------------------------------------------------------------------
 			// Callers View
 			//----------------------------------------------------------------------------------------------
