@@ -13,6 +13,7 @@ import edu.rice.cs.hpc.common.ui.Util;
 import edu.rice.cs.hpc.data.experiment.Experiment;
 import edu.rice.cs.hpc.data.experiment.metric.BaseMetric;
 import edu.rice.cs.hpc.data.experiment.metric.DerivedMetric;
+import edu.rice.cs.hpc.data.experiment.metric.MetricValue;
 import edu.rice.cs.hpc.data.experiment.scope.RootScope;
 import edu.rice.cs.hpc.data.experiment.scope.RootScopeType;
 import edu.rice.cs.hpc.data.experiment.scope.visitors.FilterScopeVisitor;
@@ -271,6 +272,10 @@ abstract public class BaseScopeView  extends AbstractBaseScopeView
             		// bug fix: for view initialization, we need to reset the status of hide/view
             		if (!keepColumnStatus) {
                 		status[i] = metric.getDisplayed();
+                		
+                		if (status[i] && myRootScope != null) {
+                			status[i] = myRootScope.getMetricValue(metric) != MetricValue.NONE;
+                		}
             		}
         		}
         	}

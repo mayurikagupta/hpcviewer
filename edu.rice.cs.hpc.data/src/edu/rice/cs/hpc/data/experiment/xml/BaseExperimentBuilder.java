@@ -52,6 +52,9 @@ public class BaseExperimentBuilder extends Builder {
 	
 	private final static String PROCEDURE_UNKNOWN = "unknown procedure";
 
+	static private final int DatabaseProcedureFake    = 1;
+	static private final int DatabaseProcedureDatacentric = 2;
+	
 	/** The default name for the experiment, in case none is found by the parser. */
 	protected String defaultName;
 
@@ -544,235 +547,181 @@ public class BaseExperimentBuilder extends Builder {
 	 ************************************************************************/
 	private void begin_PF(String[] attributes, String[] values)
 	{
-			boolean istext = true; 
-			boolean isalien = false; 
-			boolean new_cct_format = false;
-			int cct_id = 0, flat_id = 0;
-			int firstLn = 0, lastLn = 0;
-			SourceFile srcFile = null; // file location of this procedure
-			
-			LoadModuleScope objLoadModule    = null;
-			String procAttribute = null;
+		boolean istext = true; 
+		boolean isalien = false; 
+		boolean new_cct_format = false;
+		int cct_id = 0, flat_id = 0;
+		int firstLn = 0, lastLn = 0;
+		SourceFile srcFile = null; // file location of this procedure
 
-			for(int i=0; i<attributes.length; i++) {
-				if (attributes[i].equals("s")) { 
-					// new database format: s is the flat ID of the procedure
-					procAttribute = this.getProcedureName(values[i]);
-					flat_id = Integer.parseInt(values[i]);
-					if (!new_cct_format)
-						// old format: cct ID = flat ID
-						cct_id = flat_id;
-					
-				} else if (attributes[i].equals(ID_ATTRIBUTE)) {
-					// id of the proc frame. needs to cross ref
-					cct_id = Integer.parseInt(values[i]); 
-					new_cct_format = true;
-					
-				} else if(attributes[i].equals(FILENAME_ATTRIBUTE)) {
-					// file
-					istext = true;
-					try {
-						Integer indexFile = Integer.parseInt(values[i]);
-						srcFile = this.hashSourceFileTable.get(indexFile);
-					} catch (java.lang.NumberFormatException e) {
-						// in this case, either the value of "f" is invalid or it is the name of the file
-						// In some old format the attribute f contains the file not in the dictionary. So 
-						// 	we need to create it from here
-						if (this.srcFileStack.size()==1) {
-							// the first stack is null, so let start from number 1
-							srcFile = this.getOrCreateSourceFile(values[i], this.srcFileStack.size()+1);
-						}
+		LoadModuleScope objLoadModule    = null;
+		String procAttribute = null;
+
+		for(int i=0; i<attributes.length; i++) {
+			if (attributes[i].equals("s")) { 
+				// new database format: s is the flat ID of the procedure
+				procAttribute = this.getProcedureName(values[i]);
+				flat_id = Integer.parseInt(values[i]);
+				if (!new_cct_format)
+					// old format: cct ID = flat ID
+					cct_id = flat_id;
+
+			} else if (attributes[i].equals(ID_ATTRIBUTE)) {
+				// id of the proc frame. needs to cross ref
+				cct_id = Integer.parseInt(values[i]); 
+				new_cct_format = true;
+
+			} else if(attributes[i].equals(FILENAME_ATTRIBUTE)) {
+				// file
+				istext = true;
+				try {
+					Integer indexFile = Integer.parseInt(values[i]);
+					srcFile = this.hashSourceFileTable.get(indexFile);
+				} catch (java.lang.NumberFormatException e) {
+					// in this case, either the value of "f" is invalid or it is the name of the file
+					// In some old format the attribute f contains the file not in the dictionary. So 
+					// 	we need to create it from here
+					if (this.srcFileStack.size()==1) {
+						// the first stack is null, so let start from number 1
+						srcFile = this.getOrCreateSourceFile(values[i], this.srcFileStack.size()+1);
 					}
-					
-				} else if(attributes[i].equals("lm")) { 
-					// load module
-					try {
-						// let see if the value of ln is an ID or a simple load module name
-						Integer indexFile = Integer.parseInt(values[i]);
-						// look at the dictionary for the name of the load module
-						objLoadModule = this.hashLoadModuleTable.get(indexFile);
-						if (objLoadModule == null) {
-							// old database
-							objLoadModule = new LoadModuleScope(rootStack.peek(), values[i], null, indexFile.intValue());
-							this.hashLoadModuleTable.put(indexFile, objLoadModule);
-						}
-					} catch (java.lang.NumberFormatException e) {
-						// old database:
-						// this error means that the lm is not based on dictionary
-						objLoadModule = new LoadModuleScope(rootStack.peek(), values[i], null, values[i].hashCode());
+				}
+
+			} else if(attributes[i].equals("lm")) { 
+				// load module
+				try {
+					// let see if the value of ln is an ID or a simple load module name
+					Integer indexFile = Integer.parseInt(values[i]);
+					// look at the dictionary for the name of the load module
+					objLoadModule = this.hashLoadModuleTable.get(indexFile);
+					if (objLoadModule == null) {
+						// old database
+						objLoadModule = new LoadModuleScope(rootStack.peek(), values[i], null, indexFile.intValue());
+						this.hashLoadModuleTable.put(indexFile, objLoadModule);
 					}
-				} else if (attributes[i].equals("p") ) {
-					// obsolete format: p is the name of the procedure
-					procAttribute = values[i];
-					
-				} else if(attributes[i].equals(NAME_ATTRIBUTE)) {
-					// new database format: n is the flat ID of the procedure
-					procAttribute = this.getProcedureName(values[i]);
-					
-				} else if(attributes[i].equals(LINE_ATTRIBUTE)) {
-					// line number (or range)
-					StatementRange objRange = new StatementRange(values[i]);
-					firstLn = objRange.getFirstLine();
-					lastLn = objRange.getLastLine();
-					
-				} else if(attributes[i].equals("a")) { 
-					// alien
-					isalien = values[i].equals("1");
-					
-				} else if(attributes[i].equals(VALUE_ATTRIBUTE)) {
+				} catch (java.lang.NumberFormatException e) {
+					// old database:
+					// this error means that the lm is not based on dictionary
+					objLoadModule = new LoadModuleScope(rootStack.peek(), values[i], null, values[i].hashCode());
 				}
+			} else if (attributes[i].equals("p") ) {
+				// obsolete format: p is the name of the procedure
+				procAttribute = values[i];
+
+			} else if(attributes[i].equals(NAME_ATTRIBUTE)) {
+				// new database format: n is the flat ID of the procedure
+				procAttribute = this.getProcedureName(values[i]);
+
+			} else if(attributes[i].equals(LINE_ATTRIBUTE)) {
+				// line number (or range)
+				StatementRange objRange = new StatementRange(values[i]);
+				firstLn = objRange.getFirstLine();
+				lastLn = objRange.getLastLine();
+
+			} else if(attributes[i].equals("a")) { 
+				// alien
+				isalien = values[i].equals("1");
+
+			} else if(attributes[i].equals(VALUE_ATTRIBUTE)) {
 			}
-			
-			if (isalien) {
-				if (KEEP_OLD_DATABASE_COMPATIBILITY) {
-					// in the old database, the alien's flat ID is the same as the original one
-					// we want to differentiate here
-					flat_id = Integer.MAX_VALUE ^ flat_id;
-				}
+		}
 
-				if (procAttribute.isEmpty()) {
-					// this is a line scope
-					Scope scope;
-					if (firstLn == lastLn)
-						scope = new LineScope(rootStack.peek(), srcFile, firstLn-1, cct_id, flat_id);
-					else
-						scope = new StatementRangeScope(rootStack.peek(), srcFile, 
-								firstLn-1, lastLn-1, cct_id, flat_id);
-					scope.setCpid(0);
-					scopeStack.push(scope);
+		if (isalien) {
 
-					srcFile.setIsText(istext);
-					this.srcFileStack.add(srcFile);
-					return;
-				} else {
-					// this is a procedure scope uses the handling below
-				}
-			}
-
-			// FLAT PROFILE: we retrieve the source file from the previous tag
-			if(srcFile == null) {
-					srcFile = this.srcFileStack.peek();
-			} 
-			 
-			srcFile.setIsText(istext);
-			this.srcFileStack.add(srcFile);
-
-			boolean falseProcedure = false;
-			
-			Integer statusProc = statusProcedureMap.get(flat_id);
-			if (statusProc != null) {
-				if (statusProc.intValue() == 1) {
-					falseProcedure = true;
-					
-				} else if (statusProc.intValue() == 2) {
-					RootScope datacentricRoot = new RootScope(experiment, procAttribute, RootScopeType.DatacentricTree);
-					// push the new scope to the stack
-					scopeStack.push(datacentricRoot);
-					rootStack.push(datacentricRoot);
-
-					experiment.setDatacentricRootScope(datacentricRoot);
-					return;
-					
-				} else {
-					throw new RuntimeException(cct_id + ": Procedure status invalid:" + statusProc);
-				}
-			}
-							
-			
-			ProcedureScope procScope  = new ProcedureScope(rootStack.peek(), objLoadModule, srcFile, 
-					firstLn-1, lastLn-1, 
-					procAttribute, isalien, cct_id, flat_id, userData, falseProcedure);
-
-			if ( (this.scopeStack.size()>1) && ( this.scopeStack.peek() instanceof LineScope)  ) {
-
-				LineScope ls = (LineScope)this.scopeStack.pop();
-				int	callsiteID = ls.getFlatIndex();
-				
-				if (KEEP_OLD_DATABASE_COMPATIBILITY)
-				{
-					//-----------------------------------------------------------------------------------------
-					// In some database (especially the old ones), they have the same ID for different call sites
-					// In order to keep compatibility, we need to generate our own ID hoping it doesn't interfere
-					// with the ID generated by the new hpcprof :-(
-					//-----------------------------------------------------------------------------------------
-					callsiteID = this.getCallSiteID(ls, procScope);  
-				}
-				CallSiteScope csn = new CallSiteScope( ls, procScope, 
-						CallSiteScopeType.CALL_TO_PROCEDURE, cct_id, callsiteID );
-
-				// beginScope pushes csn onto the node stack and connects it with its parent
-				// this is done while the ls is off the stack so the parent of csn is ls's parent. 
-				// afterward, we rearrange the top of stack to tuck ls back underneath csn in case it is 
-				// needed for a subsequent procedure frame that is a sibling of csn in the tree.
-				this.beginScope(csn);
-				ls.setParentScope(csn.getParentScope());
-				CallSiteScope csn2 = (CallSiteScope) this.scopeStack.pop();
-				this.scopeStack.push(ls);
-				this.scopeStack.push(csn2);
-
-				if (isalien)
-					procScope.setProcedureType(ProcedureType.ProcedureInlineFunction);
-				else 
-					procScope.setProcedureType(ProcedureType.ProcedureNormal);
-			} else {
-				this.beginScope(procScope);
-
-				// fix bug #36 (omp idle is omitted in flat view)
-				// the root cause of the bug is that we do not differentiate between procedure inline macro
-				//   and procedure root (such as thread root, program root and omp idle).
-				// need to check if a procedure is an alien or not. Procedure root has no alien information
-				
-				if (isalien)
-					procScope.setProcedureType(ProcedureType.ProcedureInlineMacro);
+			if (procAttribute.isEmpty()) {
+				// this is a line scope
+				Scope scope;
+				if (firstLn == lastLn)
+					scope = new LineScope(rootStack.peek(), srcFile, firstLn-1, cct_id, flat_id);
 				else
-					procScope.setProcedureType(ProcedureType.ProcedureRoot);
-			}
-	}
+					scope = new StatementRangeScope(rootStack.peek(), srcFile, 
+							firstLn-1, lastLn-1, cct_id, flat_id);
+				scope.setCpid(0);
+				scopeStack.push(scope);
 
-	/*************************************************************************
-	 * Retrieve the ID of a call site.
-	 * Instead of using hpcprof's flat index, we reconstruct our own ID 
-	 *  (not sure if this is hpcprof's bug or not). hpcprof's flat index is not
-	 *  suitable if the same function is from the same file from different load modules
-	 *  In this case, hpcprof's flat index will be the same (which is incorrect) 
-	 *  
-	 * In normal case, the ID is the hashcode of its call site (line scope). 
-	 * But, in case of there are multiple calls in one line statement, we need
-	 * to generate different ID for each call sites.
-	 * 
-	 * @param ls
-	 * @param cs
-	 * @return
-	 *************************************************************************/
-	private int getCallSiteID ( LineScope ls, ProcedureScope cs ) {
-		LoadModuleScope module = cs.getLoadModule();
-		// add flat index if there are two calls in the same line
-		String sName = ls.getName() + "/" + cs.getName() + "/" + ls.getFlatIndex();
-		// in case of the same file and the same procedure with different module name
-		// this should fix where we have ~unknown-file~ and ~unknown-procedure~ in 
-		// different modules
-		if (module != null) {
-			sName = module.getModuleName()+ "/" + sName;
-		}
-		
-		int scope_id = sName.hashCode();
-		Scope s_old = this.hashCallSiteTable.get( Integer.valueOf(scope_id) );
-		if (s_old != null) {
-			if (s_old.getName().equals(cs.getName())) {
-				// the same line, the same ID, the same calls
-			} else {
-				// the same line, different calls. We need to create a new ID
-				scope_id = this.current_cs_id;
-				this.hashCallSiteTable.put(Integer.valueOf(scope_id), cs);
-				this.current_cs_id--;
+				srcFile.setIsText(istext);
+				this.srcFileStack.add(srcFile);
+				return;
 			}
-		} else {
-			this.hashCallSiteTable.put(Integer.valueOf(scope_id), cs);
 		}
-		return scope_id;
+
+		// FLAT PROFILE: we retrieve the source file from the previous tag
+		if(srcFile == null) {
+			srcFile = this.srcFileStack.peek();
+		} 
+
+		srcFile.setIsText(istext);
+		this.srcFileStack.add(srcFile);
+
+		boolean falseProcedure = false;
+
+		Integer statusProc = statusProcedureMap.get(flat_id);
+		if (statusProc != null) {
+			switch(statusProc.intValue()) {
+			case DatabaseProcedureFake:
+				falseProcedure = true;
+				break;
+
+			case DatabaseProcedureDatacentric:
+				RootScope datacentricRoot = new RootScope(experiment, procAttribute, RootScopeType.DatacentricTree);
+				// push the new scope to the stack
+				scopeStack.push(datacentricRoot);
+				rootStack.push(datacentricRoot);
+
+				experiment.setDatacentricRootScope(datacentricRoot);
+
+				// This is the start of datacentric root: we don't need to continue to create
+				//  procedure scope etc. We'll start with a new tree instead.
+
+				return;
+
+			default:
+				throw new RuntimeException(cct_id + ": Procedure status invalid:" + statusProc);
+			}
+		}
+
+
+		ProcedureScope procScope  = new ProcedureScope(rootStack.peek(), objLoadModule, srcFile, 
+				firstLn-1, lastLn-1, 
+				procAttribute, isalien, cct_id, flat_id, userData, falseProcedure);
+
+		if ( (this.scopeStack.size()>1) && ( this.scopeStack.peek() instanceof LineScope)  ) {
+
+			LineScope ls = (LineScope)this.scopeStack.pop();
+			int	callsiteID = ls.getFlatIndex();
+
+			CallSiteScope csn = new CallSiteScope( ls, procScope, 
+					CallSiteScopeType.CALL_TO_PROCEDURE, cct_id, callsiteID );
+
+			// beginScope pushes csn onto the node stack and connects it with its parent
+			// this is done while the ls is off the stack so the parent of csn is ls's parent. 
+			// afterward, we rearrange the top of stack to tuck ls back underneath csn in case it is 
+			// needed for a subsequent procedure frame that is a sibling of csn in the tree.
+			this.beginScope(csn);
+			ls.setParentScope(csn.getParentScope());
+			CallSiteScope csn2 = (CallSiteScope) this.scopeStack.pop();
+			this.scopeStack.push(ls);
+			this.scopeStack.push(csn2);
+
+			if (isalien)
+				procScope.setProcedureType(ProcedureType.ProcedureInlineFunction);
+			else 
+				procScope.setProcedureType(ProcedureType.ProcedureNormal);
+		} else {
+			this.beginScope(procScope);
+
+			// fix bug #36 (omp idle is omitted in flat view)
+			// the root cause of the bug is that we do not differentiate between procedure inline macro
+			//   and procedure root (such as thread root, program root and omp idle).
+			// need to check if a procedure is an alien or not. Procedure root has no alien information
+
+			if (isalien)
+				procScope.setProcedureType(ProcedureType.ProcedureInlineMacro);
+			else
+				procScope.setProcedureType(ProcedureType.ProcedureRoot);
+		}
 	}
 	
-
 	
 	/*************************************************************************
 	 *	Begins processing a A (alien) element.

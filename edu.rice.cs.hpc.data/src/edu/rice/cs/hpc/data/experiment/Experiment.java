@@ -265,17 +265,6 @@ public class Experiment extends BaseExperimentWithMetrics
 		return null;
 	}
 	
-	private void hideEmptyColumn(RootScope root) {
-		if (root == null) return;
-			
-		for (BaseMetric metric: metrics) {
-			MetricValue value = root.getMetricValue(metric);
-			if (value == MetricValue.NONE) {
-				metric.setDisplayed(false);
-			}
-		}
-	}
-	
 
 	/**
 	 * Post-processing for CCT:
@@ -316,11 +305,6 @@ public class Experiment extends BaseExperimentWithMetrics
 
 			EmptyMetricValuePropagationFilter emptyFilter = new EmptyMetricValuePropagationFilter();
 			copyMetricsToPartner(callingContextViewRootScope, MetricType.INCLUSIVE, emptyFilter);
-
-			//----------------------------------------------------------------------------------------------
-			// hide the metric if it's empty
-			//----------------------------------------------------------------------------------------------
-			hideEmptyColumn((RootScope)callingContextViewRootScope);
 			
 			//----------------------------------------------------------------------------------------------
 			// Callers View
