@@ -249,6 +249,23 @@ public class Experiment extends BaseExperimentWithMetrics
 	}
 
 
+	/*****
+	 * return a tree root
+	 * @return
+	 */
+	public RootScope getCallerTreeRoot() {
+
+		for (Object node: getRootScope().getChildren()) {
+			Scope scope = (Scope) node;
+			if ( (scope instanceof RootScope) && 
+					((RootScope)scope).getType()==RootScopeType.CallerTree )
+				return (RootScope) scope;
+		}
+
+		return null;
+	}
+	
+
 	/**
 	 * Post-processing for CCT:
 	 * <p>
@@ -288,7 +305,7 @@ public class Experiment extends BaseExperimentWithMetrics
 
 			EmptyMetricValuePropagationFilter emptyFilter = new EmptyMetricValuePropagationFilter();
 			copyMetricsToPartner(callingContextViewRootScope, MetricType.INCLUSIVE, emptyFilter);
-
+			
 			//----------------------------------------------------------------------------------------------
 			// Callers View
 			//----------------------------------------------------------------------------------------------

@@ -343,7 +343,7 @@ public class ScopeViewActionsGUI implements IScopeActionsGUI {
 			if (column.getData() != null) {
 				int iWidth = 0;
 				// it must be metric column
-				if (status[i]) {
+				if (i<status.length && status[i]) {
 					// display column
 	       			// Laks: bug no 131: we need to have special key for storing the column width
 	        		Object o = column.getData(ScopeTreeViewer.COLUMN_DATA_WIDTH);

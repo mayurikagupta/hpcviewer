@@ -3,9 +3,10 @@ Bundle-ManifestVersion: 2
 Bundle-Name: hpcremote
 Bundle-SymbolicName: edu.rice.cs.hpc.remote
 Bundle-Version: 5.5.1.qualifier
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Require-Bundle: edu.rice.cs.hpc.data,
- edu.rice.cs.hpc.traceviewer.data
+ edu.rice.cs.hpc.traceviewer.data,
+ com.jcraft.jzlib
 Export-Package: com.jcraft.jsch,
  edu.rice.cs.hpc.remote.data,
  edu.rice.cs.hpc.remote.tunnel
@@ -13,7 +14,7 @@ Import-Package: com.jcraft.jsch,
  edu.rice.cs.hpc.traceviewer.data.db,
  edu.rice.cs.hpc.traceviewer.data.graph,
  edu.rice.cs.hpc.traceviewer.data.util,
- org.eclipse.core.runtime;version="3.4.0",
+ org.eclipse.core.runtime,
  org.eclipse.core.runtime.jobs,
  org.eclipse.jface,
  org.eclipse.jface.action,
@@ -24,3 +25,4 @@ Import-Package: com.jcraft.jsch,
  org.eclipse.swt.widgets,
  org.eclipse.ui
 Bundle-Vendor: Rice University
+Automatic-Module-Name: edu.rice.cs.hpc.remote

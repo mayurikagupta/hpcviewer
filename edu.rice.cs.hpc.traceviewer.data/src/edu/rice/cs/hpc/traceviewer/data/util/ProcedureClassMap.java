@@ -50,21 +50,23 @@ public class ProcedureClassMap extends AliasMap<String,ProcedureClassData> {
 	 */
 	public void initDefault() {
 
-		final Color COLOR_GRAY;
+		Color COLOR_GRAY  = null;
+		Color COLOR_WHITE = null;
+		
 		if (display != null) {
-			COLOR_GRAY = display.getSystemColor(SWT.COLOR_GRAY);
-		} else {
-			COLOR_GRAY = null;
+			COLOR_GRAY  = display.getSystemColor(SWT.COLOR_GRAY);
+			COLOR_WHITE = display.getSystemColor(SWT.COLOR_WHITE); 
 		}
 
-		this.put("GPU_IDLE", CLASS_IDLE, COLOR_GRAY);
-		this.put("cudaEventSynchronize", CLASS_IDLE, COLOR_GRAY);
+		this.put("GPU_IDLE", 			  CLASS_IDLE, COLOR_GRAY);
+		this.put("cudaEventSynchronize",  CLASS_IDLE, COLOR_GRAY);
 		this.put("cudaStreamSynchronize", CLASS_IDLE, COLOR_GRAY);
 		this.put("cudaDeviceSynchronize", CLASS_IDLE, COLOR_GRAY);
 		this.put("cudaThreadSynchronize", CLASS_IDLE, COLOR_GRAY);
-		this.put("cuStreamSynchronize", CLASS_IDLE, COLOR_GRAY);
-		this.put("cuEventSynchronize", CLASS_IDLE, COLOR_GRAY);
-		this.put("cuCtxSynchronize", CLASS_IDLE, COLOR_GRAY);
+		this.put("cuStreamSynchronize",   CLASS_IDLE, COLOR_GRAY);
+		this.put("cuEventSynchronize", 	  CLASS_IDLE, COLOR_GRAY);
+		this.put("cuCtxSynchronize", 	  CLASS_IDLE, COLOR_GRAY);
+		this.put("<no thread>", 		  CLASS_IDLE, COLOR_WHITE);
 	}
 	
 	public Object[] getEntrySet() {

@@ -13,6 +13,7 @@ import edu.rice.cs.hpc.common.ui.Util;
 import edu.rice.cs.hpc.data.experiment.Experiment;
 import edu.rice.cs.hpc.data.experiment.metric.BaseMetric;
 import edu.rice.cs.hpc.data.experiment.metric.DerivedMetric;
+import edu.rice.cs.hpc.data.experiment.metric.MetricValue;
 import edu.rice.cs.hpc.data.experiment.scope.RootScope;
 import edu.rice.cs.hpc.data.experiment.scope.RootScopeType;
 import edu.rice.cs.hpc.data.experiment.scope.visitors.FilterScopeVisitor;
@@ -229,7 +230,14 @@ abstract public class BaseScopeView  extends AbstractBaseScopeView
 
         tree.setRedraw(false);
         
-        if(iColCount>1) {
+        if (!keepColumnStatus) {
+        	int i=0;
+        	for(BaseMetric metric: myExperiment.getMetrics()) {
+        		status[i] = metric.getDisplayed();
+        		i++;
+        	}
+        }
+        else if(iColCount>1) {
         	TreeColumn []columns = tree.getColumns();
         	
         	// this is Eclipse Indigo bug: when a column is disposed, the next column will have
@@ -242,15 +250,17 @@ abstract public class BaseScopeView  extends AbstractBaseScopeView
         			status[i-1] = (width > 0);
         		}
         	}
-        	
-        	// remove the metric columns blindly
-        	// TODO we need to have a more elegant solution here
-        	for(int i=1;i<iColCount;i++) {
-        		TreeColumn column = columns[i]; //treeViewer.getTree().getColumn(1);
-        		column.dispose();
-        	}
         }
-        // prepare the data for the sorter class for tree
+    	TreeColumn []columns = tree.getColumns();
+    	
+    	// remove the metric columns blindly
+    	// TODO we need to have a more elegant solution here
+    	for(int i=1;i<iColCount;i++) {
+    		TreeColumn column = columns[i]; //treeViewer.getTree().getColumn(1);
+    		column.dispose();
+    	}
+
+    	// prepare the data for the sorter class for tree
         // ScopeComparator sorterTreeColumn = (ScopeComparator) treeViewer.getComparator();
         // sorterTreeColumn.setMetric(myExperiment.getMetric(0));
 
@@ -271,6 +281,10 @@ abstract public class BaseScopeView  extends AbstractBaseScopeView
             		// bug fix: for view initialization, we need to reset the status of hide/view
             		if (!keepColumnStatus) {
                 		status[i] = metric.getDisplayed();
+                		
+                		if (status[i] && myRootScope != null) {
+                			status[i] = myRootScope.getMetricValue(metric) != MetricValue.NONE;
+                		}
             		}
         		}
         	}

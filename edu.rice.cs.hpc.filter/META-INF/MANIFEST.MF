@@ -7,7 +7,7 @@ Bundle-Activator: edu.rice.cs.hpc.filter.Activator
 Bundle-Vendor: Rice University
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
- edu.rice.cs.hpc.common;bundle-version="5.3.2"
+ edu.rice.cs.hpc.common
 Bundle-ActivationPolicy: lazy
 Export-Package: edu.rice.cs.hpc.filter,
  edu.rice.cs.hpc.filter.service,
@@ -19,3 +19,5 @@ Import-Package: edu.rice.cs.hpc.data.experiment,
  edu.rice.cs.hpc.data.experiment.scope.visitors,
  edu.rice.cs.hpc.data.filter,
  edu.rice.cs.hpc.data.util
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Automatic-Module-Name: edu.rice.cs.hpc.filter

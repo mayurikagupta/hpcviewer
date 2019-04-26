@@ -209,7 +209,7 @@ public class ScopeTreeViewer extends TreeViewer
     }
     
     /****
-     * Regreshes the viewer starting at the given element
+     * Refreshes the viewer starting at the given element
      * 
      * @param element
      * @param updateLabels
