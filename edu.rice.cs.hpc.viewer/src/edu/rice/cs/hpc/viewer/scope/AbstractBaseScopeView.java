@@ -355,13 +355,12 @@ abstract public class AbstractBaseScopeView  extends ViewPart
         //----------------- create the column tree
         final TreeViewerColumn colTree = new TreeViewerColumn(treeViewer,SWT.LEFT, 0);
         colTree.getColumn().setText("Scope");
-        colTree.getColumn().setWidth(ScopeTreeViewer.COLUMN_DEFAULT_WIDTH); //TODO dynamic size
-        colTree.setLabelProvider( getLabelProvider() ); // laks addendum
+        colTree.setLabelProvider( getLabelProvider() ); 
         
         TreeColumnLayout treeLayout = new TreeColumnLayout();
     	tableComposite.setLayout(treeLayout);
     			
-		treeLayout.setColumnData(colTree.getColumn(), new ColumnWeightData(100, 
+		treeLayout.setColumnData(colTree.getColumn(), new ColumnWeightData(20, 
 				ScopeTreeViewer.COLUMN_DEFAULT_WIDTH, true));
         
 		ScopeSelectionAdapter selectionAdapter = new ScopeSelectionAdapter(treeViewer, colTree);

@@ -171,13 +171,15 @@ abstract public class BaseScopeView  extends AbstractBaseScopeView
 	 */
 	protected void initTableColumns(boolean keepColumnStatus) {
 		
-        if (treeViewer != null) {
-        	Tree tree = treeViewer.getTree();
-        	if (tree != null && !tree.isDisposed())
-        	{
-        		initTableColumns(tree, keepColumnStatus);
-        	}
-        }
+		if (treeViewer == null) return;
+		
+    	Tree tree = treeViewer.getTree();
+    	if (tree == null || tree.isDisposed()) return;
+    	
+		addMetricColumnsToTable(tree, keepColumnStatus);
+		
+        // update the root scope of the actions !
+        this.objViewActions.updateContent(database.getExperiment(), myRootScope);
 	}
 
 	/***
@@ -220,7 +222,7 @@ abstract public class BaseScopeView  extends AbstractBaseScopeView
 	 * @param tree
 	 * @param keepColumnStatus
 	 */
-	private void initTableColumns(Tree tree, boolean keepColumnStatus) 
+	private void addMetricColumnsToTable(Tree tree, boolean keepColumnStatus) 
 	{
         final Experiment myExperiment = database.getExperiment();
         final int numMetric			  = myExperiment.getMetricCount();
@@ -290,8 +292,6 @@ abstract public class BaseScopeView  extends AbstractBaseScopeView
         	}
             treeViewer.setColumnProperties(titles); // do we need this ??
         }
-        // update the root scope of the actions !
-        this.objViewActions.updateContent(myExperiment, this.myRootScope);
     	this.objViewActions.objActionsGUI.setColumnsStatus(status);
     	
         tree.setRedraw(true);

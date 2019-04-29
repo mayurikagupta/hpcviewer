@@ -183,7 +183,6 @@ public class ScopeTreeViewer extends TreeViewer
 
 		TreeColumn col = colMetric.getColumn();
     	col.setText(objMetric.getDisplayName());	// set the title
-    	col.setWidth(COLUMN_DEFAULT_WIDTH); //TODO dynamic size
     	
 		// associate the data of this column to the metric since we
 		// allowed columns to move (col position is not enough !)
