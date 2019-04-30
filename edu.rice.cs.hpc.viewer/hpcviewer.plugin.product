@@ -21,7 +21,7 @@ Release 2019.04  (C) Copyright 2019, Rice University.
       <programArgs>-consoleLog
       </programArgs>
       <vmArgs>-Dosgi.locking=none
--Dosgi.requiredJavaVersion=1.7
+-Dosgi.requiredJavaVersion=1.8
       </vmArgs>
       <vmArgsMac>-XstartOnFirstThread -Dorg.eclipse.swt.internal.carbon.smallFonts
       </vmArgsMac>
@@ -44,7 +44,6 @@ Release 2019.04  (C) Copyright 2019, Rice University.
             winLargeHigh="/edu.rice.cs.hpc.viewer/icons/hpcviewer-icon-48x48-32bit.bmp"/>
       </win>
    </launcher>
-
 
    <vm>
    </vm>
