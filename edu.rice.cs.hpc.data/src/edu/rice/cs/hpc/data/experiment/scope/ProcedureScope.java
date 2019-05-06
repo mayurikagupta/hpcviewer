@@ -17,7 +17,9 @@ package edu.rice.cs.hpc.data.experiment.scope;
 import edu.rice.cs.hpc.data.experiment.scope.filters.MetricValuePropagationFilter;
 import edu.rice.cs.hpc.data.experiment.scope.visitors.IScopeVisitor;
 import edu.rice.cs.hpc.data.experiment.source.SourceFile;
+import edu.rice.cs.hpc.data.util.Constants;
 import edu.rice.cs.hpc.data.util.IUserData;
+import edu.rice.cs.hpc.data.util.Constants.NODE_TYPE;
 
 
 
@@ -54,7 +56,8 @@ public class ProcedureScope extends Scope  implements IMergedScope
 	protected boolean isalien;
 	// we assume that all procedure scope has the information on load module it resides
 	protected LoadModuleScope objLoadModule;
-
+	
+	protected Constants.NODE_TYPE node_type;
 
 	/**
 	 * scope ID of the procedure frame. The ID is given by hpcstruct and hpcprof
@@ -111,11 +114,13 @@ public ProcedureScope(RootScope root, SourceFile file, int first, int last,
  */
 public ProcedureScope(RootScope root, LoadModuleScope loadModule, SourceFile file, 
 		int first, int last, String proc, boolean _isalien, int cct_id, int flat_id, 
-		IUserData<String,String> userData, boolean isFalseProcedure)
+		IUserData<String,String> userData, boolean isFalseProcedure,
+		NODE_TYPE node_type)
 {
 	this(root, file, first, last,proc,_isalien, cct_id, flat_id, userData, isFalseProcedure);
-	//this.iScopeID = sid;
+	
 	this.objLoadModule = loadModule;
+	this.node_type     = node_type;
 }
 
 public boolean equals(Object obj) {
@@ -169,7 +174,8 @@ public Scope duplicate() {
 			getCCTIndex(), // Laks 2008.08.26: add the sequence ID
 			this.flat_node_index,
 			null,
-			this.isFalseProcedure);
+			this.isFalseProcedure,
+			this.node_type);
 
 	ps.setProcedureType(type);
 	
@@ -218,6 +224,10 @@ public void setProcedureType(ProcedureType type) {
 
 public ProcedureType getProcedureType() {
 	return this.type;
+}
+
+public Constants.NODE_TYPE getNodeType() {
+	return node_type;
 }
 
 }

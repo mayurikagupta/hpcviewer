@@ -29,6 +29,8 @@ import edu.rice.cs.hpc.data.experiment.scope.StatementRangeScope;
 import edu.rice.cs.hpc.data.experiment.source.FileSystemSourceFile;
 import edu.rice.cs.hpc.data.experiment.source.SourceFile;
 import edu.rice.cs.hpc.data.experiment.xml.Token2.TokenXML;
+
+import edu.rice.cs.hpc.data.util.Constants;
 import edu.rice.cs.hpc.data.util.Dialogs;
 import edu.rice.cs.hpc.data.util.IUserData;
 
@@ -552,15 +554,16 @@ public class BaseExperimentBuilder extends Builder {
 			
 			int cct_id  = 0, flat_id = 0;
 			int firstLn = 0, lastLn  = 0;
+			Constants.NODE_TYPE nodetype = Constants.NODE_TYPE.NODE_TYPE_REGULAR;
 			
 			SourceFile srcFile 			  = null; // file location of this procedure
 			LoadModuleScope objLoadModule = null;
-			String procAttribute 		  = null;
+			String procName 		  = null;
 
 			for(int i=0; i<attributes.length; i++) {
 				if (attributes[i].equals("s")) { 
 					// new database format: s is the flat ID of the procedure
-					procAttribute = this.getProcedureName(values[i]);
+					procName = this.getProcedureName(values[i]);
 					flat_id = Integer.parseInt(values[i]);
 					if (!new_cct_format)
 						// old format: cct ID = flat ID
@@ -606,11 +609,11 @@ public class BaseExperimentBuilder extends Builder {
 					}
 				} else if (attributes[i].equals("p") ) {
 					// obsolete format: p is the name of the procedure
-					procAttribute = values[i];
+					procName = values[i];
 					
 				} else if(attributes[i].equals(ATTRIBUTE_NAME)) {
 					// new database format: n is the flat ID of the procedure
-					procAttribute = this.getProcedureName(values[i]);
+					procName = this.getProcedureName(values[i]);
 					
 				} else if(attributes[i].equals(ATTRIBUTE_LINE)) {
 					// line number (or range)
@@ -620,7 +623,9 @@ public class BaseExperimentBuilder extends Builder {
 				} else if(attributes[i].equals(ATTRIBUTE_TYPE)) {
 					// type of the procedure frame
 					// mainly used by datacentric
-					
+					// see https://github.com/HPCToolkit/hpctoolkit/blob/datacentric/src/lib/prof-lean/hpcrun-fmt.h
+					int hpcrun_node_type = Integer.valueOf(values[i]);
+					nodetype = Constants.getNodeTypeFromHpcrun(hpcrun_node_type);
 					
 				} else if(attributes[i].equals(ATTRIBUTE_ALIEN)) { 
 					// alien
@@ -637,7 +642,7 @@ public class BaseExperimentBuilder extends Builder {
 					flat_id = Integer.MAX_VALUE ^ flat_id;
 				}
 
-				if (procAttribute.isEmpty()) {
+				if (procName.isEmpty()) {
 					// this is a line scope
 					Scope scope;
 					if (firstLn == lastLn)
@@ -658,7 +663,7 @@ public class BaseExperimentBuilder extends Builder {
 
 			// FLAT PROFILE: we retrieve the source file from the previous tag
 			if(srcFile == null) {
-					srcFile = this.srcFileStack.peek();
+				srcFile = this.srcFileStack.peek();
 			} 
 			 
 			srcFile.setIsText(istext);
@@ -672,7 +677,7 @@ public class BaseExperimentBuilder extends Builder {
 					falseProcedure = true;
 					
 				} else if (statusProc.intValue() == 2) {
-					RootScope datacentricRoot = new RootScope(experiment, procAttribute, RootScopeType.DatacentricTree);
+					RootScope datacentricRoot = new RootScope(experiment, procName, RootScopeType.DatacentricTree);
 					// push the new scope to the stack
 					scopeStack.push(datacentricRoot);
 					rootStack.push(datacentricRoot);
@@ -684,11 +689,10 @@ public class BaseExperimentBuilder extends Builder {
 					throw new RuntimeException(cct_id + ": Procedure status invalid:" + statusProc);
 				}
 			}
-							
 			
 			ProcedureScope procScope  = new ProcedureScope(rootStack.peek(), objLoadModule, srcFile, 
-					firstLn-1, lastLn-1, 
-					procAttribute, isalien, cct_id, flat_id, userData, falseProcedure);
+					firstLn-1, lastLn-1, procName, isalien, cct_id, flat_id, userData, 
+					falseProcedure, nodetype);
 
 			if ( (this.scopeStack.size()>1) && ( this.scopeStack.peek() instanceof LineScope)  ) {
 

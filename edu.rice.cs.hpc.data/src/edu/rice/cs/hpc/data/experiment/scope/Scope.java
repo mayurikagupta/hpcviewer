@@ -115,7 +115,6 @@ public Scope(RootScope root, SourceFile file, int first, int last, int cct_id, i
 	this.firstLineNumber = first;
 	this.lastLineNumber = last;
 
-//	this.srcCitation = null;
 	this.flat_node_index = flat_id;
 	this.cpid = -1;
 	this.iCounter  = 0;

@@ -110,6 +110,29 @@ public class Utilities {
 			textStyle.font = fontGeneral;
 		}
 	};
+	
+	/** font style for the root of memory access in datacentric */
+	static final public Styler STYLE_DATACENTRIC_MEMACCESS_ACTIVE = new StyledString.Styler() {
+		
+		@Override
+		public void applyStyles(TextStyle textStyle) {
+			ColorRegistry colorRegistry = JFaceResources.getColorRegistry();
+			textStyle.foreground = colorRegistry.get(JFacePreferences.COUNTER_COLOR);
+			textStyle.font 		 = fontGeneral;
+			textStyle.underline  = true; 
+		}
+	};
+	
+	/** font style for the root of memory access in datacentric */
+	static final public Styler STYLE_DATACENTRIC_MEMACCESS_INACTIVE = new StyledString.Styler() {
+		
+		@Override
+		public void applyStyles(TextStyle textStyle) {
+			ColorRegistry colorRegistry = JFaceResources.getColorRegistry();
+			textStyle.foreground = colorRegistry.get(JFacePreferences.DECORATIONS_COLOR);
+			textStyle.font = fontGeneral;
+		}
+	};
 
 	/**
 	 * Initialize the font for the metric columns (it may be different to other columns)
