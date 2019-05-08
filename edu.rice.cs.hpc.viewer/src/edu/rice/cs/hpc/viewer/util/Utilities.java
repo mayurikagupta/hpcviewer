@@ -116,10 +116,12 @@ public class Utilities {
 		
 		@Override
 		public void applyStyles(TextStyle textStyle) {
-			ColorRegistry colorRegistry = JFaceResources.getColorRegistry();
-			textStyle.foreground = colorRegistry.get(JFacePreferences.COUNTER_COLOR);
-			textStyle.font 		 = fontGeneral;
-			textStyle.underline  = true; 
+			Display display = Display.getCurrent();
+			if (display != null) {
+				Color color = display.getSystemColor(SWT.COLOR_DARK_MAGENTA);
+				textStyle.foreground = color;
+			}
+			textStyle.font = fontGeneral;
 		}
 	};
 	
@@ -128,8 +130,11 @@ public class Utilities {
 		
 		@Override
 		public void applyStyles(TextStyle textStyle) {
-			ColorRegistry colorRegistry = JFaceResources.getColorRegistry();
-			textStyle.foreground = colorRegistry.get(JFacePreferences.DECORATIONS_COLOR);
+			Display display = Display.getCurrent();
+			if (display != null) {
+				Color color = display.getSystemColor(SWT.COLOR_BLACK);
+				textStyle.foreground = color;
+			}
 			textStyle.font = fontGeneral;
 		}
 	};
