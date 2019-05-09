@@ -31,6 +31,7 @@ public class Constants {
 	static public final int HPCRUN_NODE_TYPE_ALLOCATION        =  2;
 	static public final int HPCRUN_NODE_TYPE_GLOBAL_VARIABLE   =  4;
 	static public final int HPCRUN_NODE_TYPE_MEMACCESS         =  8;
+	static public final int HPCRUN_NODE_TYPE_MEMACCESS_ROOT    = 10;
 	static public final int HPCRUN_NODE_TYPE_ROOT              = 16;
 	static public final int HPCRUN_NODE_TYPE_UNKNOWN_ATTRIBUTE = 32;
 	
@@ -41,6 +42,7 @@ public class Constants {
 		NODE_TYPE_GLOBAL_VARIABLE,
 		NODE_TYPE_MEMACCESS,
 		NODE_TYPE_ROOT,
+		NODE_TYPE_MEMACCESS_ROOT,
 		NODE_TYPE_UNKNOWN_ATTRIBUTE;
 	}
 	
@@ -70,6 +72,9 @@ public class Constants {
 			
 		case HPCRUN_NODE_TYPE_ROOT:
 			return NODE_TYPE.NODE_TYPE_ROOT;
+			
+		case HPCRUN_NODE_TYPE_MEMACCESS_ROOT:
+			return NODE_TYPE.NODE_TYPE_MEMACCESS_ROOT;
 			
 		case HPCRUN_NODE_TYPE_UNKNOWN_ATTRIBUTE:
 			return NODE_TYPE.NODE_TYPE_UNKNOWN_ATTRIBUTE;

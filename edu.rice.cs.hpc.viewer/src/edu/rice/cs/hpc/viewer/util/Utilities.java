@@ -19,6 +19,7 @@ import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.JFacePreferences;
 import org.eclipse.jface.preference.PreferenceConverter;
 import org.eclipse.jface.resource.ColorRegistry;
+import org.eclipse.jface.resource.FontDescriptor;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.jface.viewers.TreeViewer;
@@ -65,6 +66,8 @@ public class Utilities {
 	/* generic font for view and editor */
 	static public Font fontGeneral;
 	
+	static private Font fontGeneralBold;
+	
 	// special color for the top row
 	static public Color COLOR_TOP;
 	
@@ -107,6 +110,20 @@ public class Utilities {
 		public void applyStyles(TextStyle textStyle) {
 			ColorRegistry colorRegistry = JFaceResources.getColorRegistry();
 			textStyle.foreground = colorRegistry.get(JFacePreferences.DECORATIONS_COLOR);
+			textStyle.font = fontGeneral;
+		}
+	};
+	
+	/** font style for the root of memory access in datacentric */
+	static final public Styler STYLE_DATACENTRIC_MEMACCESS_ROOT = new StyledString.Styler() {
+		
+		@Override
+		public void applyStyles(TextStyle textStyle) {
+			Display display = Display.getCurrent();
+			if (display != null) {
+				Color color = display.getSystemColor(SWT.COLOR_DARK_RED);
+				textStyle.foreground = color;
+			}
 			textStyle.font = fontGeneral;
 		}
 	};
@@ -179,7 +196,10 @@ public class Utilities {
 		// create font for general purpose (view, editor, ...)
 		Utilities.fontGeneral = new Font (display, objFontGeneric);
 		
-		Utilities.fontMetric = new Font(display, objFontMetric);		
+		Utilities.fontMetric = new Font(display, objFontMetric);
+
+		FontDescriptor fd = FontDescriptor.createFrom(objFontGeneric).setStyle(SWT.BOLD);
+		Utilities.fontGeneralBold = fd.createFont(display);
 	}
 
 	/**
@@ -263,6 +283,8 @@ public class Utilities {
 		try {
 			Utilities.fontGeneral.dispose();
 			Utilities.fontMetric.dispose();
+			Utilities.fontGeneralBold.dispose();
+			
 			COLOR_TOP.dispose();
 			
 		} catch (Exception e) {

@@ -11,9 +11,11 @@ import org.eclipse.ui.IWorkbenchWindow;
 
 import edu.rice.cs.hpc.data.experiment.Experiment;
 import edu.rice.cs.hpc.data.experiment.scope.CallSiteScope;
+import edu.rice.cs.hpc.data.experiment.scope.ProcedureScope;
 import edu.rice.cs.hpc.data.experiment.scope.RootScope;
 import edu.rice.cs.hpc.data.experiment.scope.Scope;
 import edu.rice.cs.hpc.data.experiment.scope.visitors.DatacentricScopeVisitor;
+import edu.rice.cs.hpc.data.util.Constants;
 import edu.rice.cs.hpc.viewer.graph.GraphMenu;
 import edu.rice.cs.hpc.viewer.scope.AbstractContentProvider;
 import edu.rice.cs.hpc.viewer.scope.BaseScopeView;
@@ -121,8 +123,6 @@ public class DataView extends BaseScopeView
 		public StyledString getStyledText(Object element) {
 			final Scope node  = (Scope) element;
 			
-			final String text = getText(node);
-			
 			StyledString styledString= new StyledString();
 			
 			// ----------------------------------------------
@@ -139,11 +139,17 @@ public class DataView extends BaseScopeView
 				
 				if (line > 0) {
 					// show the line number
-					if (isReadable)
+					if (isReadable) {
 						styledString.append(String.valueOf(line)+": ", Utilities.STYLE_COUNTER);
-					else 
+					} else  {
 						styledString.append(String.valueOf(line)+": ", Utilities.STYLE_DECORATIONS);
+					}
 				}
+			}
+			final String text = getText(node);
+
+			if (setMemAccessRoot(node, text, styledString)) {
+				return styledString;
 			}
 			if(Utilities.isFileReadable(node)) {
 				if (node.isCounterPositif())
@@ -157,6 +163,24 @@ public class DataView extends BaseScopeView
 					styledString.append( text, Utilities.STYLE_INACTIVE_LINK );
 			}
 			return styledString;
+		}
+		
+		private boolean setMemAccessRoot(Scope scope, String text, StyledString styledString) {
+			ProcedureScope proc = null;
+			
+			if (scope instanceof CallSiteScope) {
+				proc = ((CallSiteScope)scope).getProcedureScope();
+			} else if (scope instanceof ProcedureScope) {
+				proc = (ProcedureScope) scope;
+			} else {
+				return false;
+			}
+			
+			if (proc.getNodeType() == Constants.NODE_TYPE.NODE_TYPE_MEMACCESS_ROOT) {
+				styledString.append(text, Utilities.STYLE_DATACENTRIC_MEMACCESS_ROOT);
+				return true;
+			}
+			return false;
 		}
 	}
 }
