@@ -24,9 +24,11 @@ import edu.rice.cs.hpc.viewer.scope.StyledScopeLabelProvider;
  * This class has special actions differed from calling context and caller view
  *
  */
-public class FlatScopeView extends DynamicScopeView {
+public class FlatScopeView extends DynamicScopeView 
+{
     public static final String ID = "edu.rice.cs.hpc.viewer.scope.FlatScopeView";
     
+    private AbstractContentProvider contentProvider = null;
         
     protected ScopeViewActions createActions(Composite parent, CoolBar coolbar) {
     	IWorkbenchWindow window = this.getSite().getWorkbenchWindow();
@@ -46,7 +48,11 @@ public class FlatScopeView extends DynamicScopeView {
 
 	@Override
 	protected AbstractContentProvider getScopeContentProvider() {
-		return new FlatViewContentProvider(getTreeViewer());
+		
+		if (contentProvider == null) {
+			contentProvider = new FlatViewContentProvider(getTreeViewer());
+		}
+		return contentProvider;
 	}
 
 	@Override

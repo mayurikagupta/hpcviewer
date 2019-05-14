@@ -26,7 +26,7 @@ public class ScopeView extends BaseScopeView
     public static final String ID = "edu.rice.cs.hpc.viewer.scope.ScopeView";
 	
     private int lastClickColumn = -1;
-    
+    private AbstractContentProvider contentProvider = null;
     
     /***
      * retrieve the last clicked column
@@ -64,7 +64,10 @@ public class ScopeView extends BaseScopeView
 
 	@Override
 	protected AbstractContentProvider getScopeContentProvider() {
-		return new ScopeTreeContentProvider(getTreeViewer());
+		if (contentProvider == null) {
+			contentProvider = new ScopeTreeContentProvider(getTreeViewer());
+		}
+		return contentProvider;
 	}
 
     

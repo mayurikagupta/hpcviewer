@@ -27,6 +27,8 @@ import edu.rice.cs.hpc.viewer.scope.StyledScopeLabelProvider;
 public class CallerScopeView extends DynamicScopeView {
     public static final String ID = "edu.rice.cs.hpc.viewer.scope.CallerScopeView";
 
+    private AbstractContentProvider contentProvider = null;
+    
 	/* (non-Javadoc)
 	 * @see edu.rice.cs.hpc.viewer.scope.BaseScopeView#createActions(org.eclipse.swt.widgets.Composite, org.eclipse.swt.widgets.CoolBar)
 	 */
@@ -50,7 +52,11 @@ public class CallerScopeView extends DynamicScopeView {
 
 	@Override
 	protected AbstractContentProvider getScopeContentProvider() {
-		return new CallerViewContentProvider(getTreeViewer());
+		
+		if (contentProvider == null) {
+			contentProvider = new CallerViewContentProvider(getTreeViewer());
+		}
+		return contentProvider;
 	}
 
 	@Override

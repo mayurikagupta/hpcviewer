@@ -21,7 +21,7 @@ import edu.rice.cs.hpc.viewer.provider.TableMetricState;
 
 
 /**
- * 
+ * Base class for top-down, bottom-up and flat views
  *
  */
 abstract public class BaseScopeView  extends AbstractBaseScopeView 
@@ -139,11 +139,6 @@ abstract public class BaseScopeView  extends AbstractBaseScopeView
             treeViewer.setInput(myRootScope);
             
             this.objViewActions.updateContent(getExperiment(), myRootScope);
-
-            // Try select the first scope
-            /*TreeItem objItem = treeViewer.getTree().getItem(1);            
-            treeViewer.getTree().showItem(objItem);
-            this.treeViewer.getTree().setSelection(objItem);*/
             
             // reset the button
             this.objViewActions.checkNodeButtons();
@@ -153,6 +148,8 @@ abstract public class BaseScopeView  extends AbstractBaseScopeView
             // if the filter may incur misleading information, we should warn users
             // ------------------------------------------------------------
             checkFilterStatus(myExperiment);
+            
+        	selectFirstRow();
         }
    	}
 
@@ -262,36 +259,30 @@ abstract public class BaseScopeView  extends AbstractBaseScopeView
     		column.dispose();
     	}
 
-    	// prepare the data for the sorter class for tree
-        // ScopeComparator sorterTreeColumn = (ScopeComparator) treeViewer.getComparator();
-        // sorterTreeColumn.setMetric(myExperiment.getMetric(0));
-
         // dirty solution to update titles
         TreeViewerColumn []colMetrics = new TreeViewerColumn[numMetric];
-        {
-            // Update metric title labels
-            String[] titles = new String[numMetric+1];
-            titles[0] = "Scope";	// unused element. Already defined
-            // add table column for each metric
-        	for (int i=0; i<numMetric; i++)
-        	{
-        		final BaseMetric metric = myExperiment.getMetric(i);
-        		if (metric != null) {
-            		titles[i+1] = metric.getDisplayName();	// get the title
-            		colMetrics[i] = this.treeViewer.addTreeColumn(metric, (i==0));
+        // Update metric title labels
+        String[] titles = new String[numMetric+1];
+        titles[0] = "Scope";	// unused element. Already defined
+        // add table column for each metric
+    	for (int i=0; i<numMetric; i++)
+    	{
+    		final BaseMetric metric = myExperiment.getMetric(i);
+    		if (metric != null) {
+        		titles[i+1] = metric.getDisplayName();	// get the title
+        		colMetrics[i] = this.treeViewer.addTreeColumn(metric, (i==0));
+        		
+        		// bug fix: for view initialization, we need to reset the status of hide/view
+        		if (!keepColumnStatus) {
+            		status[i] = metric.getDisplayed();
             		
-            		// bug fix: for view initialization, we need to reset the status of hide/view
-            		if (!keepColumnStatus) {
-                		status[i] = metric.getDisplayed();
-                		
-                		if (status[i] && myRootScope != null) {
-                			status[i] = myRootScope.getMetricValue(metric) != MetricValue.NONE;
-                		}
+            		if (status[i] && myRootScope != null) {
+            			status[i] = myRootScope.getMetricValue(metric) != MetricValue.NONE;
             		}
         		}
-        	}
-            treeViewer.setColumnProperties(titles); // do we need this ??
-        }
+    		}
+    	}
+    	
     	this.objViewActions.objActionsGUI.setColumnsStatus(status);
     	
         tree.setRedraw(true);

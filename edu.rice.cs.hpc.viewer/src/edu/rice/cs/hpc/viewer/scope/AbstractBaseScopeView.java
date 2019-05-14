@@ -38,6 +38,7 @@ import org.eclipse.jface.action.Action;
 import org.eclipse.jface.viewers.CellLabelProvider;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeExpansionEvent;
 import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.jface.viewers.TreeViewer;
@@ -511,12 +512,12 @@ abstract public class AbstractBaseScopeView  extends ViewPart
     //======================================================
     // ................ UPDATE ............................
     //======================================================
-    // laks: we need experiment and rootscope
+
     /**
      * Update the data input for Scope View, depending also on the scope
      */
     public void setInput(Database db, RootScope scope, boolean keepColumnStatus) {
-    	database = db;
+    	database    = db;
     	myRootScope = scope;// try to get the aggregate value
 
     	if (database.getExperiment().isMergedDatabase()) {
@@ -530,7 +531,7 @@ abstract public class AbstractBaseScopeView  extends ViewPart
         initTableColumns(keepColumnStatus);
         
         // notify the children class to update the display
-    	updateDisplay();    	
+    	updateDisplay();
     }
     
     
@@ -580,6 +581,22 @@ abstract public class AbstractBaseScopeView  extends ViewPart
     public Database getDatabase() {
     	return database;
     }
+
+    /**
+     * Select the first row programmatically<br>
+     * It doesn't select the "top" row which contains aggregate metric,
+     * but instead the first child.
+     */
+    protected void selectFirstRow() {
+    	AbstractContentProvider content = getScopeContentProvider();
+    	Object []children = content.getSortedChildren(myRootScope);
+    	
+    	if (children != null && children[0] != null) {
+    		StructuredSelection objSelect = new StructuredSelection(children[0]);
+    		treeViewer.setSelection(objSelect, true);
+    	}
+    }
+    
     //======================================================
     // ................ ABSTRACT...........................
     //======================================================

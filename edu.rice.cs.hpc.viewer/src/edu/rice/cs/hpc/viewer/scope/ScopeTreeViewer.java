@@ -113,8 +113,12 @@ public class ScopeTreeViewer extends TreeViewer
 	/****
 	 * refresh the title of all metric columns.
 	 * <p/>
+	 * This method is executed when there is a need to refresh the content of 
+	 * the table due to change of columns or its label (for example because
+	 * the need to show/hide column, rename metric label, etc)
+	 * <p>
 	 * warning: this method uses linear search to see if they are metric column or not,
-	 * 	so the complexity is O(n). 
+	 * 	so the complexity is O(n). </p>
 	 * 
 	 */
 	public void refreshColumnTitle() {
@@ -164,6 +168,14 @@ public class ScopeTreeViewer extends TreeViewer
 			
 			Utilities.insertTopRow(this, imgItem, sText);
 		}
+		for( TreeColumn column : columns ) {
+			Object obj = column.getData();
+			
+			if (obj instanceof BaseMetric) {
+				BaseMetric metric = (BaseMetric) obj;
+				column.setToolTipText(metric.getDisplayName());
+			}
+		}			
 	}
 	
     /**

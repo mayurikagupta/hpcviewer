@@ -29,8 +29,8 @@ public class DataView extends BaseScopeView
 {
 	final static public String ID = "edu.rice.cs.hpc.viewer.scope.datacentric.DataView";
 	
-	private DataViewContentProvider  contentProvider = null;
-	private DataViewLabelProvider labelProvider   = null;
+	private DataViewContentProvider contentProvider = null;
+	private DataViewLabelProvider   labelProvider   = null;
 
 	@Override
 	protected void updateDatabase(Experiment new_database) {
@@ -101,15 +101,25 @@ public class DataView extends BaseScopeView
 		}
 	};
 	
+	
+	/*******
+	 * 
+	 * @author la5
+	 *
+	 *******/
 	private static class DataViewLabelProvider extends DelegatingStyledCellLabelProvider
 	{
-
 		public DataViewLabelProvider(IWorkbenchWindow window) {
 			super(new DataViewStyledLabelProvider(window));
 		}
-		
 	}
+
 	
+	/*******
+	 * 
+	 * Label provider class for data view
+	 *
+	 *******/
 	private static class DataViewStyledLabelProvider extends ScopeLabelProvider
 	{
 
