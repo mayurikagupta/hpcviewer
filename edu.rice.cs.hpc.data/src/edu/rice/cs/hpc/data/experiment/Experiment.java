@@ -266,6 +266,17 @@ public class Experiment extends BaseExperimentWithMetrics
 	}
 	
 
+	private void hideEmptyMetrics(RootScope root) {
+		
+		if (root == null) return;
+		
+		for(BaseMetric metric: metrics) {
+			if (metric.getDisplayed() && root.getMetricValue(metric) == MetricValue.NONE) {
+				metric.setDisplayed(false);
+			}
+		}
+	}
+	
 	/**
 	 * Post-processing for CCT:
 	 * <p>
@@ -305,6 +316,8 @@ public class Experiment extends BaseExperimentWithMetrics
 
 			EmptyMetricValuePropagationFilter emptyFilter = new EmptyMetricValuePropagationFilter();
 			copyMetricsToPartner(callingContextViewRootScope, MetricType.INCLUSIVE, emptyFilter);
+			
+			hideEmptyMetrics( (RootScope) callingContextViewRootScope );
 			
 			//----------------------------------------------------------------------------------------------
 			// Callers View

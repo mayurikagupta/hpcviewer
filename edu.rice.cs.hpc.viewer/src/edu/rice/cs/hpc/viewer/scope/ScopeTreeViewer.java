@@ -194,7 +194,9 @@ public class ScopeTreeViewer extends TreeViewer
 		colMetric.setLabelProvider( new MetricLabelProvider(objMetric) );
 
 		TreeColumn col = colMetric.getColumn();
-    	col.setText(objMetric.getDisplayName());	// set the title
+		
+    	col.setText(objMetric.getDisplayName());		// set the title
+    	col.setToolTipText(objMetric.getDisplayName()); // set tooltip
     	
 		// associate the data of this column to the metric since we
 		// allowed columns to move (col position is not enough !)

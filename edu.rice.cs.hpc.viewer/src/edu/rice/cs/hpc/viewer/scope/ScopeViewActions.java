@@ -388,6 +388,8 @@ public abstract class ScopeViewActions /*extends ScopeActions /* implements IToo
 
 			final DerivedMetric objMetric = dlg.getMetric();
 			
+			objMetric.setDisplayed(true);
+			
 			getMetricManager().addDerivedMetric(objMetric);
 			
 			final ISourceProviderService service = (ISourceProviderService) objWindow.getService(ISourceProviderService.class);

@@ -22,7 +22,9 @@ import edu.rice.cs.hpc.viewer.provider.TableMetricState;
 
 /**
  * Base class for top-down, bottom-up and flat views
- *
+ * 
+ * <p>This class handles filter and changes of columns (new column, name or width)
+ * </p>
  */
 abstract public class BaseScopeView  extends AbstractBaseScopeView 
 {
@@ -259,27 +261,12 @@ abstract public class BaseScopeView  extends AbstractBaseScopeView
     		column.dispose();
     	}
 
-        // dirty solution to update titles
-        TreeViewerColumn []colMetrics = new TreeViewerColumn[numMetric];
-        // Update metric title labels
-        String[] titles = new String[numMetric+1];
-        titles[0] = "Scope";	// unused element. Already defined
         // add table column for each metric
     	for (int i=0; i<numMetric; i++)
     	{
     		final BaseMetric metric = myExperiment.getMetric(i);
     		if (metric != null) {
-        		titles[i+1] = metric.getDisplayName();	// get the title
-        		colMetrics[i] = this.treeViewer.addTreeColumn(metric, (i==0));
-        		
-        		// bug fix: for view initialization, we need to reset the status of hide/view
-        		if (!keepColumnStatus) {
-            		status[i] = metric.getDisplayed();
-            		
-            		if (status[i] && myRootScope != null) {
-            			status[i] = myRootScope.getMetricValue(metric) != MetricValue.NONE;
-            		}
-        		}
+        		treeViewer.addTreeColumn(metric, (i==0));
     		}
     	}
     	
