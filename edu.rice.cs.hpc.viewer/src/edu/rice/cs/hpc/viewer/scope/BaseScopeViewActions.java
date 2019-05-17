@@ -11,15 +11,10 @@ import org.eclipse.swt.widgets.CoolBar;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchWindow;
 
-import edu.rice.cs.hpc.data.experiment.BaseExperiment;
 import edu.rice.cs.hpc.data.experiment.Experiment;
 import edu.rice.cs.hpc.data.experiment.metric.DerivedMetric;
 import edu.rice.cs.hpc.data.experiment.metric.IMetricManager;
 import edu.rice.cs.hpc.data.experiment.scope.Scope;
-import edu.rice.cs.hpc.viewer.experiment.ExperimentView;
-import edu.rice.cs.hpc.viewer.window.Database;
-import edu.rice.cs.hpc.viewer.window.ViewerWindow;
-import edu.rice.cs.hpc.viewer.window.ViewerWindowManager;
 
 /**
  * 
@@ -89,16 +84,14 @@ public class BaseScopeViewActions extends ScopeViewActions {
     	layout.setColumnData(colDerived.getColumn(), colData);
 		
     	objActionsGUI.restoreParentNode();
+		
+    	// adjust the column width 
+		colDerived.getColumn().pack();
     	
-		//this.objActionsGUI.addMetricColumns(colDerived); 
     	treeViewer.getTree().setRedraw(true);
-		// adjust the column width 
-		//colDerived.getColumn().pack();
 		
 		// instead of refresh, we use update which will reset the input and
 		//	reinitialize the table. It isn't elegant, but works in all platforms
 		view.updateDisplay();
 	}
-	
-
 }

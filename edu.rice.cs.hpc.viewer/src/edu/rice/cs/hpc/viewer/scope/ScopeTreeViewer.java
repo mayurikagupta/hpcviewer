@@ -203,6 +203,7 @@ public class ScopeTreeViewer extends TreeViewer
     	col.setData(COLUMN_DATA_WIDTH, COLUMN_DEFAULT_WIDTH);
     	col.setData(objMetric);
 		col.setMoveable(true);
+		col.setWidth(COLUMN_DEFAULT_WIDTH);
 
 		ScopeSelectionAdapter selectionAdapter = new ScopeSelectionAdapter(this, colMetric);
 		
@@ -214,8 +215,8 @@ public class ScopeTreeViewer extends TreeViewer
 		}
 		Layout layout = getTree().getParent().getLayout();
 		if (layout instanceof TreeColumnLayout) {
-			final ColumnPixelData data = new ColumnPixelData(ScopeTreeViewer.COLUMN_DEFAULT_WIDTH, true, false);
-			((TreeColumnLayout)layout).setColumnData(colMetric.getColumn(), data);
+			final ColumnPixelData data = new ColumnPixelData(COLUMN_DEFAULT_WIDTH, true, false);
+			((TreeColumnLayout)layout).setColumnData(col, data);
 		}
 
 		return colMetric;
