@@ -266,6 +266,8 @@ public class ThreadView extends AbstractBaseScopeView
 					// sort initially the first column metric
 					sort = false;
 				}
+				treeViewer.getTree().pack();
+				
 				Iterator<Entry<Integer, BaseMetric>> iterator = listOfDuplicates.entrySet().iterator();
 				while(iterator.hasNext()) {
 					Entry<Integer, BaseMetric> entry = iterator.next();

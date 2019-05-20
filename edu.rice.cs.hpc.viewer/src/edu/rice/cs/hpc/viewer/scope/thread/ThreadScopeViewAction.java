@@ -8,6 +8,7 @@ import edu.rice.cs.hpc.data.experiment.metric.IMetricManager;
 import edu.rice.cs.hpc.data.experiment.scope.Scope;
 import edu.rice.cs.hpc.viewer.scope.AbstractBaseScopeView;
 import edu.rice.cs.hpc.viewer.scope.BaseScopeViewActions;
+import edu.rice.cs.hpc.viewer.scope.ScopeViewActions;
 import edu.rice.cs.hpc.viewer.scope.topdown.CallingContextActionsGUI;
 
 public class ThreadScopeViewAction extends BaseScopeViewActions 
@@ -16,7 +17,7 @@ public class ThreadScopeViewAction extends BaseScopeViewActions
 	
 	public ThreadScopeViewAction(AbstractBaseScopeView view, IWorkbenchWindow window,
 			Composite parent, CoolBar coolbar, IMetricManager metricManager) {
-		super(window.getShell(), window, parent, coolbar);
+		super(window, view, parent, coolbar, ScopeViewActions.ActionScope.THIS_VIEW_ONLY);
 		this.manager = metricManager;
 	}
 

@@ -39,6 +39,17 @@ import edu.rice.cs.hpc.viewer.util.Utilities;
  */
 public abstract class ScopeViewActions /*extends ScopeActions /* implements IToolbarManager*/ 
 {
+	/**
+	 * 
+	 * Enumeration type to specify the scope of the action:
+	 * <ol>
+	 * <li>THIS_VIEW_ONLY:   only applies to this view, no action for other views
+	 * <li>WINDOW_ALL_VIEWS: applies to all views within the same window
+	 * <li>APPLICATION_ALL_VIEWS: applies to all views within the application
+	 * </ol>
+	 */
+	public static enum ActionScope {THIS_VIEW_ONLY, WINDOW_ALL_VIEWS, APPLICATION_ALL_VIEWS};
+	
 	// constants
 	static public double fTHRESHOLD = PreferenceConstants.P_THRESHOLD_DEFAULT; 
 	static final private int MESSAGE_TIMEOUT = 8000; // time out when showing a message
@@ -47,7 +58,6 @@ public abstract class ScopeViewActions /*extends ScopeActions /* implements IToo
     protected ScopeTreeViewer 	treeViewer;		  	// tree 
     protected RootScope 		myRootScope;		// the root scope of this view
 
-    // laksono 2009.04.07
     protected ScopeZoom objZoom = null;
     
     public interface IActionType {};
@@ -57,6 +67,9 @@ public abstract class ScopeViewActions /*extends ScopeActions /* implements IToo
 	protected IScopeActionsGUI 	objActionsGUI;
     protected Shell				objShell;
 	
+    private AbstractBaseScopeView view;
+    private ActionScope actionScope = ActionScope.APPLICATION_ALL_VIEWS;
+    
     /**
      * Constructor: create actions and the GUI (which is a coolbar)
      * @param viewSite the site of the view (used for retrieving shell, display, ...)
@@ -73,6 +86,25 @@ public abstract class ScopeViewActions /*extends ScopeActions /* implements IToo
 		fTHRESHOLD = objPref.getFloat(PreferenceConstants.P_THRESHOLD);
     }
 
+    /***
+     * Special constructor to specify whether the action of toolbar is local, within the same window
+     *   or within the application (default)
+     *   
+     * @param window
+     * @param parent
+     * @param coolbar
+     * @param scope
+     */
+    public ScopeViewActions(IWorkbenchWindow window, AbstractBaseScopeView view,
+    						Composite parent, CoolBar coolbar, 
+    						ActionScope scope) {
+    	this(window.getShell(), window, parent, coolbar);
+    	
+    	this.actionScope = scope;
+    	this.view  		 = view;
+    }
+    
+    
     /**
      * Each class has its own typical GUI creation
      */
@@ -392,10 +424,16 @@ public abstract class ScopeViewActions /*extends ScopeActions /* implements IToo
 			
 			getMetricManager().addDerivedMetric(objMetric);
 			
-			final ISourceProviderService service = (ISourceProviderService) objWindow.getService(ISourceProviderService.class);
-			TableMetricState metricStateProvider = (TableMetricState) service.getSourceProvider(TableMetricState.METRIC_COLUMNS_VISIBLE);
+			if (actionScope == ActionScope.THIS_VIEW_ONLY) {
+				addMetricColumn(view, objMetric);
 
-			metricStateProvider.notifyMetricAdd(myRootScope.getExperiment(), objMetric);
+			} else {
+				
+				final ISourceProviderService service = (ISourceProviderService) objWindow.getService(ISourceProviderService.class);
+				TableMetricState metricStateProvider = (TableMetricState) service.getSourceProvider(TableMetricState.METRIC_COLUMNS_VISIBLE);
+
+				metricStateProvider.notifyMetricAdd(myRootScope.getExperiment(), objMetric);
+			}
 		}
 	}
 

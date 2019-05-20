@@ -28,6 +28,12 @@ public class BaseScopeViewActions extends ScopeViewActions {
 		super(shell, window, parent, coolbar);
 	}
 
+	public BaseScopeViewActions(IWorkbenchWindow window, AbstractBaseScopeView view,
+			Composite parent, CoolBar coolbar,
+			ScopeViewActions.ActionScope scope) {
+		super(window, view, parent, coolbar, scope);
+	}
+
 	public void checkStates(Scope nodeSelected) {
     	boolean bCanZoomIn = objZoom.canZoomIn(nodeSelected);
 		objActionsGUI.enableZoomIn( bCanZoomIn );
