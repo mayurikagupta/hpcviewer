@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="ASCII"?>
+<application:Application xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:application="http://www.eclipse.org/ui/2010/UIModel/application" xmlns:basic="http://www.eclipse.org/ui/2010/UIModel/application/ui/basic" xmlns:menu="http://www.eclipse.org/ui/2010/UIModel/application/ui/menu" xmi:id="_uzhYALF2Eem1S_wJzMCpwQ" elementId="edu.rice.cs.hpcviewer411.ui.application">
+  <children xsi:type="basic:TrimmedWindow" xmi:id="_Lh0rULF-Eem1S_wJzMCpwQ" elementId="edu.rice.cs.hpcviewer411.ui.trimmedwindow.hpcviewerdatabasename" label="hpcviewer: database name" x="0" y="0" width="2000" height="1024">
+    <children xsi:type="basic:PartSashContainer" xmi:id="_EGQmwLGAEem1S_wJzMCpwQ" elementId="edu.rice.cs.hpcviewer411.ui.partsashcontainer.main">
+      <children xsi:type="basic:PartStack" xmi:id="_MH0pcLGAEem1S_wJzMCpwQ" elementId="edu.rice.cs.hpcviewer411.ui.partstack.0">
+        <children xsi:type="basic:Part" xmi:id="_OqkTALGAEem1S_wJzMCpwQ" elementId="edu.rice.cs.hpcviewer411.ui.part.main" label=""/>
+      </children>
+      <children xsi:type="basic:PartStack" xmi:id="__UBKULGAEem1S_wJzMCpwQ" elementId="edu.rice.cs.hpcviewer411.ui.partstack.1">
+        <children xsi:type="basic:Part" xmi:id="___g-YLGAEem1S_wJzMCpwQ" elementId="edu.rice.cs.hpcviewer411.ui.part.top-downview" label="Top-down view"/>
+        <children xsi:type="basic:Part" xmi:id="_Am02ALGBEem1S_wJzMCpwQ" elementId="edu.rice.cs.hpcviewer411.ui.part.bottom-upview" label="Bottom-up view"/>
+        <children xsi:type="basic:Part" xmi:id="_BAmA4LGBEem1S_wJzMCpwQ" elementId="edu.rice.cs.hpcviewer411.ui.part.flatview" label="Flat view"/>
+      </children>
+    </children>
+    <mainMenu xmi:id="_rl_EMLGmEem1S_wJzMCpwQ" elementId="edu.rice.cs.hpcviewer411.ui.menu.0">
+      <children xsi:type="menu:Menu" xmi:id="_7EDUsLGmEem1S_wJzMCpwQ" elementId="edu.rice.cs.hpcviewer411.ui.menu.file" label="File">
+        <children xsi:type="menu:HandledMenuItem" xmi:id="_lTsKQLGnEem1S_wJzMCpwQ" elementId="edu.rice.cs.hpcviewer411.ui.handledmenuitem.newwindow" label="New window"/>
+        <children xsi:type="menu:HandledMenuItem" xmi:id="_nrnq8LGnEem1S_wJzMCpwQ" elementId="edu.rice.cs.hpcviewer411.ui.handledmenuitem.opendatabase" label="Open database"/>
+        <children xsi:type="menu:HandledMenuItem" xmi:id="_pO1xMLGnEem1S_wJzMCpwQ" elementId="edu.rice.cs.hpcviewer411.ui.handledmenuitem.closedatabase" label="Close database"/>
+        <children xsi:type="menu:MenuSeparator" xmi:id="_yRW6kLGnEem1S_wJzMCpwQ" elementId="edu.rice.cs.hpcviewer411.ui.menuseparator.0"/>
+        <children xsi:type="menu:HandledMenuItem" xmi:id="_xH1twLGnEem1S_wJzMCpwQ" elementId="edu.rice.cs.hpcviewer411.ui.handledmenuitem.preferences" label="Preferences"/>
+        <children xsi:type="menu:MenuSeparator" xmi:id="_1VZ6YLGnEem1S_wJzMCpwQ" elementId="edu.rice.cs.hpcviewer411.ui.menuseparator.1"/>
+        <children xsi:type="menu:HandledMenuItem" xmi:id="_2L42cLGnEem1S_wJzMCpwQ" elementId="edu.rice.cs.hpcviewer411.ui.handledmenuitem.closewindow" label="Close window"/>
+        <children xsi:type="menu:HandledMenuItem" xmi:id="_45MxQLGnEem1S_wJzMCpwQ" elementId="edu.rice.cs.hpcviewer411.ui.handledmenuitem.exithpcviewer" label="Exit hpcviewer"/>
+      </children>
+      <children xsi:type="menu:Menu" xmi:id="_-PJ-wLGmEem1S_wJzMCpwQ" elementId="edu.rice.cs.hpcviewer411.ui.menu.filter" label="Filter">
+        <children xsi:type="menu:HandledMenuItem" xmi:id="_eJoh4LGoEem1S_wJzMCpwQ" elementId="edu.rice.cs.hpcviewer411.ui.handledmenuitem.showfilter" label="Show filter"/>
+      </children>
+      <children xsi:type="menu:Menu" xmi:id="_iswHwLGoEem1S_wJzMCpwQ" elementId="edu.rice.cs.hpcviewer411.ui.menu.view" label="View">
+        <children xsi:type="menu:HandledMenuItem" xmi:id="_lY3vwLGoEem1S_wJzMCpwQ" elementId="edu.rice.cs.hpcviewer411.ui.handledmenuitem.showviews" label="Show views"/>
+        <children xsi:type="menu:HandledMenuItem" xmi:id="_nMH2ELGoEem1S_wJzMCpwQ" elementId="edu.rice.cs.hpcviewer411.ui.handledmenuitem.showmetricproperties" label="Show metric properties"/>
+        <children xsi:type="menu:Menu" xmi:id="_pMWBYLGoEem1S_wJzMCpwQ" elementId="edu.rice.cs.hpcviewer411.ui.menu.debug" label="Debug">
+          <children xsi:type="menu:HandledMenuItem" xmi:id="_qeQ8QLGoEem1S_wJzMCpwQ" elementId="edu.rice.cs.hpcviewer411.ui.handledmenuitem.showrawxmlfile" label="Show raw XML file"/>
+          <children xsi:type="menu:MenuSeparator" xmi:id="_utumULGoEem1S_wJzMCpwQ" elementId="edu.rice.cs.hpcviewer411.ui.menuseparator.2"/>
+          <children xsi:type="menu:HandledMenuItem" xmi:id="_vTwEgLGoEem1S_wJzMCpwQ" elementId="edu.rice.cs.hpcviewer411.ui.handledmenuitem.showcctid" label="Show CCT ID"/>
+          <children xsi:type="menu:HandledMenuItem" xmi:id="_w1KM4LGoEem1S_wJzMCpwQ" elementId="edu.rice.cs.hpcviewer411.ui.handledmenuitem.showflatid" label="Show flat ID"/>
+        </children>
+      </children>
+      <children xsi:type="menu:Menu" xmi:id="_2o9XgLGoEem1S_wJzMCpwQ" elementId="edu.rice.cs.hpcviewer411.ui.menu.window" label="Window">
+        <children xsi:type="menu:HandledMenuItem" xmi:id="_3mNp8LGoEem1S_wJzMCpwQ" elementId="edu.rice.cs.hpcviewer411.ui.handledmenuitem.resetlayout" label="Reset layout"/>
+      </children>
+      <children xsi:type="menu:Menu" xmi:id="_6ckMALGoEem1S_wJzMCpwQ" elementId="edu.rice.cs.hpcviewer411.ui.menu.help" label="Help">
+        <children xsi:type="menu:HandledMenuItem" xmi:id="_7lp7ALGoEem1S_wJzMCpwQ" elementId="edu.rice.cs.hpcviewer411.ui.handledmenuitem.about" label="About"/>
+        <children xsi:type="menu:HandledMenuItem" xmi:id="_9SQmwLGoEem1S_wJzMCpwQ" elementId="edu.rice.cs.hpcviewer411.ui.handledmenuitem.helpmanual" label="Help manual"/>
+      </children>
+    </mainMenu>
+  </children>
+  <addons xmi:id="_uzhYAbF2Eem1S_wJzMCpwQ" elementId="org.eclipse.e4.core.commands.service" contributionURI="bundleclass://org.eclipse.e4.core.commands/org.eclipse.e4.core.commands.CommandServiceAddon"/>
+  <addons xmi:id="_uzhYArF2Eem1S_wJzMCpwQ" elementId="org.eclipse.e4.ui.contexts.service" contributionURI="bundleclass://org.eclipse.e4.ui.services/org.eclipse.e4.ui.services.ContextServiceAddon"/>
+  <addons xmi:id="_uzhYA7F2Eem1S_wJzMCpwQ" elementId="org.eclipse.e4.ui.bindings.service" contributionURI="bundleclass://org.eclipse.e4.ui.bindings/org.eclipse.e4.ui.bindings.BindingServiceAddon"/>
+  <addons xmi:id="_uzhYBLF2Eem1S_wJzMCpwQ" elementId="org.eclipse.e4.ui.workbench.commands.model" contributionURI="bundleclass://org.eclipse.e4.ui.workbench/org.eclipse.e4.ui.internal.workbench.addons.CommandProcessingAddon"/>
+  <addons xmi:id="_uzhYBbF2Eem1S_wJzMCpwQ" elementId="org.eclipse.e4.ui.workbench.contexts.model" contributionURI="bundleclass://org.eclipse.e4.ui.workbench/org.eclipse.e4.ui.internal.workbench.addons.ContextProcessingAddon"/>
+  <addons xmi:id="_uzhYBrF2Eem1S_wJzMCpwQ" elementId="org.eclipse.e4.ui.workbench.bindings.model" contributionURI="bundleclass://org.eclipse.e4.ui.workbench.swt/org.eclipse.e4.ui.workbench.swt.util.BindingProcessingAddon"/>
+  <addons xmi:id="_uzhYB7F2Eem1S_wJzMCpwQ" elementId="org.eclipse.e4.ui.workbench.handler.model" contributionURI="bundleclass://org.eclipse.e4.ui.workbench/org.eclipse.e4.ui.internal.workbench.addons.HandlerProcessingAddon"/>
+</application:Application>
